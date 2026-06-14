@@ -9,6 +9,7 @@ from main import (
     format_manual_review_digest,
     format_near_match_digest,
     format_run_summary_message,
+    format_send_phase_message,
     format_weekly_summary,
     heartbeat_due,
     manual_review_daily_due,
@@ -101,6 +102,22 @@ def test_run_summary_message_uses_saved_metadata(tmp_path):
     assert "Fetched jobs: 5142" in message
     assert "Actionable candidates: 2" in message
     assert "- Greenhouse: 3585" in message
+
+
+def test_send_phase_message_includes_progress_counts():
+    message = format_send_phase_message(
+        fetched=5142,
+        actionable=2,
+        matched=0,
+        sent=1,
+        now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
+    )
+
+    assert "Internship monitor sending phase" in message
+    assert "Scraping and scoring are complete" in message
+    assert "Fetched jobs: 5142" in message
+    assert "Actionable candidates: 2" in message
+    assert "Job alerts sent so far: 1" in message
 
 
 def test_near_match_digest_includes_job_links_and_scores():

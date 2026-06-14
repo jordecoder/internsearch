@@ -4,6 +4,9 @@ resume_profile_path: resume_profile.yaml
 posted_within_hours: 24
 check_interval_minutes: 180
 
+send_phase_status:
+  enabled: true
+
 heartbeat:
   enabled: true
   interval_hours: 24

@@ -9,6 +9,11 @@ posted_within_hours: 24
 # Default schedule for local continuous mode. GitHub Actions uses its cron.
 check_interval_minutes: 180
 
+# Sends a short Telegram progress message after scraping/scoring finishes and
+# before digest/status messages are evaluated.
+send_phase_status:
+  enabled: true
+
 # Sends one Telegram "still running" summary at most once per interval.
 heartbeat:
   enabled: true

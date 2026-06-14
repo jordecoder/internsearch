@@ -578,6 +578,49 @@ def send_status_telegram_message(status: str) -> None:
     )
 
 
+def format_send_phase_message(
+    *,
+    fetched: int,
+    actionable: int,
+    matched: int,
+    sent: int,
+    now: datetime | None = None,
+) -> str:
+    now = now or datetime.now(timezone.utc)
+    return (
+        "<b>Internship monitor sending phase</b>\n\n"
+        f"Time: {html.escape(format_singapore_time(now))}\n"
+        "Scraping and scoring are complete. The monitor is now checking whether "
+        "job alerts, digests, heartbeat, or summaries are due.\n\n"
+        f"Fetched jobs: {fetched}\n"
+        f"Actionable candidates: {actionable}\n"
+        f"Strict matches: {matched}\n"
+        f"Job alerts sent so far: {sent}"
+    )
+
+
+def maybe_send_phase_status(
+    config: dict[str, Any],
+    *,
+    fetched: int,
+    actionable: int,
+    matched: int,
+    sent: int,
+) -> None:
+    status_config = config.get("send_phase_status", {})
+    if not status_config.get("enabled", True):
+        return
+    send_telegram_message(
+        format_send_phase_message(
+            fetched=fetched,
+            actionable=actionable,
+            matched=matched,
+            sent=sent,
+        ),
+        disable_web_page_preview=True,
+    )
+
+
 def format_run_summary_message(db_path: str, *, now: datetime | None = None) -> str:
     now = now or datetime.now(timezone.utc)
     last_run = get_metadata(db_path, "last_run_time") or "Unknown"
@@ -795,6 +838,17 @@ def run_once(config: dict[str, Any]) -> int:
     )
 
     near_matches.sort(key=lambda item: item[1].overall, reverse=True)
+
+    try:
+        maybe_send_phase_status(
+            config,
+            fetched=len(jobs),
+            actionable=len(actionable_items),
+            matched=matched,
+            sent=sent,
+        )
+    except Exception:
+        LOGGER.exception("send_phase_status_failed")
 
     try:
         maybe_send_actionable_digest(db_path, config, current_actionable_items)
