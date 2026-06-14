@@ -42,6 +42,17 @@ The default config alerts only when all of these pass:
 The scoring model evaluates role, skills, Singapore location, August/September
 2027 internship fit, and undergraduate/Bachelor's degree fit.
 
+The monitor also sends a one-time update when it first discovers a new
+actionable Singapore tech/CS internship posting that passes the actionable
+filters, even if it does not meet the stricter high-confidence alert threshold.
+
+```yaml
+new_actionable_alerts:
+  enabled: true
+  min_overall: 55
+  min_location: 70
+```
+
 ## 15-Minute Heartbeat
 
 The monitor is temporarily set to send one Telegram heartbeat every 15 minutes

@@ -20,7 +20,7 @@ from database import (
     was_notified,
 )
 from http_client import PoliteHttpClient
-from notifier import send_telegram, send_telegram_message
+from notifier import send_actionable_telegram, send_telegram, send_telegram_message
 from resume_matcher import ResumeMatch, load_resume_profile, match_resume_to_job
 from scoring import Score, is_actionable_candidate, is_fresh, passes_threshold, score_job
 from sources.ashby import fetch_ashby_boards
@@ -494,6 +494,10 @@ def run_once(config: dict[str, Any]) -> int:
     digest_config = config.get("near_match_digest", {})
     near_min_overall = int(digest_config.get("min_overall", 45))
     near_min_location = int(digest_config.get("min_location", 35))
+    actionable_alerts = config.get("new_actionable_alerts", {})
+    actionable_alerts_enabled = actionable_alerts.get("enabled", True)
+    actionable_alert_min_overall = int(actionable_alerts.get("min_overall", near_min_overall))
+    actionable_alert_min_location = int(actionable_alerts.get("min_location", near_min_location))
     tracker_config = config.get("application_tracker", {})
     tracker_enabled = tracker_config.get("enabled", True)
     tracker_path = tracker_config.get("path", "applications.csv")
@@ -515,9 +519,33 @@ def run_once(config: dict[str, Any]) -> int:
         for keyword in resume_match.missing_keywords:
             missing_keyword_counts[keyword] = missing_keyword_counts.get(keyword, 0) + 1
         note = _referral_note(job, config)
+        resume_note = _format_resume_note(resume_match)
         actionable_items.append((job, score, resume_match, note))
+        strict_match = passes_threshold(score, config)
 
-        if not passes_threshold(score, config):
+        should_send_actionable_alert = (
+            actionable_alerts_enabled
+            and is_new
+            and not strict_match
+            and score.overall >= actionable_alert_min_overall
+            and score.location_relevance >= actionable_alert_min_location
+        )
+        if should_send_actionable_alert:
+            try:
+                send_actionable_telegram(job, score, resume_note)
+                mark_notified(db_path, job)
+                sent += 1
+                LOGGER.info(
+                    "actionable_telegram_sent",
+                    extra={"title": job.title, "company": job.company, "url": job.url},
+                )
+            except Exception:
+                LOGGER.exception(
+                    "actionable_telegram_send_failed",
+                    extra={"title": job.title, "company": job.company, "url": job.url},
+                )
+
+        if not strict_match:
             if (
                 score.overall >= near_min_overall
                 and score.location_relevance >= near_min_location

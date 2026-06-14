@@ -1,5 +1,5 @@
 from job_model import Job
-from notifier import format_job_message
+from notifier import format_actionable_job_message, format_job_message
 from scoring import Score
 
 
@@ -27,3 +27,29 @@ def test_telegram_message_uses_html_links_and_score():
     assert "<b><a href=\"https://example.com/job?a=1&amp;b=2\">" in message
     assert "<b>Relevance Score</b>: 92/100" in message
     assert "<a href=\"https://example.com/job?a=1&amp;b=2\">Apply Here</a>" in message
+
+
+def test_actionable_message_labels_near_match_clearly():
+    job = Job(
+        source="CareersPage:DSTA",
+        title="DSTA Internships",
+        company="DSTA",
+        location="Singapore",
+        url="https://example.com/internships?a=1&b=2",
+    )
+    score = Score(
+        role_relevance=70,
+        skill_relevance=40,
+        location_relevance=90,
+        timeline_relevance=80,
+        degree_relevance=55,
+        overall=64,
+        timeline_match="Newly discovered, timeline unspecified",
+    )
+
+    message = format_actionable_job_message(job, score, "Resume coverage: 50%")
+
+    assert "New Actionable Internship Posting" in message
+    assert "DSTA Internships" in message
+    assert "Resume coverage: 50%" in message
+    assert "https://example.com/internships?a=1&amp;b=2" in message
