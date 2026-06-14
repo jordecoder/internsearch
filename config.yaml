@@ -12,8 +12,35 @@ near_match_digest:
   enabled: true
   interval_hours: 24
   max_items: 10
-  min_overall: 60
+  min_overall: 55
   min_location: 70
+
+manual_review_digest:
+  enabled: true
+  interval_hours: 24
+  max_items: 10
+  links:
+    - label: Indeed Singapore - data engineer intern
+      url: https://sg.indeed.com/jobs?q=data+engineer+intern&l=Singapore
+      note: Indeed often blocks automation, so check this manually.
+    - label: Indeed Singapore - machine learning intern
+      url: https://sg.indeed.com/jobs?q=machine+learning+intern&l=Singapore
+      note: Manual check for AI/ML internships.
+    - label: Indeed Singapore - software engineer intern
+      url: https://sg.indeed.com/jobs?q=software+engineer+intern&l=Singapore
+      note: Manual check for SWE internships.
+    - label: MyCareersFuture - data engineer intern
+      url: https://www.mycareersfuture.gov.sg/search?search=data%20engineer%20intern&sortBy=new_posting_date&page=0
+      note: Dynamic page; review manually.
+    - label: MyCareersFuture - AI intern
+      url: https://www.mycareersfuture.gov.sg/search?search=ai%20intern&sortBy=new_posting_date&page=0
+      note: Dynamic page; review manually.
+    - label: Google Careers - Singapore internships
+      url: https://www.google.com/about/careers/applications/jobs/results/?location=Singapore&q=intern
+      note: Dynamic page; review manually.
+    - label: Google Careers - data engineering Singapore
+      url: https://www.google.com/about/careers/applications/jobs/results/?location=Singapore&q=data%20engineering
+      note: Dynamic page; review manually.
 
 candidate_filters:
   min_location: 70

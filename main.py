@@ -317,6 +317,61 @@ def maybe_send_near_match_digest(
     set_metadata(db_path, last_key, now.isoformat())
 
 
+def format_manual_review_digest(items: list[dict[str, str]], *, now: datetime) -> str:
+    timestamp = now.astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    lines = [
+        "🔎 <b>Manual job-source review</b>",
+        "",
+        f"Generated: {timestamp}",
+        "",
+        "These sources are useful but may block automation or render dynamically.",
+        "",
+    ]
+    for index, item in enumerate(items, start=1):
+        label = html.escape(str(item.get("label", "Manual search")))
+        url = html.escape(str(item.get("url", "")), quote=True)
+        note = html.escape(str(item.get("note", "")))
+        if url:
+            lines.append(f"{index}. <a href=\"{url}\">{label}</a>")
+        else:
+            lines.append(f"{index}. {label}")
+        if note:
+            lines.append(note)
+        lines.append("")
+    return "\n".join(lines).strip()
+
+
+def maybe_send_manual_review_digest(db_path: str, config: dict[str, Any]) -> None:
+    manual = config.get("manual_review_digest", {})
+    if not manual.get("enabled", True):
+        return
+
+    items = manual.get("links", [])
+    if not items:
+        return
+
+    interval_hours = int(manual.get("interval_hours", 24))
+    now = datetime.now(timezone.utc)
+    last_key = "last_manual_review_digest_time"
+    last_value = get_metadata(db_path, last_key)
+    if last_value:
+        try:
+            last_sent = datetime.fromisoformat(last_value)
+            if last_sent.tzinfo is None:
+                last_sent = last_sent.replace(tzinfo=timezone.utc)
+            if now - last_sent < timedelta(hours=interval_hours):
+                return
+        except ValueError:
+            pass
+
+    max_items = int(manual.get("max_items", 10))
+    send_telegram_message(
+        format_manual_review_digest(items[:max_items], now=now),
+        disable_web_page_preview=True,
+    )
+    set_metadata(db_path, last_key, now.isoformat())
+
+
 def format_weekly_summary(
     *,
     now: datetime,
@@ -526,6 +581,11 @@ def run_once(config: dict[str, Any]) -> int:
         maybe_send_near_match_digest(db_path, config, near_matches)
     except Exception:
         LOGGER.exception("near_match_digest_send_failed")
+
+    try:
+        maybe_send_manual_review_digest(db_path, config)
+    except Exception:
+        LOGGER.exception("manual_review_digest_send_failed")
 
     try:
         maybe_send_weekly_summary(

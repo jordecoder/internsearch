@@ -5,6 +5,7 @@ from job_model import Job
 import main
 from main import (
     format_heartbeat_message,
+    format_manual_review_digest,
     format_near_match_digest,
     format_weekly_summary,
     heartbeat_due,
@@ -114,6 +115,24 @@ def test_weekly_summary_includes_totals_and_gaps():
     assert "Strict alerts sent: 3" in message
     assert "Grab: 5" in message
     assert "docker: 4" in message
+
+
+def test_manual_review_digest_includes_links_and_notes():
+    message = format_manual_review_digest(
+        [
+            {
+                "label": "Indeed Singapore - data engineer intern",
+                "url": "https://sg.indeed.com/jobs?q=data+engineer+intern&l=Singapore",
+                "note": "Indeed often blocks automation.",
+            }
+        ],
+        now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
+    )
+
+    assert "Manual job-source review" in message
+    assert "Indeed Singapore - data engineer intern" in message
+    assert "https://sg.indeed.com/jobs?q=data+engineer+intern&amp;l=Singapore" in message
+    assert "blocks automation" in message
 
 
 def test_send_test_telegram_message_uses_notifier(monkeypatch):

@@ -73,8 +73,21 @@ near_match_digest:
   enabled: true
   interval_hours: 24
   max_items: 10
-  min_overall: 45
-  min_location: 35
+  min_overall: 55
+  min_location: 70
+```
+
+## Manual Review Digest
+
+Some valuable sources, especially Indeed, MyCareersFuture, and broad Google
+Careers searches, may block automation or render dynamically. The monitor sends
+a daily manual-review digest with direct links for those sources instead of
+pretending it scraped them reliably.
+
+```yaml
+manual_review_digest:
+  enabled: true
+  interval_hours: 24
 ```
 
 ## Resume Matching
