@@ -75,6 +75,14 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py --test-telegram
 
+      - name: Handle Telegram commands before run
+        id: telegram_commands_before
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py --handle-telegram-commands
+
       - name: Run monitor once
         id: monitor
         env:
@@ -82,14 +90,23 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py --once
 
-      - name: Handle Telegram commands
-        id: telegram_commands
+      - name: Handle Telegram commands after run
+        id: telegram_commands_after
         if: ${{ always() }}
         continue-on-error: true
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py --handle-telegram-commands
+
+      - name: Send manual run summary
+        id: run_summary
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.send_status_messages }}
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py --run-summary-message
 
       - name: Upload application tracker
         id: upload_tracker
@@ -106,4 +123,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python main.py --status-message "Finished GitHub Actions monitor run with status: ${{ job.status }} | install=${{ steps.install.outcome }} config=${{ steps.config.outcome }} tests=${{ steps.tests.outcome }} cache=${{ steps.cache.outcome }} monitor=${{ steps.monitor.outcome }} commands=${{ steps.telegram_commands.outcome }} upload=${{ steps.upload_tracker.outcome }}"
+          python main.py --status-message "Finished GitHub Actions monitor run with status: ${{ job.status }} | install=${{ steps.install.outcome }} config=${{ steps.config.outcome }} tests=${{ steps.tests.outcome }} cache=${{ steps.cache.outcome }} monitor=${{ steps.monitor.outcome }} commands_before=${{ steps.telegram_commands_before.outcome }} commands_after=${{ steps.telegram_commands_after.outcome }} summary=${{ steps.run_summary.outcome }} upload=${{ steps.upload_tracker.outcome }}"

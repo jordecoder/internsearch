@@ -578,6 +578,54 @@ def send_status_telegram_message(status: str) -> None:
     )
 
 
+def format_run_summary_message(db_path: str, *, now: datetime | None = None) -> str:
+    now = now or datetime.now(timezone.utc)
+    last_run = get_metadata(db_path, "last_run_time") or "Unknown"
+    fetched = get_metadata(db_path, "last_run_fetched") or "Unknown"
+    actionable = get_metadata(db_path, "last_run_actionable") or "Unknown"
+    matched = get_metadata(db_path, "last_run_matched") or "Unknown"
+    sent = get_metadata(db_path, "last_run_sent") or "Unknown"
+    source_counts = get_metadata(db_path, "last_run_source_counts") or ""
+    source_lines = []
+    if source_counts:
+        for item in source_counts.split("|"):
+            source, _, count = item.partition("=")
+            if source and count:
+                source_lines.append(f"- {html.escape(display_source(source))}: {html.escape(count)}")
+    sources = "\n".join(source_lines) if source_lines else "Unavailable"
+    return (
+        "<b>Manual monitor run summary</b>\n\n"
+        f"Summary sent: {html.escape(format_singapore_time(now))}\n"
+        f"Last run: {html.escape(_format_metadata_time(last_run))}\n"
+        f"Fetched jobs: {html.escape(fetched)}\n"
+        f"Actionable candidates: {html.escape(actionable)}\n"
+        f"Strict matches: {html.escape(matched)}\n"
+        f"Telegram job alerts sent: {html.escape(sent)}\n\n"
+        f"<b>Sources</b>\n{sources}"
+    )
+
+
+def send_run_summary_message(config: dict[str, Any]) -> None:
+    db_path = config.get("database_path", "jobs.sqlite3")
+    init_db(db_path)
+    send_telegram_message(
+        format_run_summary_message(db_path),
+        disable_web_page_preview=True,
+    )
+
+
+def _format_metadata_time(value: str) -> str:
+    if not value or value == "Unknown":
+        return "Unknown"
+    try:
+        parsed = datetime.fromisoformat(value)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return format_singapore_time(parsed)
+    except ValueError:
+        return value
+
+
 def run_once(config: dict[str, Any]) -> int:
     db_path = config.get("database_path", "jobs.sqlite3")
     posted_within_hours = int(config.get("posted_within_hours", 24))
@@ -830,6 +878,11 @@ def main() -> None:
         action="store_true",
         help="Reply to pending Telegram bot commands and exit.",
     )
+    parser.add_argument(
+        "--run-summary-message",
+        action="store_true",
+        help="Send a Telegram summary from latest saved run metadata and exit.",
+    )
     parser.add_argument("--config", default="config.yaml", help="Path to config YAML.")
     args = parser.parse_args()
 
@@ -847,6 +900,11 @@ def main() -> None:
         init_db(db_path)
         processed = process_telegram_commands(db_path)
         LOGGER.info("telegram_commands_processed count=%s", processed)
+        return
+
+    if args.run_summary_message:
+        send_run_summary_message(config)
+        LOGGER.info("telegram_run_summary_sent")
         return
 
     if args.test_telegram:

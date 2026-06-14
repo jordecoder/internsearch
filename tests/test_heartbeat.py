@@ -8,6 +8,7 @@ from main import (
     format_heartbeat_message,
     format_manual_review_digest,
     format_near_match_digest,
+    format_run_summary_message,
     format_weekly_summary,
     heartbeat_due,
     manual_review_daily_due,
@@ -78,6 +79,28 @@ def test_heartbeat_message_includes_run_summary():
     assert "Actionable candidates: 4" in message
     assert "Passed filters: 0" in message
     assert "Telegram job alerts sent: 0" in message
+
+
+def test_run_summary_message_uses_saved_metadata(tmp_path):
+    db_path = str(tmp_path / "jobs.sqlite3")
+    init_db(db_path)
+    set_metadata(db_path, "last_run_time", "2026-06-14T12:00:00+00:00")
+    set_metadata(db_path, "last_run_fetched", "5142")
+    set_metadata(db_path, "last_run_actionable", "2")
+    set_metadata(db_path, "last_run_matched", "0")
+    set_metadata(db_path, "last_run_sent", "0")
+    set_metadata(db_path, "last_run_source_counts", "Greenhouse=3585|Careers pages=365")
+
+    message = format_run_summary_message(
+        db_path,
+        now=datetime(2026, 6, 14, 13, 0, tzinfo=timezone.utc),
+    )
+
+    assert "Manual monitor run summary" in message
+    assert "Last run: 2026-06-14 20:00 SGT" in message
+    assert "Fetched jobs: 5142" in message
+    assert "Actionable candidates: 2" in message
+    assert "- Greenhouse: 3585" in message
 
 
 def test_near_match_digest_includes_job_links_and_scores():
