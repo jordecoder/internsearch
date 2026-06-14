@@ -125,6 +125,21 @@ def test_senior_manager_outside_singapore_is_not_actionable():
     assert not is_actionable_candidate(job, score, CONFIG)
 
 
+def test_non_singapore_location_field_overrides_description_mentions():
+    job = Job(
+        source="CareersPage:Western Digital",
+        title="Data Analytics & Engineering Intern",
+        company="Western Digital",
+        location="Binan HICAP Office--LOC_HGST_PHL01",
+        url="https://jobs.smartrecruiters.com/WesternDigital/744000117762538-data-analytics-engineering-intern",
+        description="Singapore regional business context. Python SQL analytics internship.",
+    )
+
+    score = score_job(job, CONFIG)
+
+    assert not is_actionable_candidate(job, score, CONFIG)
+
+
 def test_marketing_growth_intern_is_not_actionable():
     job = Job(
         source="InternSG",

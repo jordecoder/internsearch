@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
@@ -22,6 +23,14 @@ DEFAULT_LINK_TERMS = [
 ]
 
 
+LOCATION_LABELS = [
+    "work location",
+    "location",
+    "job location",
+    "primary location",
+]
+
+
 def _matches(text: str, terms: list[str]) -> bool:
     lowered = text.lower()
     return any(term.lower() in lowered for term in terms)
@@ -29,6 +38,33 @@ def _matches(text: str, terms: list[str]) -> bool:
 
 def _clean_title(title: str) -> str:
     return title.strip().lstrip("> ").strip()
+
+
+def _extract_location_from_text(text: str) -> str:
+    compact = " ".join(text.split())
+    for label in LOCATION_LABELS:
+        pattern = rf"{label}\s*:\s*([^|;\n\r]+?)(?=\s{{2,}}| Company Description| Job Description|$)"
+        match = re.search(pattern, compact, flags=re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+    return ""
+
+
+def _fetch_job_detail(
+    href: str,
+    client: PoliteHttpClient,
+) -> tuple[str, str]:
+    try:
+        response = client.get(href)
+        if response.status_code == 404:
+            return "", ""
+        response.raise_for_status()
+    except Exception:
+        return "", ""
+
+    soup = BeautifulSoup(response.text, "html.parser")
+    page_text = soup.get_text(" ", strip=True)
+    return _extract_location_from_text(page_text), page_text[:2000]
 
 
 def fetch_careers_pages(
@@ -68,15 +104,19 @@ def fetch_careers_pages(
             if not title or not _matches(text, keywords):
                 continue
 
+            detail_location, detail_description = _fetch_job_detail(href, client)
+            location = detail_location or str(page.get("default_location") or "")
+            description = detail_description or surrounding[:2000]
+
             jobs.append(
                 Job(
                     source=f"CareersPage:{name}",
                     title=title[:200],
                     company=company,
-                    location=str(page.get("default_location") or ""),
+                    location=location,
                     url=href,
                     posted_at=None,
-                    description=surrounding[:2000],
+                    description=description,
                 )
             )
 

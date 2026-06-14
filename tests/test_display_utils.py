@@ -8,6 +8,10 @@ def test_display_title_preserves_common_tech_acronyms():
     assert display_title("ai/ml engineer intern") == "AI/ML Engineer Intern"
 
 
+def test_display_title_removes_adjacent_duplicate_words():
+    assert display_title("Data Analytics & Engineering Intern Intern") == "Data Analytics & Engineering Intern"
+
+
 def test_display_company_formats_known_slugs():
     assert display_company("workato") == "Workato"
     assert display_company("govtech singapore") == "GovTech Singapore"
@@ -22,6 +26,7 @@ def test_display_company_formats_known_slugs():
 
 def test_display_source_formats_provider_and_company():
     assert display_source("Greenhouse:workato") == "Greenhouse: Workato"
+    assert display_source("CareersPage:Western Digital") == "Careers Page: Western Digital"
     assert display_source("InternSG") == "InternSG"
 
 

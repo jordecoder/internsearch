@@ -89,12 +89,15 @@ def is_actionable_candidate(job: Job, score: Score, config: dict[str, Any]) -> b
     filters = config.get("candidate_filters", {})
     text = _text(job)
     title = (job.title or "").lower()
+    location_text = (job.location or "").lower()
 
     if score.location_relevance < int(filters.get("min_location", 70)):
         return False
 
     required_locations = filters.get("required_locations", ["singapore"])
-    if required_locations and not _has_any(text, required_locations):
+    if required_locations and location_text and not _has_any(location_text, required_locations):
+        return False
+    if required_locations and not location_text and not _has_any(text, required_locations):
         return False
 
     internship_terms = filters.get("internship_terms", ["intern", "internship"])

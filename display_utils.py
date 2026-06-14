@@ -137,14 +137,14 @@ def display_company(company: str) -> str:
 
 
 def display_title(title: str) -> str:
-    return display_text(title)
+    return _remove_adjacent_duplicate_words(display_text(title))
 
 
 def display_source(source: str) -> str:
     raw = str(source or "").strip()
     if ":" in raw:
         provider, name = raw.split(":", 1)
-        return f"{display_text(provider)}: {display_company(name)}"
+        return f"{_display_provider(provider)}: {display_company(name)}"
     return display_text(raw)
 
 
@@ -165,3 +165,21 @@ def _format_word(word: str) -> str:
     if stripped in COMPANY_DISPLAY:
         return word.replace(stripped, COMPANY_DISPLAY[stripped])
     return word[:1].upper() + word[1:].lower()
+
+
+def _display_provider(provider: str) -> str:
+    mappings = {
+        "careerspage": "Careers Page",
+    }
+    compact = str(provider or "").replace(" ", "").lower()
+    return mappings.get(compact, display_text(provider))
+
+
+def _remove_adjacent_duplicate_words(value: str) -> str:
+    words = value.split()
+    cleaned: list[str] = []
+    for word in words:
+        if cleaned and cleaned[-1].lower() == word.lower():
+            continue
+        cleaned.append(word)
+    return " ".join(cleaned)

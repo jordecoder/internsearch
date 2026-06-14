@@ -82,7 +82,18 @@ def test_fetch_careers_pages_keeps_relevant_links():
                   </body>
                 </html>
                 """
-            )
+            ),
+            FakeResponse(
+                text="""
+                <html>
+                  <body>
+                    <h1>Machine Learning Intern</h1>
+                    <p>Work Location: Singapore</p>
+                    <h2>Job Description</h2>
+                  </body>
+                </html>
+                """
+            ),
         ]
     )
 
@@ -117,7 +128,18 @@ def test_fetch_careers_pages_skips_mailto_and_fragment_links():
                   </body>
                 </html>
                 """
-            )
+            ),
+            FakeResponse(
+                text="""
+                <html>
+                  <body>
+                    <h1>DSTA Internships</h1>
+                    <p>Location: Singapore</p>
+                    <h2>Job Description</h2>
+                  </body>
+                </html>
+                """
+            ),
         ]
     )
 
@@ -136,6 +158,50 @@ def test_fetch_careers_pages_skips_mailto_and_fragment_links():
     assert len(jobs) == 1
     assert jobs[0].title == "DSTA Internships"
     assert jobs[0].url == "https://example.com/internships"
+
+
+def test_fetch_careers_pages_uses_job_detail_location_over_default():
+    client = FakeClient(
+        [
+            FakeResponse(
+                text="""
+                <html>
+                  <body>
+                    <a href="/WesternDigital/744000117762538-data-analytics-engineering-intern">
+                      Data Analytics & Engineering INTERN
+                    </a>
+                  </body>
+                </html>
+                """
+            ),
+            FakeResponse(
+                text="""
+                <html>
+                  <body>
+                    <h1>Data Analytics & Engineering INTERN</h1>
+                    <p>Work Location: Binan HICAP Office--LOC_HGST_PHL01</p>
+                    <h2>Company Description</h2>
+                  </body>
+                </html>
+                """
+            ),
+        ]
+    )
+
+    jobs = fetch_careers_pages(
+        [
+            {
+                "name": "Western Digital",
+                "company": "Western Digital",
+                "url": "https://jobs.smartrecruiters.com",
+                "default_location": "Singapore",
+            }
+        ],
+        client,
+    )
+
+    assert len(jobs) == 1
+    assert jobs[0].location == "Binan HICAP Office--LOC_HGST_PHL01"
 
 
 def test_fetch_internsg_canonicalizes_search_query_duplicates():
