@@ -11,11 +11,6 @@ on:
   schedule:
     # Every 3 hours in Singapore time, including 20:00 SGT for daily manual links.
     - cron: "0 0,3,6,9,12,15,18,21 * * *"
-    # Backup starts every 15 minutes from 20:45 to 21:30 SGT for the daily
-    # manual-review digest. The digest code dedupes by Singapore date, so these
-    # should not send duplicates.
-    - cron: "45 12 * * *"
-    - cron: "0,15,30 13 * * *"
   workflow_dispatch:
     inputs:
       send_test_message:
