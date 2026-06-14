@@ -44,6 +44,23 @@ def test_heartbeat_waits_for_interval(tmp_path):
     )
 
 
+def test_heartbeat_supports_fractional_hour_interval(tmp_path):
+    db_path = str(tmp_path / "jobs.sqlite3")
+    init_db(db_path)
+    set_metadata(db_path, "last_heartbeat_time", "2026-06-14T00:00:00+00:00")
+
+    assert not heartbeat_due(
+        db_path,
+        interval_hours=0.25,
+        now=datetime(2026, 6, 14, 0, 14, tzinfo=timezone.utc),
+    )
+    assert heartbeat_due(
+        db_path,
+        interval_hours=0.25,
+        now=datetime(2026, 6, 14, 0, 15, tzinfo=timezone.utc),
+    )
+
+
 def test_heartbeat_message_includes_run_summary():
     message = format_heartbeat_message(
         fetched=238,

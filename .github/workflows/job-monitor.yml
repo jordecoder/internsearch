@@ -5,8 +5,8 @@ env:
 
 on:
   schedule:
-    # Runs every 2 hours.
-    - cron: "0 */2 * * *"
+    # Temporary verification cadence: runs every 15 minutes.
+    - cron: "*/15 * * * *"
   workflow_dispatch:
     inputs:
       send_test_message:

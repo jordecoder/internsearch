@@ -12,20 +12,20 @@ check_interval_minutes: 120
 # Sends one Telegram "still running" summary at most once per interval.
 heartbeat:
   enabled: true
-  interval_hours: 2
+  interval_hours: 0.25
 
 # Sends one daily digest of promising jobs that are below the strict alert
 # threshold, so you can manually review borderline roles.
 near_match_digest:
   enabled: true
-  interval_hours: 2
+  interval_hours: 0.25
   max_items: 10
   min_overall: 55
   min_location: 70
 
 manual_review_digest:
   enabled: true
-  interval_hours: 2
+  interval_hours: 0.25
   max_items: 10
   links:
     - label: Indeed Singapore - data engineer intern

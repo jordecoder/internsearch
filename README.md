@@ -42,9 +42,10 @@ The default config alerts only when all of these pass:
 The scoring model evaluates role, skills, Singapore location, August/September
 2027 internship fit, and undergraduate/Bachelor's degree fit.
 
-## 2-Hour Heartbeat
+## 15-Minute Heartbeat
 
-The monitor sends one Telegram heartbeat message every 2 hours by default, even
+The monitor is temporarily set to send one Telegram heartbeat every 15 minutes
+for verification, even
 when no job alerts are sent. It includes the latest run time plus fetched,
 matched, sent, and per-source fetched counts.
 
@@ -53,12 +54,12 @@ To change this, edit `config.yaml`:
 ```yaml
 heartbeat:
   enabled: true
-  interval_hours: 2
+  interval_hours: 0.25
 ```
 
-## 2-Hour Near-Match Digest
+## 15-Minute Near-Match Digest
 
-The monitor also sends one digest every 2 hours of promising jobs that did not pass the
+The monitor also sends one digest every 15 minutes of promising jobs that did not pass the
 strict alert thresholds. These are worth manual review because career pages often
 omit exact internship dates or use broad role titles. Digest entries include
 resume keyword coverage, missing resume keywords, and a referral suggestion for
@@ -71,7 +72,7 @@ marketing, sales, support, or other non-target role terms.
 ```yaml
 near_match_digest:
   enabled: true
-  interval_hours: 2
+  interval_hours: 0.25
   max_items: 10
   min_overall: 55
   min_location: 70
@@ -81,13 +82,13 @@ near_match_digest:
 
 Some valuable sources, especially Indeed, MyCareersFuture, and broad Google
 Careers searches, may block automation or render dynamically. The monitor sends
-a manual-review digest every 2 hours with direct links for those sources instead of
+a manual-review digest every 15 minutes with direct links for those sources instead of
 pretending it scraped them reliably.
 
 ```yaml
 manual_review_digest:
   enabled: true
-  interval_hours: 2
+  interval_hours: 0.25
 ```
 
 ## Resume Matching
@@ -188,7 +189,8 @@ check_interval_minutes: 30
 
 ## GitHub Actions
 
-The workflow is at `.github/workflows/job-monitor.yml` and runs every 2 hours.
+The workflow is at `.github/workflows/job-monitor.yml` and is temporarily set to
+run every 15 minutes for verification.
 After you add the Telegram secrets, you do not need to manually run it for the
 regular checks. GitHub starts it automatically from the cron schedule even when
 your computer is off.
@@ -202,7 +204,7 @@ The workflow restores and saves `jobs.sqlite3` with `actions/cache` so jobs
 without exact posting times do not repeatedly alert on every scheduled run.
 
 Manual runs are only for testing or forcing an immediate check. Manual runs can
-send start/finish status messages; scheduled two-hour runs send job alerts,
+send start/finish status messages; scheduled runs send job alerts,
 near-match digest, manual-review digest, heartbeat, and weekly summary when due.
 
 ## Docker

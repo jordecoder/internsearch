@@ -155,7 +155,7 @@ def fetch_all_jobs(config: dict[str, Any], client: PoliteHttpClient):
     return list(unique.values()), source_counts
 
 
-def heartbeat_due(db_path: str, interval_hours: int, now: datetime | None = None) -> bool:
+def heartbeat_due(db_path: str, interval_hours: float, now: datetime | None = None) -> bool:
     now = now or datetime.now(timezone.utc)
     last_value = get_metadata(db_path, "last_heartbeat_time")
     if not last_value:
@@ -218,7 +218,7 @@ def maybe_send_heartbeat(
     if not heartbeat.get("enabled", True):
         return
 
-    interval_hours = int(heartbeat.get("interval_hours", 24))
+    interval_hours = float(heartbeat.get("interval_hours", 24))
     now = datetime.now(timezone.utc)
     if not heartbeat_due(db_path, interval_hours, now=now):
         return
@@ -295,7 +295,7 @@ def maybe_send_near_match_digest(
     if not digest.get("enabled", True) or not items:
         return
 
-    interval_hours = int(digest.get("interval_hours", 24))
+    interval_hours = float(digest.get("interval_hours", 24))
     now = datetime.now(timezone.utc)
     last_key = "last_near_match_digest_time"
     last_value = get_metadata(db_path, last_key)
@@ -350,7 +350,7 @@ def maybe_send_manual_review_digest(db_path: str, config: dict[str, Any]) -> Non
     if not items:
         return
 
-    interval_hours = int(manual.get("interval_hours", 24))
+    interval_hours = float(manual.get("interval_hours", 24))
     now = datetime.now(timezone.utc)
     last_key = "last_manual_review_digest_time"
     last_value = get_metadata(db_path, last_key)
@@ -412,7 +412,7 @@ def maybe_send_weekly_summary(
     if not summary.get("enabled", True):
         return
 
-    interval_hours = int(summary.get("interval_hours", 168))
+    interval_hours = float(summary.get("interval_hours", 168))
     now = datetime.now(timezone.utc)
     last_key = "last_weekly_summary_time"
     last_value = get_metadata(db_path, last_key)
