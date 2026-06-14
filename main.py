@@ -24,7 +24,6 @@ from notifier import send_actionable_telegram, send_telegram, send_telegram_mess
 from opportunity_insights import (
     OpportunityInsights,
     build_opportunity_insights,
-    build_source_health,
 )
 from resume_matcher import ResumeMatch, load_resume_profile, match_resume_to_job
 from scoring import Score, is_actionable_candidate, is_fresh, passes_threshold, score_job
@@ -187,15 +186,6 @@ def _format_source_counts(source_counts: dict[str, int]) -> str:
     return "\n".join(lines)
 
 
-def _format_source_health(source_health: list[str] | None) -> str:
-    if not source_health:
-        return ""
-    lines = ["Source health:"]
-    for item in source_health[:12]:
-        lines.append(f"- {html.escape(item)}")
-    return "\n".join(lines)
-
-
 def format_heartbeat_message(
     fetched: int,
     matched: int,
@@ -203,7 +193,6 @@ def format_heartbeat_message(
     now: datetime,
     source_counts: dict[str, int] | None = None,
     actionable_candidates: int | None = None,
-    source_health: list[str] | None = None,
 ) -> str:
     timestamp = format_singapore_time(now)
     actionable_line = ""
@@ -217,7 +206,6 @@ def format_heartbeat_message(
         f"Passed filters: {matched}\n"
         f"Telegram job alerts sent: {sent}\n\n"
         f"{_format_source_counts(source_counts or {})}"
-        + (f"\n\n{_format_source_health(source_health)}" if source_health else "")
     )
 
 
@@ -230,7 +218,6 @@ def maybe_send_heartbeat(
     sent: int,
     source_counts: dict[str, int],
     actionable_candidates: int | None = None,
-    source_health: list[str] | None = None,
 ) -> None:
     heartbeat = config.get("heartbeat", {})
     if not heartbeat.get("enabled", True):
@@ -249,7 +236,6 @@ def maybe_send_heartbeat(
             now,
             source_counts,
             actionable_candidates,
-            source_health,
         ),
         disable_web_page_preview=True,
     )
@@ -734,7 +720,6 @@ def run_once(config: dict[str, Any]) -> int:
         LOGGER.exception("weekly_summary_send_failed")
 
     try:
-        source_health = build_source_health(source_counts, config)
         maybe_send_heartbeat(
             db_path,
             config,
@@ -743,7 +728,6 @@ def run_once(config: dict[str, Any]) -> int:
             sent=sent,
             source_counts=source_counts,
             actionable_candidates=len(actionable_items),
-            source_health=source_health,
         )
     except Exception:
         LOGGER.exception("heartbeat_send_failed")

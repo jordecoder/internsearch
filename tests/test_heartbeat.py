@@ -171,22 +171,6 @@ def test_actionable_digest_includes_seen_before_candidates():
     assert "Role: Data Science / Analytics" in message
 
 
-def test_heartbeat_message_includes_source_health():
-    message = format_heartbeat_message(
-        fetched=100,
-        matched=1,
-        sent=1,
-        now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
-        source_counts={"InternSG": 10},
-        actionable_candidates=2,
-        source_health=["InternSG: ok (10)", "Indeed: manual/API needed"],
-    )
-
-    assert "Source health:" in message
-    assert "InternSG: ok (10)" in message
-    assert "Indeed: manual/API needed" in message
-
-
 def test_weekly_summary_includes_totals_and_gaps():
     message = format_weekly_summary(
         now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
