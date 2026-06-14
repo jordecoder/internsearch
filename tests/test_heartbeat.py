@@ -2,7 +2,13 @@ from datetime import datetime, timezone
 
 from database import init_db, set_metadata
 from job_model import Job
-from main import format_heartbeat_message, format_near_match_digest, heartbeat_due
+import main
+from main import (
+    format_heartbeat_message,
+    format_near_match_digest,
+    heartbeat_due,
+    send_test_telegram_message,
+)
 from scoring import Score
 
 
@@ -75,3 +81,19 @@ def test_near_match_digest_includes_job_links_and_scores():
     assert "Data Platform Intern" in message
     assert "score 65/100" in message
     assert "https://example.com/job?a=1&amp;b=2" in message
+
+
+def test_send_test_telegram_message_uses_notifier(monkeypatch):
+    sent = {}
+
+    def fake_send(message, *, disable_web_page_preview=False):
+        sent["message"] = message
+        sent["disable_web_page_preview"] = disable_web_page_preview
+
+    monkeypatch.setattr(main, "send_telegram_message", fake_send)
+
+    send_test_telegram_message()
+
+    assert "Internship monitor test" in sent["message"]
+    assert "GitHub Actions secrets are working" in sent["message"]
+    assert sent["disable_web_page_preview"] is True
