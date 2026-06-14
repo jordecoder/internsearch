@@ -60,6 +60,14 @@ def make_client(config: dict[str, Any]) -> PoliteHttpClient:
     )
 
 
+def _fetch_source(name: str, fetcher) -> list[Any]:
+    try:
+        return fetcher()
+    except Exception:
+        LOGGER.exception("source_fetch_failed source=%s", name)
+        return []
+
+
 def fetch_all_jobs(config: dict[str, Any], client: PoliteHttpClient):
     all_jobs = []
     source_counts: dict[str, int] = {}
@@ -67,54 +75,78 @@ def fetch_all_jobs(config: dict[str, Any], client: PoliteHttpClient):
 
     internsg = sources.get("internsg", {})
     if internsg.get("enabled", False):
-        jobs = fetch_internsg(internsg.get("search_terms", []), client)
+        jobs = _fetch_source(
+            "InternSG",
+            lambda: fetch_internsg(internsg.get("search_terms", []), client),
+        )
         source_counts["InternSG"] = len(jobs)
         all_jobs.extend(jobs)
 
     greenhouse = sources.get("greenhouse", {})
     if greenhouse.get("enabled", False):
-        jobs = fetch_greenhouse_boards(greenhouse.get("boards", []), client)
+        jobs = _fetch_source(
+            "Greenhouse",
+            lambda: fetch_greenhouse_boards(greenhouse.get("boards", []), client),
+        )
         source_counts["Greenhouse"] = len(jobs)
         all_jobs.extend(jobs)
 
     lever = sources.get("lever", {})
     if lever.get("enabled", False):
-        jobs = fetch_lever_companies(lever.get("companies", []), client)
+        jobs = _fetch_source(
+            "Lever",
+            lambda: fetch_lever_companies(lever.get("companies", []), client),
+        )
         source_counts["Lever"] = len(jobs)
         all_jobs.extend(jobs)
 
     ashby = sources.get("ashby", {})
     if ashby.get("enabled", False):
-        jobs = fetch_ashby_boards(ashby.get("boards", []), client)
+        jobs = _fetch_source(
+            "Ashby",
+            lambda: fetch_ashby_boards(ashby.get("boards", []), client),
+        )
         source_counts["Ashby"] = len(jobs)
         all_jobs.extend(jobs)
 
     smartrecruiters = sources.get("smartrecruiters", {})
     if smartrecruiters.get("enabled", False):
-        jobs = fetch_smartrecruiters_companies(
-            smartrecruiters.get("companies", []), client
+        jobs = _fetch_source(
+            "SmartRecruiters",
+            lambda: fetch_smartrecruiters_companies(
+                smartrecruiters.get("companies", []), client
+            ),
         )
         source_counts["SmartRecruiters"] = len(jobs)
         all_jobs.extend(jobs)
 
     workday = sources.get("workday", {})
     if workday.get("enabled", False):
-        jobs = fetch_workday_sites(workday.get("sites", []), client)
+        jobs = _fetch_source(
+            "Workday",
+            lambda: fetch_workday_sites(workday.get("sites", []), client),
+        )
         source_counts["Workday"] = len(jobs)
         all_jobs.extend(jobs)
 
     careers_pages = sources.get("careers_pages", {})
     if careers_pages.get("enabled", False):
-        jobs = fetch_careers_pages(careers_pages.get("pages", []), client)
+        jobs = _fetch_source(
+            "Careers pages",
+            lambda: fetch_careers_pages(careers_pages.get("pages", []), client),
+        )
         source_counts["Careers pages"] = len(jobs)
         all_jobs.extend(jobs)
 
     mycareersfuture = sources.get("mycareersfuture", {})
     if mycareersfuture.get("enabled", False):
-        jobs = fetch_mycareersfuture(
-            endpoint=mycareersfuture.get("endpoint", ""),
-            search_terms=mycareersfuture.get("search_terms", []),
-            client=client,
+        jobs = _fetch_source(
+            "MyCareersFuture",
+            lambda: fetch_mycareersfuture(
+                endpoint=mycareersfuture.get("endpoint", ""),
+                search_terms=mycareersfuture.get("search_terms", []),
+                client=client,
+            ),
         )
         source_counts["MyCareersFuture"] = len(jobs)
         all_jobs.extend(jobs)

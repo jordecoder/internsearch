@@ -2,6 +2,7 @@ from sources.ashby import fetch_ashby_boards
 from sources.careers_page import fetch_careers_pages
 from sources.smartrecruiters import fetch_smartrecruiters_companies
 from sources.workday import fetch_workday_sites
+from main import fetch_all_jobs
 
 
 class FakeResponse:
@@ -30,6 +31,14 @@ class FakeClient:
     def post(self, url, **kwargs):
         self.urls.append(url)
         return self.responses.pop(0)
+
+
+class FailingClient(FakeClient):
+    def __init__(self):
+        super().__init__([])
+
+    def get(self, url, **kwargs):
+        raise RuntimeError("network failed")
 
 
 def test_fetch_ashby_boards_maps_jobs():
@@ -152,3 +161,19 @@ def test_fetch_workday_sites_maps_jobs():
     assert len(jobs) == 1
     assert jobs[0].source == "Workday:Example"
     assert jobs[0].url == "https://example.com/job/1"
+
+
+def test_fetch_all_jobs_continues_when_source_fails():
+    config = {
+        "sources": {
+            "internsg": {
+                "enabled": True,
+                "search_terms": ["data intern"],
+            }
+        }
+    }
+
+    jobs, counts = fetch_all_jobs(config, FailingClient())
+
+    assert jobs == []
+    assert counts == {"InternSG": 0}

@@ -72,6 +72,7 @@ jobs:
 
       - name: Upload application tracker
         if: ${{ always() && hashFiles('applications.csv') != '' }}
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: applications
