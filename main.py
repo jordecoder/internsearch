@@ -23,6 +23,7 @@ from http_client import PoliteHttpClient
 from notifier import send_actionable_telegram, send_telegram, send_telegram_message
 from resume_matcher import ResumeMatch, load_resume_profile, match_resume_to_job
 from scoring import Score, is_actionable_candidate, is_fresh, passes_threshold, score_job
+from time_utils import format_singapore_time
 from sources.ashby import fetch_ashby_boards
 from sources.careers_page import fetch_careers_pages
 from sources.greenhouse import fetch_greenhouse_boards
@@ -189,7 +190,7 @@ def format_heartbeat_message(
     source_counts: dict[str, int] | None = None,
     actionable_candidates: int | None = None,
 ) -> str:
-    timestamp = now.astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    timestamp = format_singapore_time(now)
     actionable_line = ""
     if actionable_candidates is not None:
         actionable_line = f"Actionable candidates: {actionable_candidates}\n"
@@ -261,7 +262,7 @@ def format_near_match_digest(
     *,
     now: datetime,
 ) -> str:
-    timestamp = now.astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    timestamp = format_singapore_time(now)
     lines = [
         "📋 <b>Daily near-match internship digest</b>",
         "",
@@ -318,7 +319,7 @@ def maybe_send_near_match_digest(
 
 
 def format_manual_review_digest(items: list[dict[str, str]], *, now: datetime) -> str:
-    timestamp = now.astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    timestamp = format_singapore_time(now)
     lines = [
         "🔎 <b>Manual job-source review</b>",
         "",
@@ -381,7 +382,7 @@ def format_weekly_summary(
     top_companies: list[tuple[str, int]],
     common_missing_keywords: list[tuple[str, int]],
 ) -> str:
-    timestamp = now.astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    timestamp = format_singapore_time(now)
     company_lines = "\n".join(
         f"- {html.escape(company)}: {count}" for company, count in top_companies
     ) or "- None"
@@ -450,7 +451,7 @@ def maybe_send_weekly_summary(
 
 
 def send_test_telegram_message() -> None:
-    now = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    now = format_singapore_time(datetime.now(timezone.utc))
     send_telegram_message(
         (
             "<b>Internship monitor test</b>\n\n"
@@ -462,7 +463,7 @@ def send_test_telegram_message() -> None:
 
 
 def send_status_telegram_message(status: str) -> None:
-    now = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    now = format_singapore_time(datetime.now(timezone.utc))
     send_telegram_message(
         (
             "<b>Internship monitor status</b>\n\n"
