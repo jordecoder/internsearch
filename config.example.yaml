@@ -151,7 +151,7 @@ role_families:
 manual_review_digest:
   enabled: true
   interval_hours: 0.25
-  max_items: 10
+  max_items: 20
   links:
     - label: Indeed Singapore - data engineer intern
       url: https://sg.indeed.com/jobs?q=data+engineer+intern&l=Singapore
@@ -162,6 +162,27 @@ manual_review_digest:
     - label: Indeed Singapore - software engineer intern
       url: https://sg.indeed.com/jobs?q=software+engineer+intern&l=Singapore
       note: Manual check for SWE internships.
+    - label: JobStreet Singapore - data engineer intern
+      url: https://sg.jobstreet.com/data-engineer-intern-jobs/in-Singapore
+      note: SEEK/JobStreet pages are dynamic; check manually.
+    - label: JobStreet Singapore - software engineer intern
+      url: https://sg.jobstreet.com/software-engineer-intern-jobs/in-Singapore
+      note: Manual check for broad Singapore SWE internships.
+    - label: JobsDB Singapore - technology intern
+      url: https://sg.jobsdb.com/technology-intern-jobs/in-Singapore
+      note: SEEK/JobsDB pages are dynamic; check manually.
+    - label: FastJobs Singapore - IT intern
+      url: https://www.fastjobs.sg/singapore-jobs/en/it-computers-internship-jobs
+      note: Dynamic job board; check manually for smaller companies.
+    - label: eFinancialCareers Singapore - technology intern
+      url: https://www.efinancialcareers.sg/jobs-Technology-Internship-Singapore
+      note: Useful for bank, fintech, and quant technology internships.
+    - label: GradSingapore - technology internships
+      url: https://gradsingapore.com/search-jobs?keywords=technology%20intern
+      note: Graduate/internship board; review manually.
+    - label: TalentTribe Singapore - tech internships
+      url: https://talenttribe.asia/jobs
+      note: Review manually for local internship postings.
     - label: MyCareersFuture - data engineer intern
       url: https://www.mycareersfuture.gov.sg/search?search=data%20engineer%20intern&sortBy=new_posting_date&page=0
       note: Dynamic page; review manually.
@@ -481,10 +502,16 @@ priority_companies:
   - JPMorgan
   - Goldman Sachs
   - Morgan Stanley
+  - Bank of America
+  - Citi
+  - Standard Chartered
+  - UBS
   - Carousell
   - ShopBack
   - Ninja Van
   - Circles.Life
+  - Optiver
+  - IMC
   - Accenture
   - DSTA
   - CSIT
@@ -516,6 +543,18 @@ referral_priority_companies:
   - GIC
   - Temasek
   - Bloomberg
+  - JPMorgan
+  - Goldman Sachs
+  - Morgan Stanley
+  - Bank of America
+  - Citi
+  - Standard Chartered
+  - UBS
+  - Jane Street
+  - Jump Trading
+  - Hudson River Trading
+  - Optiver
+  - IMC
   - Visa
   - Mastercard
   - Accenture
@@ -775,6 +814,58 @@ sources:
       - name: Bloomberg
         company: Bloomberg
         url: https://www.bloomberg.com/company/careers/working-here/
+        default_location: Singapore
+      - name: JPMorgan Chase
+        company: JPMorgan
+        url: https://www.jpmorgan.com/global/careers/students/programs
+        default_location: Singapore
+      - name: JPMorgan Chase Jobs
+        company: JPMorgan
+        url: https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/requisitions?keyword=intern&location=Singapore
+        default_location: Singapore
+      - name: Goldman Sachs
+        company: Goldman Sachs
+        url: https://www.goldmansachs.com/careers/students/programs-and-internships
+        default_location: Singapore
+      - name: Morgan Stanley
+        company: Morgan Stanley
+        url: https://www.morganstanley.com/people-opportunities/students-graduates
+        default_location: Singapore
+      - name: Bank of America
+        company: Bank of America
+        url: https://careers.bankofamerica.com/en-us/students
+        default_location: Singapore
+      - name: Citi
+        company: Citi
+        url: https://jobs.citi.com/students-and-graduates/
+        default_location: Singapore
+      - name: Standard Chartered
+        company: Standard Chartered
+        url: https://www.sc.com/en/global-careers/early-careers/
+        default_location: Singapore
+      - name: UBS
+        company: UBS
+        url: https://www.ubs.com/global/en/careers/students.html
+        default_location: Singapore
+      - name: Jane Street
+        company: Jane Street
+        url: https://www.janestreet.com/join-jane-street/open-roles/
+        default_location: Singapore
+      - name: Jump Trading
+        company: Jump Trading
+        url: https://www.jumptrading.com/careers/
+        default_location: Singapore
+      - name: Hudson River Trading
+        company: Hudson River Trading
+        url: https://www.hudsonrivertrading.com/careers/
+        default_location: Singapore
+      - name: Optiver
+        company: Optiver
+        url: https://optiver.com/working-at-optiver/career-opportunities/
+        default_location: Singapore
+      - name: IMC Trading
+        company: IMC
+        url: https://www.imc.com/us/careers/jobs/
         default_location: Singapore
       - name: NVIDIA
         company: NVIDIA

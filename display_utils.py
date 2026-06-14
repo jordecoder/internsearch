@@ -23,6 +23,7 @@ ACRONYMS = {
     "hr",
     "htx",
     "ibm",
+    "imc",
     "imda",
     "it",
     "llm",
@@ -36,6 +37,7 @@ ACRONYMS = {
     "sme",
     "sql",
     "sre",
+    "ubs",
     "uob",
 }
 
@@ -59,7 +61,9 @@ COMPANY_DISPLAY = {
     "govtech singapore": "GovTech Singapore",
     "grab": "Grab",
     "ibm": "IBM",
+    "imc": "IMC",
     "internsg": "InternSG",
+    "jpmorgan": "JPMorgan",
     "mongodb": "MongoDB",
     "nvidia": "NVIDIA",
     "ocbc": "OCBC",
