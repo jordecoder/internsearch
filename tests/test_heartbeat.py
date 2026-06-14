@@ -202,7 +202,7 @@ def test_manual_review_digest_includes_links_and_notes():
     )
 
     assert "Manual job-source review" in message
-    assert "Indeed Singapore - data engineer intern" in message
+    assert "Indeed Singapore - Data Engineer Intern" in message
     assert "https://sg.indeed.com/jobs?q=data+engineer+intern&amp;l=Singapore" in message
     assert "blocks automation" in message
 

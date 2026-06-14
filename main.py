@@ -19,6 +19,7 @@ from database import (
     set_metadata,
     was_notified,
 )
+from display_utils import display_company, display_source, display_text, display_title, posted_date
 from http_client import PoliteHttpClient
 from notifier import send_actionable_telegram, send_telegram, send_telegram_message
 from opportunity_insights import (
@@ -182,7 +183,7 @@ def _format_source_counts(source_counts: dict[str, int]) -> str:
         return "Source counts: unavailable"
     lines = ["Source counts:"]
     for source, count in sorted(source_counts.items()):
-        lines.append(f"- {html.escape(source)}: {count}")
+        lines.append(f"- {html.escape(display_source(source))}: {count}")
     return "\n".join(lines)
 
 
@@ -264,8 +265,8 @@ def format_near_match_digest(
         "",
     ]
     for index, (job, score, resume_match, insights) in enumerate(items, start=1):
-        title = html.escape(job.title)
-        company = html.escape(job.company)
+        title = html.escape(display_title(job.title))
+        company = html.escape(display_company(job.company))
         location = html.escape(job.location or "Unknown")
         url = html.escape(job.url, quote=True)
         lines.extend(
@@ -273,6 +274,7 @@ def format_near_match_digest(
                 f"{index}. <a href=\"{url}\">{title}</a>",
                 f"{company} | {location} | score {score.overall}/100",
                 f"Type: {html.escape(insights.opportunity_type)} | Role: {html.escape(insights.role_family)}",
+                f"Posted: {html.escape(posted_date(job.posted_at))}",
                 f"Timeline: {html.escape(score.timeline_match)}",
                 f"Deadline: {html.escape(insights.deadline)}",
                 _format_resume_note(resume_match),
@@ -339,8 +341,8 @@ def format_actionable_digest(
         "",
     ]
     for index, (job, score, resume_match, insights, is_new) in enumerate(items, start=1):
-        title = html.escape(job.title)
-        company = html.escape(job.company)
+        title = html.escape(display_title(job.title))
+        company = html.escape(display_company(job.company))
         location = html.escape(job.location or "Unknown")
         url = html.escape(job.url, quote=True)
         freshness = "new this run" if is_new else "seen before"
@@ -349,6 +351,7 @@ def format_actionable_digest(
                 f"{index}. <a href=\"{url}\">{title}</a>",
                 f"{company} | {location} | score {score.overall}/100 | {freshness}",
                 f"Type: {html.escape(insights.opportunity_type)} | Role: {html.escape(insights.role_family)}",
+                f"Posted: {html.escape(posted_date(job.posted_at))}",
                 f"Deadline: {html.escape(insights.deadline)}",
                 _format_resume_note(resume_match),
                 html.escape(insights.recommended_action),
@@ -401,7 +404,7 @@ def format_manual_review_digest(items: list[dict[str, str]], *, now: datetime) -
         "",
     ]
     for index, item in enumerate(items, start=1):
-        label = html.escape(str(item.get("label", "Manual search")))
+        label = html.escape(display_text(str(item.get("label", "Manual search"))))
         url = html.escape(str(item.get("url", "")), quote=True)
         note = html.escape(str(item.get("note", "")))
         if url:
@@ -456,7 +459,7 @@ def format_weekly_summary(
 ) -> str:
     timestamp = format_singapore_time(now)
     company_lines = "\n".join(
-        f"- {html.escape(company)}: {count}" for company, count in top_companies
+        f"- {html.escape(display_company(company))}: {count}" for company, count in top_companies
     ) or "- None"
     gap_lines = "\n".join(
         f"- {html.escape(keyword)}: {count}" for keyword, count in common_missing_keywords

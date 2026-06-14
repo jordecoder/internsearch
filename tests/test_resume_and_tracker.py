@@ -3,6 +3,7 @@ from opportunity_insights import OpportunityInsights
 from application_tracker import update_application_tracker
 from resume_matcher import match_resume_to_job
 from scoring import Score
+from datetime import datetime, timezone
 
 
 def test_resume_matcher_reports_missing_keywords():
@@ -48,10 +49,11 @@ def test_application_tracker_creates_and_updates_rows(tmp_path):
     path = tmp_path / "applications.csv"
     job = Job(
         source="Example",
-        title="Data Engineer Intern",
-        company="Example",
+        title="data engineer intern",
+        company="example",
         location="Singapore",
         url="https://example.com/job",
+        posted_at=datetime(2026, 6, 14, 0, 0, tzinfo=timezone.utc),
     )
     score = Score(80, 75, 90, 80, 60, 77, "Recent posting")
     match = match_resume_to_job(job, {"strength_keywords": ["python"]}, ["python"])
@@ -63,6 +65,8 @@ def test_application_tracker_creates_and_updates_rows(tmp_path):
 
     assert len(rows) == 2
     assert "Data Engineer Intern" in rows[1]
+    assert "posted_date" in rows[0]
+    assert "SGT" in rows[1]
     assert "updated" in rows[1]
 
 

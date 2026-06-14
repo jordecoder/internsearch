@@ -1,0 +1,24 @@
+from datetime import datetime, timezone
+
+from display_utils import display_company, display_source, display_title, posted_date
+
+
+def test_display_title_preserves_common_tech_acronyms():
+    assert display_title("data engineering intern - rag and llm") == "Data Engineering Intern - RAG And LLM"
+    assert display_title("ai/ml engineer intern") == "AI/ML Engineer Intern"
+
+
+def test_display_company_formats_known_slugs():
+    assert display_company("workato") == "Workato"
+    assert display_company("govtech singapore") == "GovTech Singapore"
+    assert display_company("DSTA") == "DSTA"
+
+
+def test_display_source_formats_provider_and_company():
+    assert display_source("Greenhouse:workato") == "Greenhouse: Workato"
+    assert display_source("InternSG") == "InternSG"
+
+
+def test_posted_date_formats_singapore_time():
+    assert posted_date(datetime(2026, 6, 14, 0, 0, tzinfo=timezone.utc)).endswith("SGT")
+    assert posted_date(None) == "Unknown"

@@ -5,9 +5,9 @@ import os
 
 import requests
 
+from display_utils import display_company, display_source, display_title, posted_date
 from job_model import Job
 from scoring import Score
-from time_utils import format_singapore_time
 
 
 def _escape(value: str) -> str:
@@ -15,14 +15,11 @@ def _escape(value: str) -> str:
 
 
 def format_job_message(job: Job, score: Score) -> str:
-    posted = "Unknown"
-    if job.posted_at:
-        posted = format_singapore_time(job.posted_at)
-
-    title = _escape(job.title)
-    company = _escape(job.company)
+    posted = posted_date(job.posted_at)
+    title = _escape(display_title(job.title))
+    company = _escape(display_company(job.company))
     location = _escape(job.location)
-    source = _escape(job.source)
+    source = _escape(display_source(job.source))
     url = _escape(job.url)
     timeline = _escape(score.timeline_match)
 
@@ -40,14 +37,11 @@ def format_job_message(job: Job, score: Score) -> str:
 
 
 def format_actionable_job_message(job: Job, score: Score, resume_note: str) -> str:
-    posted = "Unknown"
-    if job.posted_at:
-        posted = format_singapore_time(job.posted_at)
-
-    title = _escape(job.title)
-    company = _escape(job.company)
+    posted = posted_date(job.posted_at)
+    title = _escape(display_title(job.title))
+    company = _escape(display_company(job.company))
     location = _escape(job.location)
-    source = _escape(job.source)
+    source = _escape(display_source(job.source))
     url = _escape(job.url)
     timeline = _escape(score.timeline_match)
     resume = _escape(resume_note)

@@ -4,6 +4,7 @@ import csv
 from datetime import datetime, timezone
 from pathlib import Path
 
+from display_utils import display_company, display_source, display_title, posted_date
 from job_model import Job
 from opportunity_insights import OpportunityInsights
 from resume_matcher import ResumeMatch
@@ -16,6 +17,7 @@ FIELDNAMES = [
     "title",
     "location",
     "source",
+    "posted_date",
     "score",
     "priority",
     "status",
@@ -71,10 +73,11 @@ def update_application_tracker(
 
     data = {
         "job_url": job.url,
-        "company": job.company,
-        "title": job.title,
+        "company": display_company(job.company),
+        "title": display_title(job.title),
         "location": job.location,
-        "source": job.source,
+        "source": display_source(job.source),
+        "posted_date": posted_date(job.posted_at),
         "score": str(score.overall),
         "priority": _priority_label(score.overall, insights),
         "status": resolved_status,

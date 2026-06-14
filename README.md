@@ -120,10 +120,10 @@ resume_match:
 ## Application Tracker
 
 Promising strict matches and near matches are written to `applications.csv` with
-status, priority, referral status, opportunity type, role family, deadline,
-score, resume coverage, missing keywords, next action, resume suggestion, and
-notes. GitHub Actions preserves it in the workflow cache and uploads it as an
-artifact when present.
+status, posted date, priority, referral status, opportunity type, role family,
+deadline, score, resume coverage, missing keywords, next action, resume
+suggestion, and notes. GitHub Actions preserves it in the workflow cache and
+uploads it as an artifact when present.
 
 ```yaml
 application_tracker:

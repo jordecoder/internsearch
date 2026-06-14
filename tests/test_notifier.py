@@ -1,15 +1,18 @@
+from datetime import datetime, timezone
+
 from job_model import Job
 from notifier import format_actionable_job_message, format_job_message
 from scoring import Score
 
 
-def test_telegram_message_uses_html_links_and_score():
+def test_telegram_message_uses_html_links_score_and_display_names():
     job = Job(
-        source="InternSG",
-        title="Data Engineering Intern",
-        company="Grab",
+        source="Greenhouse:workato",
+        title="data engineering intern",
+        company="workato",
         location="Singapore",
         url="https://example.com/job?a=1&b=2",
+        posted_at=datetime(2026, 6, 14, 0, 0, tzinfo=timezone.utc),
     )
     score = Score(
         role_relevance=95,
@@ -23,8 +26,12 @@ def test_telegram_message_uses_html_links_and_score():
 
     message = format_job_message(job, score)
 
-    assert "🚨 <b>New Internship Match</b>" in message
-    assert "<b><a href=\"https://example.com/job?a=1&amp;b=2\">" in message
+    assert "New Internship Match" in message
+    assert "<b><a href=\"https://example.com/job?a=1&amp;b=2\">Data Engineering Intern</a></b>" in message
+    assert "<b>Company</b>: Workato" in message
+    assert "<b>Source</b>: Greenhouse: Workato" in message
+    assert "<b>Posted Time</b>:" in message
+    assert "SGT" in message
     assert "<b>Relevance Score</b>: 92/100" in message
     assert "<a href=\"https://example.com/job?a=1&amp;b=2\">Apply Here</a>" in message
 
@@ -32,7 +39,7 @@ def test_telegram_message_uses_html_links_and_score():
 def test_actionable_message_labels_near_match_clearly():
     job = Job(
         source="CareersPage:DSTA",
-        title="DSTA Internships",
+        title="dsta internships",
         company="DSTA",
         location="Singapore",
         url="https://example.com/internships?a=1&b=2",
