@@ -95,20 +95,25 @@ def send_actionable_telegram(job: Job, score: Score, resume_note: str) -> None:
     send_telegram_message(format_actionable_job_message(job, score, resume_note))
 
 
-def get_telegram_updates(offset: int | None = None) -> list[dict]:
+def get_telegram_updates(
+    offset: int | None = None,
+    *,
+    poll_timeout_seconds: int = 0,
+    request_timeout_seconds: int = 20,
+) -> list[dict]:
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     if not token:
         raise RuntimeError("Missing TELEGRAM_BOT_TOKEN in environment/.env")
 
     api_url = f"https://api.telegram.org/bot{token}/getUpdates"
     params: dict[str, object] = {
-        "timeout": 0,
+        "timeout": poll_timeout_seconds,
         "allowed_updates": '["message"]',
     }
     if offset is not None:
         params["offset"] = offset
 
-    response = requests.get(api_url, params=params, timeout=20)
+    response = requests.get(api_url, params=params, timeout=request_timeout_seconds)
     response.raise_for_status()
     data = response.json()
     if not data.get("ok"):

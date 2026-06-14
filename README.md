@@ -197,9 +197,17 @@ The job title and `Apply Here` both link to the posting.
 
 ## Telegram Commands
 
-Commands are handled through Telegram `getUpdates` during each GitHub Actions
-run. This means replies are not instant; the bot replies when the next scheduled
-or manually triggered workflow runs.
+For instant replies, run the live Telegram worker:
+
+```powershell
+python live_bot.py
+```
+
+The live worker uses Telegram long polling and replies as soon as it receives a
+command. GitHub Actions still runs the scraper every 3 hours and sends job
+alerts. If you do not run the live worker, commands can still be handled by
+GitHub Actions only if you set the repository variable
+`ENABLE_ACTIONS_TELEGRAM_COMMANDS=true`.
 
 - `/help` - show available commands
 - `/faq` - explain scrape cadence, alerts, and manual boards
@@ -239,6 +247,12 @@ Run continuously every 3 hours:
 python main.py
 ```
 
+Run the live Telegram command bot:
+
+```powershell
+python live_bot.py
+```
+
 For optional 30-minute checks, change:
 
 ```yaml
@@ -265,10 +279,39 @@ without exact posting times do not repeatedly alert on every scheduled run.
 Manual runs are only for testing or forcing an immediate check. Manual runs can
 send start/finish status messages; scheduled runs send job alerts,
 near-match digest, actionable digest, the 20:00 SGT manual-review digest,
-heartbeat, weekly summary, and replies to pending Telegram commands when due.
+heartbeat, and weekly summary when due. Telegram commands should normally be
+handled by the live worker. If you want GitHub Actions to handle pending
+commands instead, add this repository variable:
+
+- `ENABLE_ACTIONS_TELEGRAM_COMMANDS=true`
 
 The workflow has a concurrency group so frequent scheduled runs do not stack up
 on top of one another if GitHub Actions is slow.
+
+## Live Telegram Bot Hosting
+
+Deploy `python live_bot.py` as an always-on worker on a host such as Render,
+Railway, Fly.io, or a small VPS. The included `Procfile` declares:
+
+```text
+worker: python live_bot.py
+```
+
+Required environment variables:
+
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+
+Optional environment variables:
+
+- `TELEGRAM_POLL_TIMEOUT_SECONDS=25`
+- `TELEGRAM_ERROR_SLEEP_SECONDS=5`
+- `LIVE_BOT_SEND_STARTUP=true`
+
+The worker replies instantly to commands, but it only knows about jobs present
+in its local `jobs.sqlite3`. For production hosting, use persistent storage or
+mount the same database path so `/status`, `/recent`, and `/date` survive
+restarts.
 
 ## Docker
 
@@ -282,6 +325,12 @@ Run continuously:
 
 ```bash
 docker run --env-file .env -v "%cd%/jobs.sqlite3:/app/jobs.sqlite3" sg-internship-job-monitor
+```
+
+Run the live Telegram bot:
+
+```bash
+docker run --env-file .env -v "%cd%/jobs.sqlite3:/app/jobs.sqlite3" sg-internship-job-monitor python live_bot.py
 ```
 
 Run once:

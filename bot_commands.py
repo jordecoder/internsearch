@@ -34,7 +34,7 @@ The bot only sends scraped jobs that pass Singapore, internship, role, and score
 No. Dynamic job boards are kept as manual links and sent once daily at 20:00 SGT.
 
 <b>Are commands instant?</b>
-Not on GitHub Actions. Commands are processed when the workflow next runs.
+Yes, if the live bot worker is running. On GitHub Actions alone, commands are processed only when the workflow runs.
 """
 
 
@@ -55,7 +55,17 @@ def process_telegram_commands(db_path: str) -> int:
     last_offset = get_metadata(db_path, "telegram_last_update_offset")
     offset = int(last_offset) + 1 if last_offset and last_offset.isdigit() else None
     updates = get_telegram_updates(offset=offset)
+    return process_telegram_updates(db_path, updates, expected_chat_id=expected_chat_id)
+
+
+def process_telegram_updates(
+    db_path: str,
+    updates: list[dict],
+    *,
+    expected_chat_id: str,
+) -> int:
     processed = 0
+    last_offset = get_metadata(db_path, "telegram_last_update_offset")
     max_update_id = int(last_offset) if last_offset and last_offset.isdigit() else None
 
     for update in updates:
