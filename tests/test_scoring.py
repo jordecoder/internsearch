@@ -29,8 +29,12 @@ CONFIG = {
         "internship_terms": ["intern", "internship"],
         "technical_terms": [
             "data engineering",
+            "analytics",
+            "data analyst",
             "machine learning",
             "software engineer",
+            "technology consulting",
+            "it consulting",
             "python",
             "sql",
             "rag",
@@ -119,6 +123,51 @@ def test_marketing_growth_intern_is_not_actionable():
         location="Singapore",
         url="https://example.com/job",
         description="Marketing growth internship.",
+    )
+
+    score = score_job(job, CONFIG)
+
+    assert not is_actionable_candidate(job, score, CONFIG)
+
+
+def test_analytics_intern_is_actionable():
+    job = Job(
+        source="InternSG",
+        title="Analytics Intern",
+        company="Example",
+        location="Singapore",
+        url="https://example.com/job",
+        description="Use SQL Python dashboards and business intelligence analytics.",
+    )
+
+    score = score_job(job, CONFIG)
+
+    assert is_actionable_candidate(job, score, CONFIG)
+
+
+def test_it_consulting_intern_is_actionable():
+    job = Job(
+        source="InternSG",
+        title="Technology Consulting Intern",
+        company="Example",
+        location="Singapore",
+        url="https://example.com/job",
+        description="IT consulting internship for cloud data transformation projects.",
+    )
+
+    score = score_job(job, CONFIG)
+
+    assert is_actionable_candidate(job, score, CONFIG)
+
+
+def test_public_policy_intern_with_technical_company_boilerplate_is_not_actionable():
+    job = Job(
+        source="Greenhouse:cloudflare",
+        title="Public Policy Intern, APJC",
+        company="cloudflare",
+        location="Singapore",
+        url="https://example.com/job",
+        description="Cloud cybersecurity network platform company using Python SQL.",
     )
 
     score = score_job(job, CONFIG)

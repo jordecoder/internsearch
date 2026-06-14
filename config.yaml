@@ -25,17 +25,56 @@ candidate_filters:
   technical_terms:
     - data engineer
     - data engineering
+    - data analyst
+    - data analytics
     - analytics engineer
+    - analytics
+    - business intelligence
+    - bi analyst
     - machine learning
     - software engineer
+    - software engineering
+    - application developer
+    - full stack
+    - frontend
+    - front end
+    - web developer
+    - mobile developer
     - backend
+    - back end
     - platform engineer
     - data science
+    - data scientist
     - ai engineer
     - generative ai
     - genai
     - llm
     - rag
+    - technology consultant
+    - technology consulting
+    - it consultant
+    - it consulting
+    - solutions engineer
+    - solution architect
+    - cloud engineer
+    - cybersecurity
+    - cyber security
+    - security engineer
+    - devops
+    - site reliability
+    - systems engineer
+    - database
+    - qa engineer
+    - quality assurance
+    - automation testing
+    - product analyst
+    - technical analyst
+    - computer science
+    - information technology
+    - it intern
+    - technology intern
+    - technical intern
+    - digital intern
     - python
     - sql
   rejected_terms:
@@ -91,6 +130,27 @@ role_keywords:
   - software engineer intern ai
   - software engineer intern, ai
   - data science intern
+  - data scientist intern
+  - data analyst intern
+  - analytics intern
+  - business intelligence intern
+  - bi intern
+  - software engineer intern
+  - backend engineer intern
+  - full stack intern
+  - application developer intern
+  - technology consultant intern
+  - technology consulting intern
+  - it consultant intern
+  - it consulting intern
+  - cloud intern
+  - cybersecurity intern
+  - cyber security intern
+  - solutions engineer intern
+  - systems engineer intern
+  - devops intern
+  - qa intern
+  - product analyst intern
   - intern
   - internship
   - university internship
@@ -106,6 +166,11 @@ target_keywords:
   - genai
   - machine learning
   - data engineering
+  - data analytics
+  - data analyst
+  - analytics
+  - business intelligence
+  - bi
   - etl
   - data pipeline
   - python
@@ -137,6 +202,17 @@ target_keywords:
   - dbt
   - kafka
   - flink
+  - technology consulting
+  - it consulting
+  - cloud computing
+  - cybersecurity
+  - cyber security
+  - devops
+  - qa
+  - test automation
+  - systems engineering
+  - solution architecture
+  - requirements gathering
 
 degree_keywords:
   - bachelor's degree
@@ -269,6 +345,19 @@ sources:
       - generative ai intern
       - rag intern
       - data science intern
+      - data analyst intern
+      - analytics intern
+      - business intelligence intern
+      - software engineer intern
+      - backend engineer intern
+      - technology consulting intern
+      - it consulting intern
+      - cloud intern
+      - cybersecurity intern
+      - solutions engineer intern
+      - systems engineer intern
+      - devops intern
+      - qa intern
 
   greenhouse:
     enabled: true

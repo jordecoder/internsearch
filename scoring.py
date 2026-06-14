@@ -106,7 +106,7 @@ def is_actionable_candidate(job: Job, score: Score, config: dict[str, Any]) -> b
         return False
 
     technical_terms = filters.get("technical_terms", [])
-    if technical_terms and not _has_any(text, technical_terms):
+    if technical_terms and not _has_any(title, technical_terms):
         return False
 
     return True
