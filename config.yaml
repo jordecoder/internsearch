@@ -1,0 +1,142 @@
+log_level: INFO
+database_path: jobs.sqlite3
+posted_within_hours: 24
+check_interval_minutes: 120
+
+http:
+  user_agent: "SGInternshipJobMonitor/1.0 (+personal internship alerts)"
+  timeout_seconds: 25
+  retries: 3
+  rate_limit_seconds: 1.5
+
+thresholds:
+  overall: 70
+  timeline: 80
+  location: 70
+
+role_keywords:
+  - data engineering intern
+  - data engineer intern
+  - analytics engineer intern
+  - ai engineer intern
+  - machine learning intern
+  - llm intern
+  - generative ai intern
+  - rag intern
+  - software engineer intern ai
+  - software engineer intern, ai
+  - data science intern
+  - intern
+  - internship
+  - university internship
+  - undergraduate internship
+
+target_keywords:
+  - rag
+  - retrieval augmented generation
+  - retrieval-augmented generation
+  - llm
+  - large language model
+  - generative ai
+  - genai
+  - machine learning
+  - data engineering
+  - etl
+  - data pipeline
+  - python
+  - sql
+  - spark
+  - airflow
+  - databricks
+  - snowflake
+  - vector database
+  - vector databases
+  - llamaindex
+  - langchain
+  - postgresql
+  - fastapi
+  - gpt models
+
+degree_keywords:
+  - bachelor's degree
+  - bachelors degree
+  - undergraduate
+  - university student
+  - penultimate year
+  - third-year student
+  - third year student
+  - computer science
+  - data science
+  - ai
+  - analytics
+  - software engineering
+  - computer engineering
+
+priority_companies:
+  - Google
+  - Microsoft
+  - Amazon
+  - AWS
+  - Meta
+  - OpenAI
+  - Anthropic
+  - Databricks
+  - Snowflake
+  - Stripe
+  - Wise
+  - Grab
+  - Shopee
+  - Sea
+  - TikTok
+  - ByteDance
+  - GovTech Singapore
+  - DBS
+  - OCBC
+  - UOB
+  - GIC
+  - Temasek
+  - ST Engineering
+
+sources:
+  internsg:
+    enabled: true
+    search_terms:
+      - data engineer intern
+      - data engineering intern
+      - analytics engineer intern
+      - machine learning intern
+      - ai intern
+      - llm intern
+      - generative ai intern
+      - rag intern
+      - data science intern
+
+  greenhouse:
+    enabled: true
+    boards:
+      - openai
+      - anthropic
+      - databricks
+      - snowflake
+      - stripe
+      - grab
+      - shopee
+      - govtech
+      - bytedance
+
+  lever:
+    enabled: true
+    companies:
+      - wise
+      - stripe
+      - shopback
+      - gic
+      - okx
+
+  mycareersfuture:
+    enabled: false
+    endpoint: ""
+    search_terms:
+      - data engineer intern
+      - machine learning intern
+      - ai intern
