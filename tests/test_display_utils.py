@@ -22,6 +22,9 @@ def test_display_company_formats_known_slugs():
     assert display_company("shopback") == "ShopBack"
     assert display_company("m-daq") == "M-DAQ"
     assert display_company("synapxe") == "Synapxe"
+    assert display_company("monee") == "Monee"
+    assert display_company("seamoney") == "SeaMoney"
+    assert display_company("maribank") == "MariBank"
 
 
 def test_display_source_formats_provider_and_company():

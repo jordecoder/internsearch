@@ -220,6 +220,12 @@ manual_review_digest:
     - label: Prosple Singapore technology internships
       url: https://sg.prosple.com/search-jobs?keywords=technology%20intern
       note: Graduate/internship board; review manually.
+    - label: Shopee Singapore internships
+      url: https://careers.shopee.sg/jobs?keyword=intern
+      note: Direct Shopee career search for Singapore internship openings.
+    - label: Monee / SeaMoney Singapore internships
+      url: https://www.sea.com/careers
+      note: Sea fintech arm; check for Monee, SeaMoney, ShopeePay, SPayLater, SeaBank, and MariBank roles.
     - label: NUS TalentConnect
       url: https://nus-csm.symplicity.com/
       note: Login-gated university portal; check manually.
@@ -474,6 +480,9 @@ priority_companies:
   - Grab
   - Shopee
   - Sea
+  - Monee
+  - SeaMoney
+  - MariBank
   - TikTok
   - ByteDance
   - GovTech Singapore
@@ -567,6 +576,9 @@ referral_priority_companies:
   - Grab
   - Shopee
   - Sea
+  - Monee
+  - SeaMoney
+  - MariBank
   - TikTok
   - ByteDance
   - GovTech Singapore
@@ -816,6 +828,23 @@ sources:
         company: Sea
         url: https://www.sea.com/careers
         default_location: Singapore
+      - name: Monee
+        company: Monee
+        url: https://www.sea.com/careers
+        default_location: Singapore
+        keywords:
+          - monee
+          - seamoney
+          - shopeepay
+          - spaylater
+          - seabank
+          - maribank
+          - intern
+          - data
+          - software
+          - engineer
+          - machine learning
+          - ai
       - name: DBS
         company: DBS
         url: https://www.dbs.com/careers/default.page
