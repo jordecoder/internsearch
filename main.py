@@ -28,7 +28,7 @@ from opportunity_insights import (
 )
 from resume_matcher import ResumeMatch, load_resume_profile, match_resume_to_job
 from scoring import Score, is_actionable_candidate, is_fresh, passes_threshold, score_job
-from time_utils import format_singapore_time
+from time_utils import SINGAPORE_TZ, format_singapore_time
 from sources.ashby import fetch_ashby_boards
 from sources.careers_page import fetch_careers_pages
 from sources.greenhouse import fetch_greenhouse_boards
@@ -426,11 +426,15 @@ def maybe_send_manual_review_digest(db_path: str, config: dict[str, Any]) -> Non
     if not items:
         return
 
-    interval_hours = float(manual.get("interval_hours", 24))
     now = datetime.now(timezone.utc)
+    daily_at_sgt = str(manual.get("daily_at_sgt", "")).strip()
+    if daily_at_sgt and not manual_review_daily_due(db_path, daily_at_sgt, now=now):
+        return
+
+    interval_hours = float(manual.get("interval_hours", 24))
     last_key = "last_manual_review_digest_time"
     last_value = get_metadata(db_path, last_key)
-    if last_value:
+    if last_value and not daily_at_sgt:
         try:
             last_sent = datetime.fromisoformat(last_value)
             if last_sent.tzinfo is None:
@@ -446,6 +450,30 @@ def maybe_send_manual_review_digest(db_path: str, config: dict[str, Any]) -> Non
         disable_web_page_preview=True,
     )
     set_metadata(db_path, last_key, now.isoformat())
+    if daily_at_sgt:
+        set_metadata(db_path, "last_manual_review_digest_sgt_date", now.astimezone(SINGAPORE_TZ).date().isoformat())
+
+
+def manual_review_daily_due(
+    db_path: str,
+    daily_at_sgt: str,
+    *,
+    now: datetime | None = None,
+) -> bool:
+    now = now or datetime.now(timezone.utc)
+    local_now = now.astimezone(SINGAPORE_TZ)
+    try:
+        hour_text, minute_text = daily_at_sgt.split(":", 1)
+        due_hour = int(hour_text)
+        due_minute = int(minute_text)
+    except ValueError:
+        return True
+
+    if (local_now.hour, local_now.minute) < (due_hour, due_minute):
+        return False
+
+    today = local_now.date().isoformat()
+    return get_metadata(db_path, "last_manual_review_digest_sgt_date") != today
 
 
 def format_weekly_summary(

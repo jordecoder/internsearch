@@ -10,6 +10,7 @@ from main import (
     format_near_match_digest,
     format_weekly_summary,
     heartbeat_due,
+    manual_review_daily_due,
     send_status_telegram_message,
     send_test_telegram_message,
 )
@@ -205,6 +206,30 @@ def test_manual_review_digest_includes_links_and_notes():
     assert "Indeed Singapore - Data Engineer Intern" in message
     assert "https://sg.indeed.com/jobs?q=data+engineer+intern&amp;l=Singapore" in message
     assert "blocks automation" in message
+
+
+def test_manual_review_daily_due_uses_singapore_8pm_gate(tmp_path):
+    db_path = str(tmp_path / "jobs.sqlite3")
+    init_db(db_path)
+
+    assert not manual_review_daily_due(
+        db_path,
+        "20:00",
+        now=datetime(2026, 6, 14, 11, 59, tzinfo=timezone.utc),
+    )
+    assert manual_review_daily_due(
+        db_path,
+        "20:00",
+        now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
+    )
+
+    set_metadata(db_path, "last_manual_review_digest_sgt_date", "2026-06-14")
+
+    assert not manual_review_daily_due(
+        db_path,
+        "20:00",
+        now=datetime(2026, 6, 14, 15, 0, tzinfo=timezone.utc),
+    )
 
 
 def test_send_test_telegram_message_uses_notifier(monkeypatch):

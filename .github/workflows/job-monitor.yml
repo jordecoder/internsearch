@@ -9,8 +9,8 @@ concurrency:
 
 on:
   schedule:
-    # Temporary verification cadence: runs every 15 minutes.
-    - cron: "*/15 * * * *"
+    # Every 3 hours in Singapore time, including 20:00 SGT for daily manual links.
+    - cron: "0 0,3,6,9,12,15,18,21 * * *"
   workflow_dispatch:
     inputs:
       send_test_message:

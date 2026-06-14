@@ -12,6 +12,9 @@ def test_display_company_formats_known_slugs():
     assert display_company("workato") == "Workato"
     assert display_company("govtech singapore") == "GovTech Singapore"
     assert display_company("DSTA") == "DSTA"
+    assert display_company("globalfoundries") == "GlobalFoundries"
+    assert display_company("mediatek") == "MediaTek"
+    assert display_company("asml") == "ASML"
 
 
 def test_display_source_formats_provider_and_company():

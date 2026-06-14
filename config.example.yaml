@@ -7,25 +7,25 @@ resume_profile_path: resume_profile.yaml
 posted_within_hours: 24
 
 # Default schedule for local continuous mode. GitHub Actions uses its cron.
-check_interval_minutes: 120
+check_interval_minutes: 180
 
 # Sends one Telegram "still running" summary at most once per interval.
 heartbeat:
   enabled: true
-  interval_hours: 0.25
+  interval_hours: 24
 
 # Sends one daily digest of promising jobs that are below the strict alert
 # threshold, so you can manually review borderline roles.
 near_match_digest:
   enabled: true
-  interval_hours: 0.25
+  interval_hours: 3
   max_items: 10
   min_overall: 55
   min_location: 70
 
 actionable_digest:
   enabled: true
-  interval_hours: 0.25
+  interval_hours: 3
   max_items: 10
   exact_job_postings_only: true
 
@@ -150,7 +150,8 @@ role_families:
 
 manual_review_digest:
   enabled: true
-  interval_hours: 0.25
+  interval_hours: 24
+  daily_at_sgt: "20:00"
   max_items: 20
   links:
     - label: Indeed Singapore - data engineer intern
@@ -487,6 +488,7 @@ priority_companies:
   - ST Engineering
   - Apple
   - NVIDIA
+  - Intel
   - Cloudflare
   - MongoDB
   - Confluent
@@ -512,6 +514,27 @@ priority_companies:
   - Circles.Life
   - Optiver
   - IMC
+  - AMD
+  - Broadcom
+  - Marvell
+  - MediaTek
+  - GlobalFoundries
+  - ASML
+  - Applied Materials
+  - Lam Research
+  - KLA
+  - Western Digital
+  - Seagate
+  - Samsung
+  - Dyson
+  - Keysight
+  - Siemens
+  - Illumina
+  - Qualcomm
+  - Micron
+  - Synopsys
+  - Cadence
+  - Arm
   - Accenture
   - DSTA
   - CSIT
@@ -527,6 +550,7 @@ referral_priority_companies:
   - Meta
   - Apple
   - NVIDIA
+  - Intel
   - OpenAI
   - Anthropic
   - Databricks
@@ -555,6 +579,27 @@ referral_priority_companies:
   - Hudson River Trading
   - Optiver
   - IMC
+  - AMD
+  - Broadcom
+  - Marvell
+  - MediaTek
+  - GlobalFoundries
+  - ASML
+  - Applied Materials
+  - Lam Research
+  - KLA
+  - Western Digital
+  - Seagate
+  - Samsung
+  - Dyson
+  - Keysight
+  - Siemens
+  - Illumina
+  - Qualcomm
+  - Micron
+  - Synopsys
+  - Cadence
+  - Arm
   - Visa
   - Mastercard
   - Accenture
@@ -871,6 +916,10 @@ sources:
         company: NVIDIA
         url: https://www.nvidia.com/en-sg/about-nvidia/careers/
         default_location: Singapore
+      - name: Intel
+        company: Intel
+        url: https://jobs.intel.com/en/search-jobs/Singapore
+        default_location: Singapore
       - name: Salesforce
         company: Salesforce
         url: https://careers.salesforce.com/en/jobs/
@@ -899,6 +948,66 @@ sources:
         company: AMD
         url: https://careers.amd.com/
         default_location: Singapore
+      - name: Broadcom
+        company: Broadcom
+        url: https://broadcom.wd1.myworkdayjobs.com/External_Career
+        default_location: Singapore
+      - name: Marvell
+        company: Marvell
+        url: https://marvell.wd1.myworkdayjobs.com/MarvellCareers
+        default_location: Singapore
+      - name: MediaTek
+        company: MediaTek
+        url: https://www.mediatek.com/careers
+        default_location: Singapore
+      - name: GlobalFoundries
+        company: GlobalFoundries
+        url: https://gf.com/about-us/careers/
+        default_location: Singapore
+      - name: ASML
+        company: ASML
+        url: https://www.asml.com/en/careers/find-your-job
+        default_location: Singapore
+      - name: Applied Materials
+        company: Applied Materials
+        url: https://amat.wd1.myworkdayjobs.com/External
+        default_location: Singapore
+      - name: Lam Research
+        company: Lam Research
+        url: https://careers.lamresearch.com/
+        default_location: Singapore
+      - name: KLA
+        company: KLA
+        url: https://kla.wd1.myworkdayjobs.com/Search
+        default_location: Singapore
+      - name: Western Digital
+        company: Western Digital
+        url: https://jobs.smartrecruiters.com/WesternDigital
+        default_location: Singapore
+      - name: Seagate
+        company: Seagate
+        url: https://seagatecareers.com/
+        default_location: Singapore
+      - name: Samsung
+        company: Samsung
+        url: https://www.samsung.com/sg/about-us/careers/
+        default_location: Singapore
+      - name: Dyson
+        company: Dyson
+        url: https://careers.dyson.com/en-gb/search-results/
+        default_location: Singapore
+      - name: Keysight
+        company: Keysight
+        url: https://jobs.keysight.com/
+        default_location: Singapore
+      - name: Siemens
+        company: Siemens
+        url: https://jobs.siemens.com/careers
+        default_location: Singapore
+      - name: Illumina
+        company: Illumina
+        url: https://illumina.wd1.myworkdayjobs.com/illumina-careers
+        default_location: Singapore
       - name: Qualcomm
         company: Qualcomm
         url: https://careers.qualcomm.com/careers
@@ -906,6 +1015,18 @@ sources:
       - name: Micron
         company: Micron
         url: https://www.micron.com/about/careers
+        default_location: Singapore
+      - name: Synopsys
+        company: Synopsys
+        url: https://careers.synopsys.com/search-jobs
+        default_location: Singapore
+      - name: Cadence
+        company: Cadence
+        url: https://cadence.wd1.myworkdayjobs.com/External_Careers
+        default_location: Singapore
+      - name: Arm
+        company: Arm
+        url: https://careers.arm.com/
         default_location: Singapore
       - name: PayPal
         company: PayPal

@@ -25,9 +25,12 @@ engineering, RAG/AI, machine learning, software engineering, analytics, cloud,
 cybersecurity, and technology consulting. It includes public-sector and tech
 targets such as GovTech, Open Government Products, DSTA, CSIT, Careers@Gov,
 Accenture, Google, Microsoft, Amazon, Apple, Meta, TikTok, ByteDance, Shopee,
-Sea, Grab, NVIDIA, Salesforce, Oracle, SAP, IBM, Dell, HP, AMD, Qualcomm,
-Micron, PayPal, ServiceNow, Atlassian, Canva, Workato, Razer, ST Engineering,
-Visa, Mastercard, Bloomberg, GIC, and Temasek.
+Sea, Grab, NVIDIA, Intel, Salesforce, Oracle, SAP, IBM, Dell, HP, AMD,
+Broadcom, Marvell, MediaTek, GlobalFoundries, ASML, Applied Materials, Lam
+Research, KLA, Western Digital, Seagate, Samsung, Dyson, Keysight, Siemens,
+Illumina, Qualcomm, Micron, Synopsys, Cadence, Arm, PayPal, ServiceNow,
+Atlassian, Canva, Workato, Razer, ST Engineering, Visa, Mastercard, Bloomberg,
+GIC, and Temasek.
 
 ## Alert Rules
 
@@ -53,24 +56,22 @@ new_actionable_alerts:
   min_location: 70
 ```
 
-## 15-Minute Heartbeat
+## Daily Heartbeat
 
-The monitor is temporarily set to send one Telegram heartbeat every 15 minutes
-for verification, even
-when no job alerts are sent. It includes the latest run time plus fetched,
-matched, sent, and per-source fetched counts.
+The monitor sends one Telegram heartbeat per day. It includes the latest run
+time plus fetched, matched, sent, and per-source fetched counts.
 
 To change this, edit `config.yaml`:
 
 ```yaml
 heartbeat:
   enabled: true
-  interval_hours: 0.25
+  interval_hours: 24
 ```
 
-## 15-Minute Near-Match Digest
+## 3-Hour Near-Match Digest
 
-The monitor also sends one digest every 15 minutes of promising jobs that did not pass the
+The monitor also sends one digest every 3 hours of promising jobs that did not pass the
 strict alert thresholds. These are worth manual review because career pages often
 omit exact internship dates or use broad role titles. Digest entries include
 resume keyword coverage, missing resume keywords, and a referral suggestion for
@@ -83,7 +84,7 @@ marketing, sales, support, or other non-target role terms.
 ```yaml
 near_match_digest:
   enabled: true
-  interval_hours: 0.25
+  interval_hours: 3
   max_items: 10
   min_overall: 55
   min_location: 70
@@ -93,13 +94,14 @@ near_match_digest:
 
 Some valuable sources, especially Indeed, MyCareersFuture, and broad Google
 Careers searches, may block automation or render dynamically. The monitor sends
-a manual-review digest every 15 minutes with direct links for those sources instead of
-pretending it scraped them reliably.
+those manual-review links once per day at 20:00 SGT instead of repeatedly
+messaging them every scheduled run.
 
 ```yaml
 manual_review_digest:
   enabled: true
-  interval_hours: 0.25
+  interval_hours: 24
+  daily_at_sgt: "20:00"
 ```
 
 ## Resume Matching
@@ -159,14 +161,6 @@ treated like exact new job postings. It also labels each candidate by role
 family, such as Data Engineering, AI/ML/RAG, Software Engineering, Cybersecurity,
 Cloud/DevOps, Tech Consulting, or Product/Technical Analyst.
 
-## Source Health
-
-Heartbeats include source health so you can tell the difference between "no
-internships found" and "this source needs manual/API handling." Sources such as
-Indeed, LinkedIn, MyCareersFuture, Google Careers dynamic search, and university
-portals are tracked as manual-review sources instead of silently pretending they
-were scraped.
-
 ## Weekly Summary
 
 The monitor sends a weekly Telegram summary with fetched postings reviewed,
@@ -224,7 +218,7 @@ Run one check:
 python main.py --once
 ```
 
-Run continuously every 2 hours:
+Run continuously every 3 hours:
 
 ```powershell
 python main.py
@@ -238,8 +232,9 @@ check_interval_minutes: 30
 
 ## GitHub Actions
 
-The workflow is at `.github/workflows/job-monitor.yml` and is temporarily set to
-run every 15 minutes for verification.
+The workflow is at `.github/workflows/job-monitor.yml` and is set to run every 3
+hours on a Singapore-time cadence, including a 20:00 SGT run for the daily
+manual-review links.
 After you add the Telegram secrets, you do not need to manually run it for the
 regular checks. GitHub starts it automatically from the cron schedule even when
 your computer is off.
@@ -254,7 +249,8 @@ without exact posting times do not repeatedly alert on every scheduled run.
 
 Manual runs are only for testing or forcing an immediate check. Manual runs can
 send start/finish status messages; scheduled runs send job alerts,
-near-match digest, manual-review digest, heartbeat, and weekly summary when due.
+near-match digest, actionable digest, the 20:00 SGT manual-review digest,
+heartbeat, and weekly summary when due.
 
 The workflow has a concurrency group so frequent scheduled runs do not stack up
 on top of one another if GitHub Actions is slow.
