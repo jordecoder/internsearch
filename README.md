@@ -263,10 +263,9 @@ check_interval_minutes: 30
 
 The workflow is at `.github/workflows/job-monitor.yml` and is set to run every 3
 hours on a Singapore-time cadence, including a 20:00 SGT run for the daily
-manual-review links. It also has 20:10 and 20:30 SGT backup starts for that
-daily manual-review digest because GitHub scheduled workflows can be delayed or
-skipped under load. The digest is deduped by Singapore date, so the backups
-should not send duplicate daily-review messages.
+manual-review links. It also has 15-minute backup starts at 20:45, 21:00, 21:15,
+and 21:30 SGT for that daily manual-review digest. The digest is deduped by
+Singapore date, so the backups should not send duplicate daily-review messages.
 After you add the Telegram secrets, you do not need to manually run it for the
 regular checks. GitHub starts it automatically from the cron schedule even when
 your computer is off.
