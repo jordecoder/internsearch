@@ -301,7 +301,7 @@ def format_near_match_digest(
 def maybe_send_near_match_digest(
     db_path: str,
     config: dict[str, Any],
-    items: list[tuple[Any, Score, ResumeMatch, str]],
+    items: list[tuple[Any, Score, ResumeMatch, OpportunityInsights]],
 ) -> None:
     digest = config.get("near_match_digest", {})
     if not digest.get("enabled", True) or not items:
@@ -324,6 +324,81 @@ def maybe_send_near_match_digest(
     max_items = int(digest.get("max_items", 10))
     send_telegram_message(
         format_near_match_digest(items[:max_items], now=now),
+        disable_web_page_preview=True,
+    )
+    set_metadata(db_path, last_key, now.isoformat())
+
+
+def _sort_actionable_digest_item(
+    item: tuple[Any, Score, ResumeMatch, OpportunityInsights, bool],
+) -> tuple[int, int, str]:
+    _, score, _, insights, is_new = item
+    type_rank = 0 if insights.opportunity_type == "job_posting" else 1
+    new_rank = 0 if is_new else 1
+    return (type_rank, new_rank, -score.overall)
+
+
+def format_actionable_digest(
+    items: list[tuple[Any, Score, ResumeMatch, OpportunityInsights, bool]],
+    *,
+    now: datetime,
+) -> str:
+    timestamp = format_singapore_time(now)
+    lines = [
+        "🎯 <b>Current actionable Singapore tech internships</b>",
+        "",
+        f"Generated: {timestamp}",
+        "",
+        "These are live candidates from this run, including jobs already seen before.",
+        "",
+    ]
+    for index, (job, score, resume_match, insights, is_new) in enumerate(items, start=1):
+        title = html.escape(job.title)
+        company = html.escape(job.company)
+        location = html.escape(job.location or "Unknown")
+        url = html.escape(job.url, quote=True)
+        freshness = "new this run" if is_new else "seen before"
+        lines.extend(
+            [
+                f"{index}. <a href=\"{url}\">{title}</a>",
+                f"{company} | {location} | score {score.overall}/100 | {freshness}",
+                f"Type: {html.escape(insights.opportunity_type)} | Role: {html.escape(insights.role_family)}",
+                f"Deadline: {html.escape(insights.deadline)}",
+                _format_resume_note(resume_match),
+                html.escape(insights.recommended_action),
+                "",
+            ]
+        )
+    return "\n".join(lines).strip()
+
+
+def maybe_send_actionable_digest(
+    db_path: str,
+    config: dict[str, Any],
+    items: list[tuple[Any, Score, ResumeMatch, OpportunityInsights, bool]],
+) -> None:
+    digest = config.get("actionable_digest", {})
+    if not digest.get("enabled", True) or not items:
+        return
+
+    interval_hours = float(digest.get("interval_hours", 24))
+    now = datetime.now(timezone.utc)
+    last_key = "last_actionable_digest_time"
+    last_value = get_metadata(db_path, last_key)
+    if last_value:
+        try:
+            last_sent = datetime.fromisoformat(last_value)
+            if last_sent.tzinfo is None:
+                last_sent = last_sent.replace(tzinfo=timezone.utc)
+            if now - last_sent < timedelta(hours=interval_hours):
+                return
+        except ValueError:
+            pass
+
+    max_items = int(digest.get("max_items", 10))
+    sorted_items = sorted(items, key=_sort_actionable_digest_item)
+    send_telegram_message(
+        format_actionable_digest(sorted_items[:max_items], now=now),
         disable_web_page_preview=True,
     )
     set_metadata(db_path, last_key, now.isoformat())
@@ -502,6 +577,9 @@ def run_once(config: dict[str, Any]) -> int:
     matched = 0
     near_matches: list[tuple[Any, Score, ResumeMatch, OpportunityInsights]] = []
     actionable_items: list[tuple[Any, Score, ResumeMatch, OpportunityInsights]] = []
+    current_actionable_items: list[
+        tuple[Any, Score, ResumeMatch, OpportunityInsights, bool]
+    ] = []
     missing_keyword_counts: dict[str, int] = {}
     digest_config = config.get("near_match_digest", {})
     near_min_overall = int(digest_config.get("min_overall", 45))
@@ -516,12 +594,6 @@ def run_once(config: dict[str, Any]) -> int:
 
     for job in jobs:
         is_new = record_discovery(db_path, job)
-        if was_notified(db_path, job):
-            continue
-        fresh = is_fresh(job, is_new=is_new, hours=posted_within_hours)
-        if not fresh:
-            continue
-
         score = score_job(job, config)
         actionable = is_actionable_candidate(job, score, config)
         if not actionable:
@@ -533,6 +605,27 @@ def run_once(config: dict[str, Any]) -> int:
         insights = build_opportunity_insights(job, score, resume_match, config)
         resume_note = _format_resume_note(resume_match)
         actionable_items.append((job, score, resume_match, insights))
+        if (
+            score.overall >= actionable_alert_min_overall
+            and score.location_relevance >= actionable_alert_min_location
+        ):
+            current_actionable_items.append((job, score, resume_match, insights, is_new))
+            if tracker_enabled:
+                update_application_tracker(
+                    tracker_path,
+                    job,
+                    score,
+                    resume_match,
+                    insights=insights,
+                    notes=insights.recommended_action,
+                )
+
+        if was_notified(db_path, job):
+            continue
+        fresh = is_fresh(job, is_new=is_new, hours=posted_within_hours)
+        if not fresh:
+            continue
+
         strict_match = passes_threshold(score, config)
 
         should_send_actionable_alert = (
@@ -575,15 +668,6 @@ def run_once(config: dict[str, Any]) -> int:
                 and score.location_relevance >= near_min_location
             ):
                 near_matches.append((job, score, resume_match, insights))
-                if tracker_enabled:
-                    update_application_tracker(
-                        tracker_path,
-                        job,
-                        score,
-                        resume_match,
-                        insights=insights,
-                        notes=insights.recommended_action,
-                    )
             LOGGER.info(
                 "job_below_threshold",
                 extra={
@@ -600,15 +684,6 @@ def run_once(config: dict[str, Any]) -> int:
         try:
             send_telegram(job, score)
             mark_notified(db_path, job)
-            if tracker_enabled:
-                update_application_tracker(
-                    tracker_path,
-                    job,
-                    score,
-                    resume_match,
-                    insights=insights,
-                    notes=insights.recommended_action,
-                )
             sent += 1
             LOGGER.info(
                 "telegram_sent",
@@ -630,6 +705,11 @@ def run_once(config: dict[str, Any]) -> int:
     )
 
     near_matches.sort(key=lambda item: item[1].overall, reverse=True)
+
+    try:
+        maybe_send_actionable_digest(db_path, config, current_actionable_items)
+    except Exception:
+        LOGGER.exception("actionable_digest_send_failed")
 
     try:
         maybe_send_near_match_digest(db_path, config, near_matches)

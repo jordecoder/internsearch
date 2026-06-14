@@ -15,6 +15,11 @@ near_match_digest:
   min_overall: 55
   min_location: 70
 
+actionable_digest:
+  enabled: true
+  interval_hours: 0.25
+  max_items: 10
+
 new_actionable_alerts:
   enabled: true
   min_overall: 55

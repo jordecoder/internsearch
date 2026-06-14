@@ -4,6 +4,7 @@ from database import init_db, set_metadata
 from job_model import Job
 import main
 from main import (
+    format_actionable_digest,
     format_heartbeat_message,
     format_manual_review_digest,
     format_near_match_digest,
@@ -124,6 +125,50 @@ def test_near_match_digest_includes_job_links_and_scores():
     assert "Role: Data Engineering" in message
     assert "Deadline: No deadline found" in message
     assert "https://example.com/job?a=1&amp;b=2" in message
+
+
+def test_actionable_digest_includes_seen_before_candidates():
+    job = Job(
+        source="Greenhouse:workato",
+        title="Analytics Engineer Intern",
+        company="Workato",
+        location="Singapore",
+        url="https://example.com/workato",
+    )
+    score = Score(
+        role_relevance=80,
+        skill_relevance=70,
+        location_relevance=90,
+        timeline_relevance=80,
+        degree_relevance=60,
+        overall=74,
+        timeline_match="Newly discovered, timeline unspecified",
+    )
+
+    message = format_actionable_digest(
+        [
+            (
+                job,
+                score,
+                ResumeMatch(["python"], [], 100, 1),
+                OpportunityInsights(
+                    opportunity_type="job_posting",
+                    role_family="Data Science / Analytics",
+                    deadline="No deadline found",
+                    recommended_action="Apply now; this is a strong match.",
+                    resume_suggestion="Resume already covers tracked Data Science / Analytics keywords.",
+                    referral_priority=False,
+                ),
+                False,
+            )
+        ],
+        now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
+    )
+
+    assert "Current actionable Singapore tech internships" in message
+    assert "Analytics Engineer Intern" in message
+    assert "seen before" in message
+    assert "Role: Data Science / Analytics" in message
 
 
 def test_heartbeat_message_includes_source_health():
