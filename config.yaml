@@ -7,6 +7,13 @@ heartbeat:
   enabled: true
   interval_hours: 24
 
+near_match_digest:
+  enabled: true
+  interval_hours: 24
+  max_items: 10
+  min_overall: 45
+  min_location: 35
+
 http:
   user_agent: "SGInternshipJobMonitor/1.0 (+personal internship alerts)"
   timeout_seconds: 25
@@ -60,6 +67,22 @@ target_keywords:
   - postgresql
   - fastapi
   - gpt models
+  - backend
+  - distributed systems
+  - cloud
+  - aws
+  - gcp
+  - kubernetes
+  - pytorch
+  - tensorflow
+  - recommendation systems
+  - search
+  - ranking
+  - experimentation
+  - data warehouse
+  - dbt
+  - kafka
+  - flink
 
 degree_keywords:
   - bachelor's degree
@@ -100,6 +123,27 @@ priority_companies:
   - GIC
   - Temasek
   - ST Engineering
+  - Apple
+  - NVIDIA
+  - Cloudflare
+  - MongoDB
+  - Confluent
+  - Salesforce
+  - Oracle
+  - SAP
+  - Visa
+  - Mastercard
+  - Bloomberg
+  - Jane Street
+  - Jump Trading
+  - Hudson River Trading
+  - JPMorgan
+  - Goldman Sachs
+  - Morgan Stanley
+  - Carousell
+  - ShopBack
+  - Ninja Van
+  - Circles.Life
 
 sources:
   internsg:
@@ -127,6 +171,15 @@ sources:
       - shopee
       - govtech
       - bytedance
+      - cloudflare
+      - mongodb
+      - confluent
+      - scaleai
+      - ramp
+      - rippling
+      - figma
+      - notion
+      - airbnb
 
   lever:
     enabled: true
@@ -136,6 +189,92 @@ sources:
       - shopback
       - gic
       - okx
+      - shopify
+      - palantir
+      - netflix
+      - reddit
+      - coinbase
+
+  ashby:
+    enabled: true
+    boards:
+      - anthropic
+      - anysphere
+      - perplexityai
+      - mistral
+      - modal
+      - replit
+      - replicate
+      - elevenlabs
+      - ramp
+
+  careers_pages:
+    enabled: true
+    pages:
+      - name: Google
+        company: Google
+        url: https://www.google.com/about/careers/applications/jobs/results
+        default_location: Singapore
+      - name: Microsoft
+        company: Microsoft
+        url: https://jobs.careers.microsoft.com/global/en/search
+        default_location: Singapore
+      - name: Amazon
+        company: Amazon
+        url: https://www.amazon.jobs/en/search
+        default_location: Singapore
+      - name: Apple
+        company: Apple
+        url: https://jobs.apple.com/en-sg/search
+        default_location: Singapore
+      - name: Meta
+        company: Meta
+        url: https://www.metacareers.com/jobs
+        default_location: Singapore
+      - name: TikTok
+        company: TikTok
+        url: https://careers.tiktok.com/search
+        default_location: Singapore
+      - name: ByteDance
+        company: ByteDance
+        url: https://jobs.bytedance.com/en/position
+        default_location: Singapore
+      - name: Shopee
+        company: Shopee
+        url: https://careers.shopee.sg/jobs
+        default_location: Singapore
+      - name: Sea
+        company: Sea
+        url: https://www.sea.com/careers
+        default_location: Singapore
+      - name: DBS
+        company: DBS
+        url: https://www.dbs.com/careers/default.page
+        default_location: Singapore
+      - name: GovTech Singapore
+        company: GovTech Singapore
+        url: https://www.tech.gov.sg/careers/
+        default_location: Singapore
+      - name: GIC
+        company: GIC
+        url: https://www.gic.com.sg/careers/
+        default_location: Singapore
+      - name: Temasek
+        company: Temasek
+        url: https://www.temasek.com.sg/en/careers
+        default_location: Singapore
+      - name: Visa
+        company: Visa
+        url: https://usa.visa.com/careers.html
+        default_location: Singapore
+      - name: Mastercard
+        company: Mastercard
+        url: https://careers.mastercard.com/us/en/search-results
+        default_location: Singapore
+      - name: Bloomberg
+        company: Bloomberg
+        url: https://www.bloomberg.com/company/careers/working-here/
+        default_location: Singapore
 
   mycareersfuture:
     enabled: false

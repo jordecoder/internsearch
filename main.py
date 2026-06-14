@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import html
 import logging
 import time
 from datetime import datetime, timedelta, timezone
@@ -19,7 +20,9 @@ from database import (
 )
 from http_client import PoliteHttpClient
 from notifier import send_telegram, send_telegram_message
-from scoring import is_fresh, passes_threshold, score_job
+from scoring import Score, is_fresh, passes_threshold, score_job
+from sources.ashby import fetch_ashby_boards
+from sources.careers_page import fetch_careers_pages
 from sources.greenhouse import fetch_greenhouse_boards
 from sources.internsg import fetch_internsg
 from sources.lever import fetch_lever_companies
@@ -52,32 +55,51 @@ def make_client(config: dict[str, Any]) -> PoliteHttpClient:
 
 def fetch_all_jobs(config: dict[str, Any], client: PoliteHttpClient):
     all_jobs = []
+    source_counts: dict[str, int] = {}
     sources = config.get("sources", {})
 
     internsg = sources.get("internsg", {})
     if internsg.get("enabled", False):
-        all_jobs.extend(fetch_internsg(internsg.get("search_terms", []), client))
+        jobs = fetch_internsg(internsg.get("search_terms", []), client)
+        source_counts["InternSG"] = len(jobs)
+        all_jobs.extend(jobs)
 
     greenhouse = sources.get("greenhouse", {})
     if greenhouse.get("enabled", False):
-        all_jobs.extend(fetch_greenhouse_boards(greenhouse.get("boards", []), client))
+        jobs = fetch_greenhouse_boards(greenhouse.get("boards", []), client)
+        source_counts["Greenhouse"] = len(jobs)
+        all_jobs.extend(jobs)
 
     lever = sources.get("lever", {})
     if lever.get("enabled", False):
-        all_jobs.extend(fetch_lever_companies(lever.get("companies", []), client))
+        jobs = fetch_lever_companies(lever.get("companies", []), client)
+        source_counts["Lever"] = len(jobs)
+        all_jobs.extend(jobs)
+
+    ashby = sources.get("ashby", {})
+    if ashby.get("enabled", False):
+        jobs = fetch_ashby_boards(ashby.get("boards", []), client)
+        source_counts["Ashby"] = len(jobs)
+        all_jobs.extend(jobs)
+
+    careers_pages = sources.get("careers_pages", {})
+    if careers_pages.get("enabled", False):
+        jobs = fetch_careers_pages(careers_pages.get("pages", []), client)
+        source_counts["Careers pages"] = len(jobs)
+        all_jobs.extend(jobs)
 
     mycareersfuture = sources.get("mycareersfuture", {})
     if mycareersfuture.get("enabled", False):
-        all_jobs.extend(
-            fetch_mycareersfuture(
-                endpoint=mycareersfuture.get("endpoint", ""),
-                search_terms=mycareersfuture.get("search_terms", []),
-                client=client,
-            )
+        jobs = fetch_mycareersfuture(
+            endpoint=mycareersfuture.get("endpoint", ""),
+            search_terms=mycareersfuture.get("search_terms", []),
+            client=client,
         )
+        source_counts["MyCareersFuture"] = len(jobs)
+        all_jobs.extend(jobs)
 
     unique = {job.stable_id: job for job in all_jobs}
-    return list(unique.values())
+    return list(unique.values()), source_counts
 
 
 def heartbeat_due(db_path: str, interval_hours: int, now: datetime | None = None) -> bool:
@@ -97,14 +119,30 @@ def heartbeat_due(db_path: str, interval_hours: int, now: datetime | None = None
     return now - last_sent >= timedelta(hours=interval_hours)
 
 
-def format_heartbeat_message(fetched: int, matched: int, sent: int, now: datetime) -> str:
+def _format_source_counts(source_counts: dict[str, int]) -> str:
+    if not source_counts:
+        return "Source counts: unavailable"
+    lines = ["Source counts:"]
+    for source, count in sorted(source_counts.items()):
+        lines.append(f"- {html.escape(source)}: {count}")
+    return "\n".join(lines)
+
+
+def format_heartbeat_message(
+    fetched: int,
+    matched: int,
+    sent: int,
+    now: datetime,
+    source_counts: dict[str, int] | None = None,
+) -> str:
     timestamp = now.astimezone().strftime("%Y-%m-%d %H:%M %Z")
     return (
         "✅ <b>Internship monitor heartbeat</b>\n\n"
         f"Last run: {timestamp}\n"
         f"Fetched jobs: {fetched}\n"
         f"Passed filters: {matched}\n"
-        f"Telegram job alerts sent: {sent}"
+        f"Telegram job alerts sent: {sent}\n\n"
+        f"{_format_source_counts(source_counts or {})}"
     )
 
 
@@ -115,6 +153,7 @@ def maybe_send_heartbeat(
     fetched: int,
     matched: int,
     sent: int,
+    source_counts: dict[str, int],
 ) -> None:
     heartbeat = config.get("heartbeat", {})
     if not heartbeat.get("enabled", True):
@@ -126,10 +165,69 @@ def maybe_send_heartbeat(
         return
 
     send_telegram_message(
-        format_heartbeat_message(fetched, matched, sent, now),
+        format_heartbeat_message(fetched, matched, sent, now, source_counts),
         disable_web_page_preview=True,
     )
     set_metadata(db_path, "last_heartbeat_time", now.isoformat())
+
+
+def format_near_match_digest(
+    items: list[tuple[Any, Score]],
+    *,
+    now: datetime,
+) -> str:
+    timestamp = now.astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    lines = [
+        "📋 <b>Daily near-match internship digest</b>",
+        "",
+        f"Generated: {timestamp}",
+        "",
+    ]
+    for index, (job, score) in enumerate(items, start=1):
+        title = html.escape(job.title)
+        company = html.escape(job.company)
+        location = html.escape(job.location or "Unknown")
+        url = html.escape(job.url, quote=True)
+        lines.extend(
+            [
+                f"{index}. <a href=\"{url}\">{title}</a>",
+                f"{company} | {location} | score {score.overall}/100",
+                f"Timeline: {html.escape(score.timeline_match)}",
+                "",
+            ]
+        )
+    return "\n".join(lines).strip()
+
+
+def maybe_send_near_match_digest(
+    db_path: str,
+    config: dict[str, Any],
+    items: list[tuple[Any, Score]],
+) -> None:
+    digest = config.get("near_match_digest", {})
+    if not digest.get("enabled", True) or not items:
+        return
+
+    interval_hours = int(digest.get("interval_hours", 24))
+    now = datetime.now(timezone.utc)
+    last_key = "last_near_match_digest_time"
+    last_value = get_metadata(db_path, last_key)
+    if last_value:
+        try:
+            last_sent = datetime.fromisoformat(last_value)
+            if last_sent.tzinfo is None:
+                last_sent = last_sent.replace(tzinfo=timezone.utc)
+            if now - last_sent < timedelta(hours=interval_hours):
+                return
+        except ValueError:
+            pass
+
+    max_items = int(digest.get("max_items", 10))
+    send_telegram_message(
+        format_near_match_digest(items[:max_items], now=now),
+        disable_web_page_preview=True,
+    )
+    set_metadata(db_path, last_key, now.isoformat())
 
 
 def run_once(config: dict[str, Any]) -> int:
@@ -138,20 +236,30 @@ def run_once(config: dict[str, Any]) -> int:
 
     init_db(db_path)
     client = make_client(config)
-    jobs = fetch_all_jobs(config, client)
+    jobs, source_counts = fetch_all_jobs(config, client)
 
     sent = 0
     matched = 0
+    near_matches: list[tuple[Any, Score]] = []
+    digest_config = config.get("near_match_digest", {})
+    near_min_overall = int(digest_config.get("min_overall", 45))
+    near_min_location = int(digest_config.get("min_location", 35))
 
     for job in jobs:
         is_new = record_discovery(db_path, job)
         if was_notified(db_path, job):
             continue
-        if not is_fresh(job, is_new=is_new, hours=posted_within_hours):
+        fresh = is_fresh(job, is_new=is_new, hours=posted_within_hours)
+        if not fresh:
             continue
 
         score = score_job(job, config)
         if not passes_threshold(score, config):
+            if (
+                score.overall >= near_min_overall
+                and score.location_relevance >= near_min_location
+            ):
+                near_matches.append((job, score))
             LOGGER.info(
                 "job_below_threshold",
                 extra={
@@ -179,10 +287,21 @@ def run_once(config: dict[str, Any]) -> int:
                 extra={"title": job.title, "company": job.company, "url": job.url},
             )
 
+    LOGGER.info("source_counts %s", source_counts)
     LOGGER.info(
-        "run_complete",
-        extra={"fetched": len(jobs), "matched": matched, "sent": sent},
+        "run_complete fetched=%s matched=%s sent=%s near_matches=%s",
+        len(jobs),
+        matched,
+        sent,
+        len(near_matches),
     )
+
+    near_matches.sort(key=lambda item: item[1].overall, reverse=True)
+
+    try:
+        maybe_send_near_match_digest(db_path, config, near_matches)
+    except Exception:
+        LOGGER.exception("near_match_digest_send_failed")
 
     try:
         maybe_send_heartbeat(
@@ -191,6 +310,7 @@ def run_once(config: dict[str, Any]) -> int:
             fetched=len(jobs),
             matched=matched,
             sent=sent,
+            source_counts=source_counts,
         )
     except Exception:
         LOGGER.exception("heartbeat_send_failed")

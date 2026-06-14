@@ -13,6 +13,8 @@ source lists.
 - InternSG public listings
 - Greenhouse public job boards
 - Lever public job boards
+- Ashby public job boards
+- Direct company career pages, best-effort HTML scan
 - MyCareersFuture, optional and disabled by default because public endpoints can change
 - Company boards you add in `config.yaml`
 
@@ -33,7 +35,7 @@ The scoring model evaluates role, skills, Singapore location, August/September
 
 The monitor sends one Telegram heartbeat message every 24 hours by default, even
 when no job alerts are sent. It includes the latest run time plus fetched,
-matched, and sent counts.
+matched, sent, and per-source fetched counts.
 
 To change this, edit `config.yaml`:
 
@@ -41,6 +43,21 @@ To change this, edit `config.yaml`:
 heartbeat:
   enabled: true
   interval_hours: 24
+```
+
+## Daily Near-Match Digest
+
+The monitor also sends one daily digest of promising jobs that did not pass the
+strict alert thresholds. These are worth manual review because career pages often
+omit exact internship dates or use broad role titles.
+
+```yaml
+near_match_digest:
+  enabled: true
+  interval_hours: 24
+  max_items: 10
+  min_overall: 45
+  min_location: 35
 ```
 
 ## Telegram Format
@@ -133,6 +150,9 @@ docker run --env-file .env -v "%cd%/jobs.sqlite3:/app/jobs.sqlite3" sg-internshi
 
 ## Add More Company Boards
 
+For application strategy, resume positioning, and referral workflow, see
+`HIRING_PLAYBOOK.md`.
+
 Greenhouse board token:
 
 ```text
@@ -147,6 +167,30 @@ https://jobs.lever.co/stripe -> stripe
 
 Add tokens under `sources.greenhouse.boards` or `sources.lever.companies` in
 `config.yaml`.
+
+Ashby board slug:
+
+```text
+https://jobs.ashbyhq.com/anthropic -> anthropic
+```
+
+Add slugs under `sources.ashby.boards`.
+
+Direct career page:
+
+```yaml
+sources:
+  careers_pages:
+    enabled: true
+    pages:
+      - name: Example
+        company: Example
+        url: https://example.com/careers
+        default_location: Singapore
+```
+
+Direct career-page scans are best effort. API-backed Greenhouse, Lever, and
+Ashby sources are more reliable.
 
 ## Tests
 
