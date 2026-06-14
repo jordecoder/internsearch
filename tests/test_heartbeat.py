@@ -8,6 +8,7 @@ from main import (
     format_near_match_digest,
     format_weekly_summary,
     heartbeat_due,
+    send_status_telegram_message,
     send_test_telegram_message,
 )
 from resume_matcher import ResumeMatch
@@ -124,4 +125,20 @@ def test_send_test_telegram_message_uses_notifier(monkeypatch):
 
     assert "Internship monitor test" in sent["message"]
     assert "GitHub Actions secrets are working" in sent["message"]
+    assert sent["disable_web_page_preview"] is True
+
+
+def test_send_status_telegram_message_uses_notifier(monkeypatch):
+    sent = {}
+
+    def fake_send(message, *, disable_web_page_preview=False):
+        sent["message"] = message
+        sent["disable_web_page_preview"] = disable_web_page_preview
+
+    monkeypatch.setattr(main, "send_telegram_message", fake_send)
+
+    send_status_telegram_message("Started GitHub Actions monitor run")
+
+    assert "Internship monitor status" in sent["message"]
+    assert "Started GitHub Actions monitor run" in sent["message"]
     assert sent["disable_web_page_preview"] is True

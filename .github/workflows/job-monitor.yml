@@ -14,6 +14,11 @@ on:
         required: false
         default: false
         type: boolean
+      send_status_messages:
+        description: "Send Telegram start/finish status messages for this manual run"
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   monitor:
@@ -31,6 +36,13 @@ jobs:
 
       - name: Prepare config
         run: cp config.example.yaml config.yaml
+
+      - name: Send started status
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_status_messages }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py --status-message "Started GitHub Actions monitor run"
 
       - name: Run tests
         run: pytest
@@ -64,3 +76,11 @@ jobs:
         with:
           name: applications
           path: applications.csv
+
+      - name: Send finished status
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.send_status_messages }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python main.py --status-message "Finished GitHub Actions monitor run with status: ${{ job.status }}"

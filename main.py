@@ -349,6 +349,18 @@ def send_test_telegram_message() -> None:
     )
 
 
+def send_status_telegram_message(status: str) -> None:
+    now = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    send_telegram_message(
+        (
+            "<b>Internship monitor status</b>\n\n"
+            f"Status: {html.escape(status)}\n"
+            f"Time: {html.escape(now)}"
+        ),
+        disable_web_page_preview=True,
+    )
+
+
 def run_once(config: dict[str, Any]) -> int:
     db_path = config.get("database_path", "jobs.sqlite3")
     posted_within_hours = int(config.get("posted_within_hours", 24))
@@ -480,12 +492,21 @@ def main() -> None:
         action="store_true",
         help="Send a Telegram test message and exit.",
     )
+    parser.add_argument(
+        "--status-message",
+        help="Send a Telegram status message and exit.",
+    )
     parser.add_argument("--config", default="config.yaml", help="Path to config YAML.")
     args = parser.parse_args()
 
     load_dotenv()
     config = load_config(args.config)
     configure_logging(config.get("log_level", "INFO"))
+
+    if args.status_message:
+        send_status_telegram_message(args.status_message)
+        LOGGER.info("telegram_status_sent")
+        return
 
     if args.test_telegram:
         send_test_telegram_message()
