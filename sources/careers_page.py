@@ -82,6 +82,7 @@ def fetch_careers_pages(
 
         terms = page.get("keywords")
         keywords = [str(term) for term in terms] if isinstance(terms, list) else DEFAULT_LINK_TERMS
+        verify_detail_pages = bool(page.get("verify_detail_pages", False))
 
         try:
             response = client.get(url)
@@ -104,7 +105,10 @@ def fetch_careers_pages(
             if not title or not _matches(text, keywords):
                 continue
 
-            detail_location, detail_description = _fetch_job_detail(href, client)
+            detail_location = ""
+            detail_description = ""
+            if verify_detail_pages:
+                detail_location, detail_description = _fetch_job_detail(href, client)
             location = detail_location or str(page.get("default_location") or "")
             description = detail_description or surrounding[:2000]
 

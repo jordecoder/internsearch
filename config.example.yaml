@@ -780,6 +780,7 @@ sources:
       - Wise
       - SAP
       - ServiceNow
+      - WesternDigital
 
   workday:
     enabled: false
@@ -1009,6 +1010,7 @@ sources:
         company: Western Digital
         url: https://jobs.smartrecruiters.com/WesternDigital
         default_location: Singapore
+        verify_detail_pages: true
       - name: Seagate
         company: Seagate
         url: https://seagatecareers.com/

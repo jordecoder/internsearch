@@ -83,17 +83,6 @@ def test_fetch_careers_pages_keeps_relevant_links():
                 </html>
                 """
             ),
-            FakeResponse(
-                text="""
-                <html>
-                  <body>
-                    <h1>Machine Learning Intern</h1>
-                    <p>Work Location: Singapore</p>
-                    <h2>Job Description</h2>
-                  </body>
-                </html>
-                """
-            ),
         ]
     )
 
@@ -113,6 +102,7 @@ def test_fetch_careers_pages_keeps_relevant_links():
     assert jobs[0].title == "Machine Learning Intern"
     assert jobs[0].url == "https://example.com/jobs/ml-intern"
     assert jobs[0].location == "Singapore"
+    assert client.urls == ["https://example.com/careers"]
 
 
 def test_fetch_careers_pages_skips_mailto_and_fragment_links():
@@ -125,17 +115,6 @@ def test_fetch_careers_pages_skips_mailto_and_fragment_links():
                     <a href="#">Apply through your school's internship portal</a>
                     <a href="mailto:internship@example.com">internship@example.com</a>
                     <a href="/internships">> DSTA Internships</a>
-                  </body>
-                </html>
-                """
-            ),
-            FakeResponse(
-                text="""
-                <html>
-                  <body>
-                    <h1>DSTA Internships</h1>
-                    <p>Location: Singapore</p>
-                    <h2>Job Description</h2>
                   </body>
                 </html>
                 """
@@ -195,6 +174,7 @@ def test_fetch_careers_pages_uses_job_detail_location_over_default():
                 "company": "Western Digital",
                 "url": "https://jobs.smartrecruiters.com",
                 "default_location": "Singapore",
+                "verify_detail_pages": True,
             }
         ],
         client,
