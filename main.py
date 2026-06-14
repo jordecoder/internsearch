@@ -3,14 +3,22 @@ from __future__ import annotations
 import argparse
 import logging
 import time
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from dotenv import load_dotenv
 import yaml
 
-from database import init_db, mark_notified, record_discovery, was_notified
+from database import (
+    get_metadata,
+    init_db,
+    mark_notified,
+    record_discovery,
+    set_metadata,
+    was_notified,
+)
 from http_client import PoliteHttpClient
-from notifier import send_telegram
+from notifier import send_telegram, send_telegram_message
 from scoring import is_fresh, passes_threshold, score_job
 from sources.greenhouse import fetch_greenhouse_boards
 from sources.internsg import fetch_internsg
@@ -72,6 +80,58 @@ def fetch_all_jobs(config: dict[str, Any], client: PoliteHttpClient):
     return list(unique.values())
 
 
+def heartbeat_due(db_path: str, interval_hours: int, now: datetime | None = None) -> bool:
+    now = now or datetime.now(timezone.utc)
+    last_value = get_metadata(db_path, "last_heartbeat_time")
+    if not last_value:
+        return True
+
+    try:
+        last_sent = datetime.fromisoformat(last_value)
+    except ValueError:
+        return True
+
+    if last_sent.tzinfo is None:
+        last_sent = last_sent.replace(tzinfo=timezone.utc)
+
+    return now - last_sent >= timedelta(hours=interval_hours)
+
+
+def format_heartbeat_message(fetched: int, matched: int, sent: int, now: datetime) -> str:
+    timestamp = now.astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    return (
+        "✅ <b>Internship monitor heartbeat</b>\n\n"
+        f"Last run: {timestamp}\n"
+        f"Fetched jobs: {fetched}\n"
+        f"Passed filters: {matched}\n"
+        f"Telegram job alerts sent: {sent}"
+    )
+
+
+def maybe_send_heartbeat(
+    db_path: str,
+    config: dict[str, Any],
+    *,
+    fetched: int,
+    matched: int,
+    sent: int,
+) -> None:
+    heartbeat = config.get("heartbeat", {})
+    if not heartbeat.get("enabled", True):
+        return
+
+    interval_hours = int(heartbeat.get("interval_hours", 24))
+    now = datetime.now(timezone.utc)
+    if not heartbeat_due(db_path, interval_hours, now=now):
+        return
+
+    send_telegram_message(
+        format_heartbeat_message(fetched, matched, sent, now),
+        disable_web_page_preview=True,
+    )
+    set_metadata(db_path, "last_heartbeat_time", now.isoformat())
+
+
 def run_once(config: dict[str, Any]) -> int:
     db_path = config.get("database_path", "jobs.sqlite3")
     posted_within_hours = int(config.get("posted_within_hours", 24))
@@ -123,6 +183,18 @@ def run_once(config: dict[str, Any]) -> int:
         "run_complete",
         extra={"fetched": len(jobs), "matched": matched, "sent": sent},
     )
+
+    try:
+        maybe_send_heartbeat(
+            db_path,
+            config,
+            fetched=len(jobs),
+            matched=matched,
+            sent=sent,
+        )
+    except Exception:
+        LOGGER.exception("heartbeat_send_failed")
+
     return sent
 
 

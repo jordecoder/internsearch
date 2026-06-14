@@ -1,5 +1,8 @@
 name: Singapore Internship Job Monitor
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   schedule:
     # Runs every 2 hours.

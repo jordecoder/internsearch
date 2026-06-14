@@ -29,6 +29,20 @@ The default config alerts only when all of these pass:
 The scoring model evaluates role, skills, Singapore location, August/September
 2027 internship fit, and undergraduate/Bachelor's degree fit.
 
+## Daily Heartbeat
+
+The monitor sends one Telegram heartbeat message every 24 hours by default, even
+when no job alerts are sent. It includes the latest run time plus fetched,
+matched, and sent counts.
+
+To change this, edit `config.yaml`:
+
+```yaml
+heartbeat:
+  enabled: true
+  interval_hours: 24
+```
+
 ## Telegram Format
 
 Alerts are sent with Telegram HTML parse mode:

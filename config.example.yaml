@@ -8,6 +8,11 @@ posted_within_hours: 24
 # Default schedule for local continuous mode. GitHub Actions uses its cron.
 check_interval_minutes: 120
 
+# Sends one Telegram "still running" summary at most once per interval.
+heartbeat:
+  enabled: true
+  interval_hours: 24
+
 http:
   user_agent: "SGInternshipJobMonitor/1.0 (+personal internship alerts)"
   timeout_seconds: 25

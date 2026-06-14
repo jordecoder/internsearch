@@ -1,5 +1,12 @@
 from job_model import Job
-from database import init_db, mark_notified, record_discovery, was_notified
+from database import (
+    get_metadata,
+    init_db,
+    mark_notified,
+    record_discovery,
+    set_metadata,
+    was_notified,
+)
 
 
 def test_record_discovery_and_notification_dedupe(tmp_path):
@@ -21,3 +28,14 @@ def test_record_discovery_and_notification_dedupe(tmp_path):
     mark_notified(db_path, job)
 
     assert was_notified(db_path, job) is True
+
+
+def test_metadata_round_trip(tmp_path):
+    db_path = str(tmp_path / "jobs.sqlite3")
+    init_db(db_path)
+
+    assert get_metadata(db_path, "last_heartbeat_time") is None
+
+    set_metadata(db_path, "last_heartbeat_time", "2026-06-14T00:00:00+00:00")
+
+    assert get_metadata(db_path, "last_heartbeat_time") == "2026-06-14T00:00:00+00:00"

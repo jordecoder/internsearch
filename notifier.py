@@ -38,7 +38,7 @@ def format_job_message(job: Job, score: Score) -> str:
     )
 
 
-def send_telegram(job: Job, score: Score) -> None:
+def send_telegram_message(message: str, *, disable_web_page_preview: bool = False) -> None:
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
@@ -50,10 +50,14 @@ def send_telegram(job: Job, score: Score) -> None:
     api_url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {
         "chat_id": chat_id,
-        "text": format_job_message(job, score),
+        "text": message,
         "parse_mode": "HTML",
-        "disable_web_page_preview": False,
+        "disable_web_page_preview": disable_web_page_preview,
     }
 
     response = requests.post(api_url, json=payload, timeout=20)
     response.raise_for_status()
+
+
+def send_telegram(job: Job, score: Score) -> None:
+    send_telegram_message(format_job_message(job, score))

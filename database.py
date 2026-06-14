@@ -33,6 +33,14 @@ def init_db(db_path: str) -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS metadata (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+            """
+        )
         _migrate_legacy_schema(conn)
 
 
@@ -121,4 +129,25 @@ def mark_notified(db_path: str, job: Job) -> None:
         conn.execute(
             "UPDATE jobs SET notified_time = ? WHERE stable_id = ?",
             (_utc_now_iso(), job.stable_id),
+        )
+
+
+def get_metadata(db_path: str, key: str) -> str | None:
+    with sqlite3.connect(db_path) as conn:
+        row = conn.execute(
+            "SELECT value FROM metadata WHERE key = ?",
+            (key,),
+        ).fetchone()
+    return row[0] if row else None
+
+
+def set_metadata(db_path: str, key: str, value: str) -> None:
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO metadata (key, value)
+            VALUES (?, ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+            """,
+            (key, value),
         )
