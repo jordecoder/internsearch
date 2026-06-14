@@ -57,6 +57,7 @@ def test_actionable_message_labels_near_match_clearly():
     message = format_actionable_job_message(job, score, "Resume coverage: 50%")
 
     assert "New Actionable Internship Posting" in message
+    assert "missed the stricter score filter" in message
     assert "DSTA Internships" in message
     assert "Resume coverage: 50%" in message
     assert "https://example.com/internships?a=1&amp;b=2" in message

@@ -23,7 +23,9 @@ actionable_digest:
 
 new_actionable_alerts:
   enabled: true
-  min_overall: 55
+  # Send every new exact Singapore tech internship that passes candidate filters,
+  # even if it is below the stricter relevance threshold.
+  min_overall: 0
   min_location: 70
 
 exact_job_detection:

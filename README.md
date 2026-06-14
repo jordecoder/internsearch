@@ -53,7 +53,7 @@ filters, even if it does not meet the stricter high-confidence alert threshold.
 ```yaml
 new_actionable_alerts:
   enabled: true
-  min_overall: 55
+  min_overall: 0
   min_location: 70
 ```
 

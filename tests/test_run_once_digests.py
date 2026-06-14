@@ -117,3 +117,57 @@ def test_run_once_excludes_programme_page_from_actionable_digest(tmp_path, monke
 
     assert not any("Current actionable Singapore tech internships" in msg for msg in sent_messages)
     assert not any("New Actionable Internship Posting" in msg for msg in sent_messages)
+
+
+def test_run_once_sends_new_actionable_job_below_strict_score(tmp_path, monkeypatch):
+    db_path = str(tmp_path / "jobs.sqlite3")
+    job = Job(
+        source="Greenhouse:example",
+        title="Software Engineer Intern",
+        company="Example Tech",
+        location="Singapore",
+        url="https://boards.greenhouse.io/example/jobs/123",
+        description="Build internal tools with Java.",
+    )
+    sent_actionable = []
+
+    def fake_fetch_all_jobs(config, client):
+        return [job], {"Greenhouse": 1}
+
+    def fake_send_actionable(job_arg, score_arg, resume_note):
+        sent_actionable.append((job_arg, score_arg, resume_note))
+
+    monkeypatch.setattr(main, "fetch_all_jobs", fake_fetch_all_jobs)
+    monkeypatch.setattr(main, "send_actionable_telegram", fake_send_actionable)
+
+    config = {
+        "database_path": db_path,
+        "posted_within_hours": 24,
+        "log_level": "INFO",
+        "http": {"rate_limit_seconds": 0},
+        "role_keywords": ["software engineer intern", "internship"],
+        "target_keywords": ["python", "sql", "machine learning"],
+        "degree_keywords": ["undergraduate"],
+        "thresholds": {"overall": 90, "timeline": 90, "location": 70},
+        "candidate_filters": {
+            "min_location": 70,
+            "required_locations": ["singapore"],
+            "internship_terms": ["intern", "internship"],
+            "technical_terms": ["software engineer", "software engineering"],
+            "rejected_terms": ["marketing", "manager", "senior"],
+        },
+        "resume_match": {"tracked_keywords": ["python", "sql"]},
+        "new_actionable_alerts": {"enabled": True, "min_overall": 0, "min_location": 70},
+        "actionable_digest": {"enabled": False},
+        "near_match_digest": {"enabled": False},
+        "manual_review_digest": {"enabled": False},
+        "weekly_summary": {"enabled": False},
+        "heartbeat": {"enabled": False},
+        "application_tracker": {"enabled": False},
+    }
+
+    main.run_once(config)
+
+    assert len(sent_actionable) == 1
+    assert sent_actionable[0][0].title == "Software Engineer Intern"
+    assert sent_actionable[0][1].overall < 90

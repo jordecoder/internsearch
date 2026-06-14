@@ -56,6 +56,7 @@ def format_actionable_job_message(job: Job, score: Score, resume_note: str) -> s
         f"<b>Relevance Score</b>: {score.overall}/100\n"
         f"<b>Timeline Match</b>: {timeline}\n"
         f"<b>Resume Signal</b>: {resume}\n\n"
+        "This passed the Singapore tech internship requirements, but missed the stricter score filter.\n\n"
         f"<a href=\"{url}\">Review Posting</a>"
     )
 
