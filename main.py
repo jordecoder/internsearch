@@ -148,7 +148,10 @@ def fetch_all_jobs(config: dict[str, Any], client: PoliteHttpClient):
         source_counts["MyCareersFuture"] = len(jobs)
         all_jobs.extend(jobs)
 
-    unique = {job.stable_id: job for job in all_jobs}
+    unique = {}
+    for job in all_jobs:
+        key = (job.url or job.stable_id).lower()
+        unique[key] = job
     return list(unique.values()), source_counts
 
 

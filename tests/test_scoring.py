@@ -22,11 +22,11 @@ CONFIG = {
         "machine learning",
     ],
     "degree_keywords": ["bachelor's degree", "undergraduate", "computer science"],
-    "priority_companies": ["Grab"],
+    "priority_companies": ["Grab", "DSTA", "CSIT", "GovTech Singapore"],
     "candidate_filters": {
         "min_location": 70,
         "required_locations": ["singapore"],
-        "internship_terms": ["intern", "internship"],
+        "internship_terms": ["intern", "internship", "internships"],
         "technical_terms": [
             "data engineering",
             "analytics",
@@ -40,7 +40,17 @@ CONFIG = {
             "rag",
             "llm",
         ],
-        "rejected_terms": ["senior", "manager", "marketing", "growth", "support"],
+        "rejected_terms": [
+            "senior",
+            "manager",
+            "marketing",
+            "growth",
+            "support",
+            "communications",
+            "social media",
+            "public policy",
+        ],
+        "trusted_technical_companies": ["dsta", "csit", "govtech singapore"],
     },
 }
 
@@ -143,6 +153,7 @@ def test_analytics_intern_is_actionable():
     score = score_job(job, CONFIG)
 
     assert is_actionable_candidate(job, score, CONFIG)
+    assert score.overall >= 60
 
 
 def test_it_consulting_intern_is_actionable():
@@ -168,6 +179,51 @@ def test_public_policy_intern_with_technical_company_boilerplate_is_not_actionab
         location="Singapore",
         url="https://example.com/job",
         description="Cloud cybersecurity network platform company using Python SQL.",
+    )
+
+    score = score_job(job, CONFIG)
+
+    assert not is_actionable_candidate(job, score, CONFIG)
+
+
+def test_dsta_generic_internship_link_is_actionable_as_trusted_technical_employer():
+    job = Job(
+        source="CareersPage:DSTA",
+        title="DSTA Internships",
+        company="DSTA",
+        location="Singapore",
+        url="https://www.dsta.gov.sg/join-us/student/internships",
+        description="Internships in engineering, data analytics, cybersecurity and software.",
+    )
+
+    score = score_job(job, CONFIG)
+
+    assert is_actionable_candidate(job, score, CONFIG)
+
+
+def test_trusted_technical_employer_still_rejects_marketing_roles():
+    job = Job(
+        source="CareersPage:DSTA",
+        title="Marketing Intern",
+        company="DSTA",
+        location="Singapore",
+        url="https://example.com/job",
+        description="Marketing communications internship.",
+    )
+
+    score = score_job(job, CONFIG)
+
+    assert not is_actionable_candidate(job, score, CONFIG)
+
+
+def test_trusted_technical_employer_rejects_corporate_communications():
+    job = Job(
+        source="CareersPage:CSIT",
+        title="Corporate Communications Internship (Social Media)",
+        company="CSIT",
+        location="Singapore",
+        url="https://example.com/job",
+        description="Communications internship.",
     )
 
     score = score_job(job, CONFIG)

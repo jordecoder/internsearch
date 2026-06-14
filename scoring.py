@@ -106,7 +106,12 @@ def is_actionable_candidate(job: Job, score: Score, config: dict[str, Any]) -> b
         return False
 
     technical_terms = filters.get("technical_terms", [])
-    if technical_terms and not _has_any(title, technical_terms):
+    trusted_companies = {
+        str(company).lower()
+        for company in filters.get("trusted_technical_companies", [])
+    }
+    trusted_company = job.company.lower() in trusted_companies
+    if technical_terms and not trusted_company and not _has_any(title, technical_terms):
         return False
 
     return True
@@ -157,6 +162,8 @@ def _score_skills(
 
     if job.company.lower() in priority_companies:
         base += 8
+        if "intern" in text or "internship" in text:
+            base += 20
 
     return _bounded(base)
 

@@ -27,6 +27,10 @@ def _matches(text: str, terms: list[str]) -> bool:
     return any(term.lower() in lowered for term in terms)
 
 
+def _clean_title(title: str) -> str:
+    return title.strip().lstrip("> ").strip()
+
+
 def fetch_careers_pages(
     pages: list[dict[str, object]], client: PoliteHttpClient | None = None
 ) -> list[Job]:
@@ -53,8 +57,12 @@ def fetch_careers_pages(
 
         soup = BeautifulSoup(response.text, "html.parser")
         for link in soup.find_all("a", href=True):
-            title = link.get_text(" ", strip=True)
-            href = urljoin(url, link["href"])
+            raw_href = link["href"].strip()
+            if raw_href.startswith(("#", "mailto:", "tel:")):
+                continue
+
+            title = _clean_title(link.get_text(" ", strip=True))
+            href = urljoin(url, raw_href)
             surrounding = link.parent.get_text(" ", strip=True) if link.parent else title
             text = f"{title} {href}"
             if not title or not _matches(text, keywords):
@@ -74,5 +82,5 @@ def fetch_careers_pages(
 
     unique = {}
     for job in jobs:
-        unique[job.stable_id] = job
+        unique[job.url.lower()] = job
     return list(unique.values())

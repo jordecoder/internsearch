@@ -264,6 +264,10 @@ sources:
 Direct career-page scans are best effort. API-backed Greenhouse, Lever, and
 Ashby sources are more reliable.
 
+The default direct career-page list includes Singapore public-sector and
+consulting targets such as GovTech, Open Government Products, Careers@Gov,
+Accenture Singapore, DSTA, and CSIT.
+
 ## Tests
 
 ```powershell

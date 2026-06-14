@@ -104,6 +104,40 @@ def test_fetch_careers_pages_keeps_relevant_links():
     assert jobs[0].location == "Singapore"
 
 
+def test_fetch_careers_pages_skips_mailto_and_fragment_links():
+    client = FakeClient(
+        [
+            FakeResponse(
+                text="""
+                <html>
+                  <body>
+                    <a href="#">Apply through your school's internship portal</a>
+                    <a href="mailto:internship@example.com">internship@example.com</a>
+                    <a href="/internships">> DSTA Internships</a>
+                  </body>
+                </html>
+                """
+            )
+        ]
+    )
+
+    jobs = fetch_careers_pages(
+        [
+            {
+                "name": "DSTA",
+                "company": "DSTA",
+                "url": "https://example.com/join-us",
+                "default_location": "Singapore",
+            }
+        ],
+        client,
+    )
+
+    assert len(jobs) == 1
+    assert jobs[0].title == "DSTA Internships"
+    assert jobs[0].url == "https://example.com/internships"
+
+
 def test_fetch_internsg_canonicalizes_search_query_duplicates():
     html = """
     <html>

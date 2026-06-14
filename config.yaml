@@ -22,6 +22,7 @@ candidate_filters:
   internship_terms:
     - intern
     - internship
+    - internships
   technical_terms:
     - data engineer
     - data engineering
@@ -91,11 +92,25 @@ candidate_filters:
     - marketing
     - growth
     - founder
+    - communications
+    - corporate communications
+    - social media
+    - public policy
+    - policy
     - finance
     - legal
     - operations
     - human resources
     - recruiter
+  trusted_technical_companies:
+    - accenture
+    - dsta
+    - defence science and technology agency
+    - csit
+    - centre for strategic infocomm technologies
+    - govtech singapore
+    - government technology agency
+    - open government products
 
 weekly_summary:
   enabled: true
@@ -274,6 +289,12 @@ priority_companies:
   - ShopBack
   - Ninja Van
   - Circles.Life
+  - Accenture
+  - DSTA
+  - CSIT
+  - GovTech Singapore
+  - Government Technology Agency
+  - Open Government Products
 
 referral_priority_companies:
   - Google
@@ -301,6 +322,12 @@ referral_priority_companies:
   - Bloomberg
   - Visa
   - Mastercard
+  - Accenture
+  - DSTA
+  - CSIT
+  - GovTech Singapore
+  - Government Technology Agency
+  - Open Government Products
 
 resume_match:
   tracked_keywords:
@@ -466,6 +493,34 @@ sources:
       - name: GovTech Singapore
         company: GovTech Singapore
         url: https://www.tech.gov.sg/careers/
+        default_location: Singapore
+      - name: Open Government Products
+        company: Open Government Products
+        url: https://www.open.gov.sg/careers/
+        default_location: Singapore
+      - name: Careers@Gov
+        company: Singapore Public Service
+        url: https://www.careers.gov.sg/
+        default_location: Singapore
+      - name: Accenture Singapore
+        company: Accenture
+        url: https://www.accenture.com/sg-en/careers/jobsearch
+        default_location: Singapore
+      - name: DSTA
+        company: DSTA
+        url: https://www.dsta.gov.sg/join-us
+        default_location: Singapore
+      - name: DSTA Internships
+        company: DSTA
+        url: https://www.dsta.gov.sg/join-us/student/internships
+        default_location: Singapore
+      - name: CSIT
+        company: CSIT
+        url: https://www.csit.gov.sg/join-us
+        default_location: Singapore
+      - name: CSIT Internships
+        company: CSIT
+        url: https://www.csit.gov.sg/join-us/internships
         default_location: Singapore
       - name: GIC
         company: GIC
