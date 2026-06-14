@@ -363,20 +363,33 @@ sources:
   internsg:
     enabled: true
     search_terms:
+      - rag intern
+      - llm intern
+      - generative ai intern
+      - genai intern
+      - ai engineer intern
+      - machine learning engineer intern
+      - data engineer intern
       - data engineer intern
       - data engineering intern
+      - data platform intern
+      - data pipeline intern
+      - etl intern
+      - analytics engineer intern
       - analytics engineer intern
       - machine learning intern
       - ai intern
-      - llm intern
-      - generative ai intern
-      - rag intern
       - data science intern
+      - data scientist intern
       - data analyst intern
       - analytics intern
       - business intelligence intern
+      - software engineering intern
       - software engineer intern
       - backend engineer intern
+      - platform engineering intern
+      - cloud engineering intern
+      - solution engineer intern
       - technology consulting intern
       - it consulting intern
       - cloud intern
@@ -407,6 +420,11 @@ sources:
       - figma
       - notion
       - airbnb
+      - canva
+      - workato
+      - lattice
+      - dropbox
+      - roblox
 
   lever:
     enabled: true
@@ -421,6 +439,9 @@ sources:
       - netflix
       - reddit
       - coinbase
+      - canva
+      - twilio
+      - atlassian
 
   ashby:
     enabled: true
@@ -434,6 +455,12 @@ sources:
       - replicate
       - elevenlabs
       - ramp
+      - cursor
+      - langchain
+      - togetherai
+      - cohere
+      - glean
+      - skild
 
   smartrecruiters:
     enabled: true
@@ -442,6 +469,8 @@ sources:
       - Bosch
       - Ubisoft
       - Wise
+      - SAP
+      - ServiceNow
 
   workday:
     enabled: false
@@ -452,7 +481,7 @@ sources:
     pages:
       - name: Google
         company: Google
-        url: https://www.google.com/about/careers/applications/jobs/results
+        url: https://www.google.com/about/careers/applications/jobs/results/?location=Singapore&q=intern
         default_location: Singapore
       - name: Microsoft
         company: Microsoft
@@ -460,7 +489,7 @@ sources:
         default_location: Singapore
       - name: Amazon
         company: Amazon
-        url: https://www.amazon.jobs/en/search
+        url: https://www.amazon.jobs/en/search?base_query=intern&loc_query=Singapore
         default_location: Singapore
       - name: Apple
         company: Apple
@@ -542,11 +571,91 @@ sources:
         company: Bloomberg
         url: https://www.bloomberg.com/company/careers/working-here/
         default_location: Singapore
+      - name: NVIDIA
+        company: NVIDIA
+        url: https://www.nvidia.com/en-sg/about-nvidia/careers/
+        default_location: Singapore
+      - name: Salesforce
+        company: Salesforce
+        url: https://careers.salesforce.com/en/jobs/
+        default_location: Singapore
+      - name: Oracle
+        company: Oracle
+        url: https://careers.oracle.com/jobs/
+        default_location: Singapore
+      - name: SAP
+        company: SAP
+        url: https://jobs.sap.com/
+        default_location: Singapore
+      - name: IBM
+        company: IBM
+        url: https://www.ibm.com/careers/search
+        default_location: Singapore
+      - name: Dell
+        company: Dell
+        url: https://jobs.dell.com/
+        default_location: Singapore
+      - name: HP
+        company: HP
+        url: https://jobs.hp.com/
+        default_location: Singapore
+      - name: AMD
+        company: AMD
+        url: https://careers.amd.com/
+        default_location: Singapore
+      - name: Qualcomm
+        company: Qualcomm
+        url: https://careers.qualcomm.com/careers
+        default_location: Singapore
+      - name: Micron
+        company: Micron
+        url: https://www.micron.com/about/careers
+        default_location: Singapore
+      - name: PayPal
+        company: PayPal
+        url: https://paypal.eightfold.ai/careers
+        default_location: Singapore
+      - name: ServiceNow
+        company: ServiceNow
+        url: https://careers.servicenow.com/jobs
+        default_location: Singapore
+      - name: Atlassian
+        company: Atlassian
+        url: https://www.atlassian.com/company/careers/all-jobs
+        default_location: Singapore
+      - name: Canva
+        company: Canva
+        url: https://www.lifeatcanva.com/en/jobs/
+        default_location: Singapore
+      - name: Workato
+        company: Workato
+        url: https://www.workato.com/company/careers
+        default_location: Singapore
+      - name: Razer
+        company: Razer
+        url: https://www.razer.com/careers
+        default_location: Singapore
+      - name: ST Engineering
+        company: ST Engineering
+        url: https://www.stengg.com/en/careers/
+        default_location: Singapore
 
   mycareersfuture:
     enabled: false
     endpoint: ""
     search_terms:
       - data engineer intern
+      - data engineering intern
+      - data science intern
+      - data analyst intern
+      - analytics intern
       - machine learning intern
+      - machine learning engineer intern
       - ai intern
+      - generative ai intern
+      - rag intern
+      - llm intern
+      - software engineer intern
+      - technology consulting intern
+      - cloud intern
+      - cybersecurity intern

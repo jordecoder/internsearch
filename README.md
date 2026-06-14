@@ -20,6 +20,15 @@ source lists.
 - MyCareersFuture, optional and disabled by default because public endpoints can change
 - Company boards you add in `config.yaml`
 
+The default company coverage emphasizes Singapore internships across data
+engineering, RAG/AI, machine learning, software engineering, analytics, cloud,
+cybersecurity, and technology consulting. It includes public-sector and tech
+targets such as GovTech, Open Government Products, DSTA, CSIT, Careers@Gov,
+Accenture, Google, Microsoft, Amazon, Apple, Meta, TikTok, ByteDance, Shopee,
+Sea, Grab, NVIDIA, Salesforce, Oracle, SAP, IBM, Dell, HP, AMD, Qualcomm,
+Micron, PayPal, ServiceNow, Atlassian, Canva, Workato, Razer, ST Engineering,
+Visa, Mastercard, Bloomberg, GIC, and Temasek.
+
 ## Alert Rules
 
 The default config alerts only when all of these pass:
@@ -167,6 +176,9 @@ check_interval_minutes: 30
 ## GitHub Actions
 
 The workflow is at `.github/workflows/job-monitor.yml` and runs every 2 hours.
+After you add the Telegram secrets, you do not need to manually run it for the
+regular checks. GitHub starts it automatically from the cron schedule even when
+your computer is off.
 
 Add these repository secrets:
 
@@ -175,6 +187,10 @@ Add these repository secrets:
 
 The workflow restores and saves `jobs.sqlite3` with `actions/cache` so jobs
 without exact posting times do not repeatedly alert on every scheduled run.
+
+Manual runs are only for testing or forcing an immediate check. Manual runs can
+send start/finish status messages; scheduled two-hour runs only send job alerts,
+daily digest, weekly summary, or heartbeat when those messages are due.
 
 ## Docker
 
@@ -200,6 +216,9 @@ docker run --env-file .env -v "%cd%/jobs.sqlite3:/app/jobs.sqlite3" sg-internshi
 
 For application strategy, resume positioning, and referral workflow, see
 `HIRING_PLAYBOOK.md`.
+
+For sources that are useful but unreliable to scrape unattended, such as Indeed
+and broad Google Careers/MyCareersFuture searches, see `MANUAL_SEARCH_LINKS.md`.
 
 Greenhouse board token:
 
