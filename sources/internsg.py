@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 from bs4 import BeautifulSoup
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import quote_plus, urljoin, urlsplit, urlunsplit
 
 from http_client import PoliteHttpClient
 from job_model import Job
 
 
 BASE_URL = "https://www.internsg.com"
+
+
+def _canonical_url(url: str) -> str:
+    parts = urlsplit(url)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
 
 
 def fetch_internsg(
@@ -31,7 +36,7 @@ def fetch_internsg(
                 continue
 
             title = link.get_text(" ", strip=True) or term
-            job_url = urljoin(BASE_URL, link["href"])
+            job_url = _canonical_url(urljoin(BASE_URL, link["href"]))
 
             # Best-effort extraction. Filtering later removes weak matches.
             company = "Unknown"

@@ -14,6 +14,7 @@ class ResumeMatch:
     matched_keywords: list[str]
     missing_keywords: list[str]
     coverage_percent: int
+    tracked_keywords_found: int = 0
 
 
 def load_resume_profile(path: str | None) -> dict[str, Any]:
@@ -60,7 +61,7 @@ def match_resume_to_job(
 
     matched = [term for term in relevant if term in resume_keywords]
     missing = [term for term in relevant if term not in resume_keywords]
-    coverage = 100
+    coverage = 0
     if relevant:
         coverage = round(len(matched) / len(relevant) * 100)
 
@@ -68,4 +69,5 @@ def match_resume_to_job(
         matched_keywords=matched,
         missing_keywords=missing,
         coverage_percent=coverage,
+        tracked_keywords_found=len(relevant),
     )

@@ -49,10 +49,12 @@ def test_heartbeat_message_includes_run_summary():
         matched=0,
         sent=0,
         now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
+        actionable_candidates=4,
     )
 
     assert "Internship monitor heartbeat" in message
     assert "Fetched jobs: 238" in message
+    assert "Actionable candidates: 4" in message
     assert "Passed filters: 0" in message
     assert "Telegram job alerts sent: 0" in message
 
@@ -80,7 +82,7 @@ def test_near_match_digest_includes_job_links_and_scores():
             (
                 job,
                 score,
-                ResumeMatch(["python"], ["docker"], 50),
+                ResumeMatch(["python"], ["docker"], 50, 2),
                 "Action: seek referral before applying",
             )
         ],
@@ -99,14 +101,16 @@ def test_near_match_digest_includes_job_links_and_scores():
 def test_weekly_summary_includes_totals_and_gaps():
     message = format_weekly_summary(
         now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
-        jobs_seen=42,
+        fetched_postings=4129,
+        actionable_candidates=4,
         alerts_sent=3,
         top_companies=[("Grab", 5)],
         common_missing_keywords=[("docker", 4)],
     )
 
     assert "Weekly internship search summary" in message
-    assert "New jobs seen: 42" in message
+    assert "Fetched postings reviewed: 4129" in message
+    assert "Actionable Singapore tech internships: 4" in message
     assert "Strict alerts sent: 3" in message
     assert "Grab: 5" in message
     assert "docker: 4" in message

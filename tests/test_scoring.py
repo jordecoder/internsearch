@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from job_model import Job
-from scoring import is_fresh, passes_threshold, score_job
+from scoring import is_actionable_candidate, is_fresh, passes_threshold, score_job
 
 
 CONFIG = {
@@ -23,6 +23,21 @@ CONFIG = {
     ],
     "degree_keywords": ["bachelor's degree", "undergraduate", "computer science"],
     "priority_companies": ["Grab"],
+    "candidate_filters": {
+        "min_location": 70,
+        "required_locations": ["singapore"],
+        "internship_terms": ["intern", "internship"],
+        "technical_terms": [
+            "data engineering",
+            "machine learning",
+            "software engineer",
+            "python",
+            "sql",
+            "rag",
+            "llm",
+        ],
+        "rejected_terms": ["senior", "manager", "marketing", "growth", "support"],
+    },
 }
 
 
@@ -48,6 +63,7 @@ def test_high_quality_2027_singapore_internship_passes_thresholds():
     assert score.timeline_relevance == 100
     assert score.location_relevance >= 70
     assert passes_threshold(score, CONFIG)
+    assert is_actionable_candidate(job, score, CONFIG)
 
 
 def test_2026_or_immediate_start_is_rejected_by_timeline():
@@ -78,3 +94,33 @@ def test_unknown_post_time_is_fresh_only_when_newly_discovered():
 
     assert is_fresh(job, is_new=True, hours=24)
     assert not is_fresh(job, is_new=False, hours=24)
+
+
+def test_senior_manager_outside_singapore_is_not_actionable():
+    job = Job(
+        source="Greenhouse:databricks",
+        title="Senior Manager, Global Premier Support",
+        company="databricks",
+        location="Sydney, Australia",
+        url="https://example.com/job",
+        description="Customer support manager role.",
+    )
+
+    score = score_job(job, CONFIG)
+
+    assert not is_actionable_candidate(job, score, CONFIG)
+
+
+def test_marketing_growth_intern_is_not_actionable():
+    job = Job(
+        source="InternSG",
+        title="Marketing & Growth Intern - Founder's Office",
+        company="Example",
+        location="Singapore",
+        url="https://example.com/job",
+        description="Marketing growth internship.",
+    )
+
+    score = score_job(job, CONFIG)
+
+    assert not is_actionable_candidate(job, score, CONFIG)

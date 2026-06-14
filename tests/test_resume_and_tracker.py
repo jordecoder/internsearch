@@ -22,8 +22,25 @@ def test_resume_matcher_reports_missing_keywords():
     )
 
     assert match.coverage_percent == 50
+    assert match.tracked_keywords_found == 4
     assert match.matched_keywords == ["python", "sql"]
     assert match.missing_keywords == ["docker", "kubernetes"]
+
+
+def test_resume_matcher_does_not_report_empty_keyword_set_as_perfect_match():
+    job = Job(
+        source="Example",
+        title="Marketing Intern",
+        company="Example",
+        location="Singapore",
+        url="https://example.com/job",
+        description="Brand growth role.",
+    )
+
+    match = match_resume_to_job(job, {"strength_keywords": ["python"]}, ["python"])
+
+    assert match.coverage_percent == 0
+    assert match.tracked_keywords_found == 0
 
 
 def test_application_tracker_creates_and_updates_rows(tmp_path):

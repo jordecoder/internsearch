@@ -85,6 +85,33 @@ def passes_threshold(score: Score, config: dict[str, Any]) -> bool:
     )
 
 
+def is_actionable_candidate(job: Job, score: Score, config: dict[str, Any]) -> bool:
+    filters = config.get("candidate_filters", {})
+    text = _text(job)
+    title = (job.title or "").lower()
+
+    if score.location_relevance < int(filters.get("min_location", 70)):
+        return False
+
+    required_locations = filters.get("required_locations", ["singapore"])
+    if required_locations and not _has_any(text, required_locations):
+        return False
+
+    internship_terms = filters.get("internship_terms", ["intern", "internship"])
+    if not _has_any(title, internship_terms):
+        return False
+
+    rejected_terms = filters.get("rejected_terms", [])
+    if _has_any(title, rejected_terms):
+        return False
+
+    technical_terms = filters.get("technical_terms", [])
+    if technical_terms and not _has_any(text, technical_terms):
+        return False
+
+    return True
+
+
 def is_fresh(job: Job, *, is_new: bool, hours: int, now: datetime | None = None) -> bool:
     if job.posted_at is None:
         return is_new

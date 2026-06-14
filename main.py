@@ -12,20 +12,17 @@ import yaml
 
 from application_tracker import update_application_tracker
 from database import (
-    count_jobs_since,
-    count_notifications_since,
     get_metadata,
     init_db,
     mark_notified,
     record_discovery,
     set_metadata,
-    top_companies_since,
     was_notified,
 )
 from http_client import PoliteHttpClient
 from notifier import send_telegram, send_telegram_message
 from resume_matcher import ResumeMatch, load_resume_profile, match_resume_to_job
-from scoring import Score, is_fresh, passes_threshold, score_job
+from scoring import Score, is_actionable_candidate, is_fresh, passes_threshold, score_job
 from sources.ashby import fetch_ashby_boards
 from sources.careers_page import fetch_careers_pages
 from sources.greenhouse import fetch_greenhouse_boards
@@ -187,12 +184,17 @@ def format_heartbeat_message(
     sent: int,
     now: datetime,
     source_counts: dict[str, int] | None = None,
+    actionable_candidates: int | None = None,
 ) -> str:
     timestamp = now.astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    actionable_line = ""
+    if actionable_candidates is not None:
+        actionable_line = f"Actionable candidates: {actionable_candidates}\n"
     return (
         "✅ <b>Internship monitor heartbeat</b>\n\n"
         f"Last run: {timestamp}\n"
         f"Fetched jobs: {fetched}\n"
+        f"{actionable_line}"
         f"Passed filters: {matched}\n"
         f"Telegram job alerts sent: {sent}\n\n"
         f"{_format_source_counts(source_counts or {})}"
@@ -207,6 +209,7 @@ def maybe_send_heartbeat(
     matched: int,
     sent: int,
     source_counts: dict[str, int],
+    actionable_candidates: int | None = None,
 ) -> None:
     heartbeat = config.get("heartbeat", {})
     if not heartbeat.get("enabled", True):
@@ -218,13 +221,22 @@ def maybe_send_heartbeat(
         return
 
     send_telegram_message(
-        format_heartbeat_message(fetched, matched, sent, now, source_counts),
+        format_heartbeat_message(
+            fetched,
+            matched,
+            sent,
+            now,
+            source_counts,
+            actionable_candidates,
+        ),
         disable_web_page_preview=True,
     )
     set_metadata(db_path, "last_heartbeat_time", now.isoformat())
 
 
 def _format_resume_note(resume_match: ResumeMatch) -> str:
+    if resume_match.tracked_keywords_found == 0:
+        return "Resume keyword signal: no tracked technical keywords found"
     if not resume_match.missing_keywords:
         return f"Resume coverage: {resume_match.coverage_percent}%"
     gaps = ", ".join(resume_match.missing_keywords[:5])
@@ -305,7 +317,8 @@ def maybe_send_near_match_digest(
 def format_weekly_summary(
     *,
     now: datetime,
-    jobs_seen: int,
+    fetched_postings: int,
+    actionable_candidates: int,
     alerts_sent: int,
     top_companies: list[tuple[str, int]],
     common_missing_keywords: list[tuple[str, int]],
@@ -320,9 +333,10 @@ def format_weekly_summary(
     return (
         "📈 <b>Weekly internship search summary</b>\n\n"
         f"Generated: {timestamp}\n"
-        f"New jobs seen: {jobs_seen}\n"
+        f"Fetched postings reviewed: {fetched_postings}\n"
+        f"Actionable Singapore tech internships: {actionable_candidates}\n"
         f"Strict alerts sent: {alerts_sent}\n\n"
-        f"<b>Top companies</b>\n{company_lines}\n\n"
+        f"<b>Top actionable companies</b>\n{company_lines}\n\n"
         f"<b>Common resume keyword gaps</b>\n{gap_lines}"
     )
 
@@ -330,6 +344,10 @@ def format_weekly_summary(
 def maybe_send_weekly_summary(
     db_path: str,
     config: dict[str, Any],
+    *,
+    fetched_postings: int,
+    actionable_items: list[tuple[Any, Score, ResumeMatch, str]],
+    alerts_sent: int,
     missing_keyword_counts: dict[str, int],
 ) -> None:
     summary = config.get("weekly_summary", {})
@@ -350,18 +368,22 @@ def maybe_send_weekly_summary(
         except ValueError:
             pass
 
-    since = (now - timedelta(days=7)).isoformat()
+    company_counts: dict[str, int] = {}
+    for job, _, _, _ in actionable_items:
+        company_counts[job.company] = company_counts.get(job.company, 0) + 1
+    top_companies = sorted(
+        company_counts.items(), key=lambda item: (-item[1], item[0].lower())
+    )[: int(summary.get("max_companies", 5))]
     common_missing = sorted(
         missing_keyword_counts.items(), key=lambda item: (-item[1], item[0])
     )[: int(summary.get("max_missing_keywords", 8))]
     send_telegram_message(
         format_weekly_summary(
             now=now,
-            jobs_seen=count_jobs_since(db_path, since),
-            alerts_sent=count_notifications_since(db_path, since),
-            top_companies=top_companies_since(
-                db_path, since, limit=int(summary.get("max_companies", 5))
-            ),
+            fetched_postings=fetched_postings,
+            actionable_candidates=len(actionable_items),
+            alerts_sent=alerts_sent,
+            top_companies=top_companies,
             common_missing_keywords=common_missing,
         ),
         disable_web_page_preview=True,
@@ -409,6 +431,7 @@ def run_once(config: dict[str, Any]) -> int:
     sent = 0
     matched = 0
     near_matches: list[tuple[Any, Score, ResumeMatch, str]] = []
+    actionable_items: list[tuple[Any, Score, ResumeMatch, str]] = []
     missing_keyword_counts: dict[str, int] = {}
     digest_config = config.get("near_match_digest", {})
     near_min_overall = int(digest_config.get("min_overall", 45))
@@ -426,16 +449,21 @@ def run_once(config: dict[str, Any]) -> int:
             continue
 
         score = score_job(job, config)
+        actionable = is_actionable_candidate(job, score, config)
+        if not actionable:
+            continue
+
         resume_match = match_resume_to_job(job, resume_profile, tracked_resume_keywords)
         for keyword in resume_match.missing_keywords:
             missing_keyword_counts[keyword] = missing_keyword_counts.get(keyword, 0) + 1
+        note = _referral_note(job, config)
+        actionable_items.append((job, score, resume_match, note))
 
         if not passes_threshold(score, config):
             if (
                 score.overall >= near_min_overall
                 and score.location_relevance >= near_min_location
             ):
-                note = _referral_note(job, config)
                 near_matches.append((job, score, resume_match, note))
                 if tracker_enabled:
                     update_application_tracker(
@@ -497,7 +525,14 @@ def run_once(config: dict[str, Any]) -> int:
         LOGGER.exception("near_match_digest_send_failed")
 
     try:
-        maybe_send_weekly_summary(db_path, config, missing_keyword_counts)
+        maybe_send_weekly_summary(
+            db_path,
+            config,
+            fetched_postings=len(jobs),
+            actionable_items=actionable_items,
+            alerts_sent=sent,
+            missing_keyword_counts=missing_keyword_counts,
+        )
     except Exception:
         LOGGER.exception("weekly_summary_send_failed")
 
@@ -509,6 +544,7 @@ def run_once(config: dict[str, Any]) -> int:
             matched=matched,
             sent=sent,
             source_counts=source_counts,
+            actionable_candidates=len(actionable_items),
         )
     except Exception:
         LOGGER.exception("heartbeat_send_failed")

@@ -55,6 +55,10 @@ omit exact internship dates or use broad role titles. Digest entries include
 resume keyword coverage, missing resume keywords, and a referral suggestion for
 priority companies.
 
+Digest entries must still pass the actionable-candidate filter: Singapore
+location, internship title, technical relevance, and no senior/manager,
+marketing, sales, support, or other non-target role terms.
+
 ```yaml
 near_match_digest:
   enabled: true
@@ -93,8 +97,10 @@ application_tracker:
 
 ## Weekly Summary
 
-The monitor sends a weekly Telegram summary with new jobs seen, strict alerts,
-top companies, and common missing resume keywords.
+The monitor sends a weekly Telegram summary with fetched postings reviewed,
+actionable Singapore tech internships found, strict alerts, top actionable
+companies, and common missing resume keywords. Fetched postings are not the same
+thing as apply-worthy internships.
 
 ```yaml
 weekly_summary:

@@ -12,8 +12,51 @@ near_match_digest:
   enabled: true
   interval_hours: 24
   max_items: 10
-  min_overall: 45
-  min_location: 35
+  min_overall: 60
+  min_location: 70
+
+candidate_filters:
+  min_location: 70
+  required_locations:
+    - singapore
+  internship_terms:
+    - intern
+    - internship
+  technical_terms:
+    - data engineer
+    - data engineering
+    - analytics engineer
+    - machine learning
+    - software engineer
+    - backend
+    - platform engineer
+    - data science
+    - ai engineer
+    - generative ai
+    - genai
+    - llm
+    - rag
+    - python
+    - sql
+  rejected_terms:
+    - senior
+    - manager
+    - director
+    - head
+    - lead
+    - principal
+    - staff
+    - support
+    - customer
+    - sales
+    - marketing
+    - growth
+    - founder
+    - finance
+    - legal
+    - operations
+    - human resources
+    - recruiter
 
 weekly_summary:
   enabled: true

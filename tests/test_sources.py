@@ -1,5 +1,6 @@
 from sources.ashby import fetch_ashby_boards
 from sources.careers_page import fetch_careers_pages
+from sources.internsg import fetch_internsg
 from sources.smartrecruiters import fetch_smartrecruiters_companies
 from sources.workday import fetch_workday_sites
 from main import fetch_all_jobs
@@ -101,6 +102,24 @@ def test_fetch_careers_pages_keeps_relevant_links():
     assert jobs[0].title == "Machine Learning Intern"
     assert jobs[0].url == "https://example.com/jobs/ml-intern"
     assert jobs[0].location == "Singapore"
+
+
+def test_fetch_internsg_canonicalizes_search_query_duplicates():
+    html = """
+    <html>
+      <body>
+        <article>
+          <a href="/job/example-data-intern/?f_p=data+engineer+intern">Data Intern</a>
+        </article>
+      </body>
+    </html>
+    """
+    client = FakeClient([FakeResponse(text=html), FakeResponse(text=html)])
+
+    jobs = fetch_internsg(["data engineer intern", "machine learning intern"], client)
+
+    assert len(jobs) == 1
+    assert jobs[0].url == "https://www.internsg.com/job/example-data-intern/"
 
 
 def test_fetch_smartrecruiters_companies_maps_jobs():
