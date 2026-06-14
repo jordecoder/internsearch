@@ -32,12 +32,15 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        id: install
+        run: python -m pip install -r requirements.txt
 
       - name: Prepare config
+        id: config
         run: cp config.example.yaml config.yaml
 
       - name: Send started status
+        id: started_status
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_status_messages }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -45,9 +48,12 @@ jobs:
         run: python main.py --status-message "Started GitHub Actions monitor run"
 
       - name: Run tests
-        run: pytest
+        id: tests
+        continue-on-error: true
+        run: python -m pytest
 
       - name: Restore SQLite dedupe database
+        id: cache
         uses: actions/cache@v4
         with:
           path: |
@@ -58,6 +64,7 @@ jobs:
             internship-monitor-db-
 
       - name: Send Telegram test message
+        id: test_message
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test_message }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -65,12 +72,14 @@ jobs:
         run: python main.py --test-telegram
 
       - name: Run monitor once
+        id: monitor
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py --once
 
       - name: Upload application tracker
+        id: upload_tracker
         if: ${{ always() && hashFiles('applications.csv') != '' }}
         continue-on-error: true
         uses: actions/upload-artifact@v4
@@ -84,4 +93,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python main.py --status-message "Finished GitHub Actions monitor run with status: ${{ job.status }}"
+          python main.py --status-message "Finished GitHub Actions monitor run with status: ${{ job.status }} | install=${{ steps.install.outcome }} config=${{ steps.config.outcome }} tests=${{ steps.tests.outcome }} cache=${{ steps.cache.outcome }} monitor=${{ steps.monitor.outcome }} upload=${{ steps.upload_tracker.outcome }}"
