@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import yaml
 
 from application_tracker import update_application_tracker
+from bot_commands import process_telegram_commands
 from database import (
     get_metadata,
     init_db,
@@ -736,6 +737,14 @@ def run_once(config: dict[str, Any]) -> int:
         sent,
         len(near_matches),
     )
+    _save_run_metadata(
+        db_path,
+        fetched=len(jobs),
+        matched=matched,
+        sent=sent,
+        actionable=len(actionable_items),
+        source_counts=source_counts,
+    )
 
     near_matches.sort(key=lambda item: item[1].overall, reverse=True)
 
@@ -782,6 +791,28 @@ def run_once(config: dict[str, Any]) -> int:
     return sent
 
 
+def _save_run_metadata(
+    db_path: str,
+    *,
+    fetched: int,
+    matched: int,
+    sent: int,
+    actionable: int,
+    source_counts: dict[str, int],
+) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    set_metadata(db_path, "last_run_time", now)
+    set_metadata(db_path, "last_run_fetched", str(fetched))
+    set_metadata(db_path, "last_run_matched", str(matched))
+    set_metadata(db_path, "last_run_sent", str(sent))
+    set_metadata(db_path, "last_run_actionable", str(actionable))
+    set_metadata(
+        db_path,
+        "last_run_source_counts",
+        "|".join(f"{source}={count}" for source, count in sorted(source_counts.items())),
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--once", action="store_true", help="Run one check and exit.")
@@ -794,6 +825,11 @@ def main() -> None:
         "--status-message",
         help="Send a Telegram status message and exit.",
     )
+    parser.add_argument(
+        "--handle-telegram-commands",
+        action="store_true",
+        help="Reply to pending Telegram bot commands and exit.",
+    )
     parser.add_argument("--config", default="config.yaml", help="Path to config YAML.")
     args = parser.parse_args()
 
@@ -804,6 +840,13 @@ def main() -> None:
     if args.status_message:
         send_status_telegram_message(args.status_message)
         LOGGER.info("telegram_status_sent")
+        return
+
+    if args.handle_telegram_commands:
+        db_path = config.get("database_path", "jobs.sqlite3")
+        init_db(db_path)
+        processed = process_telegram_commands(db_path)
+        LOGGER.info("telegram_commands_processed count=%s", processed)
         return
 
     if args.test_telegram:

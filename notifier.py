@@ -60,18 +60,23 @@ def format_actionable_job_message(job: Job, score: Score, resume_note: str) -> s
     )
 
 
-def send_telegram_message(message: str, *, disable_web_page_preview: bool = False) -> None:
+def send_telegram_message(
+    message: str,
+    *,
+    disable_web_page_preview: bool = False,
+    chat_id: str | None = None,
+) -> None:
     token = os.getenv("TELEGRAM_BOT_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    target_chat_id = chat_id or os.getenv("TELEGRAM_CHAT_ID")
 
-    if not token or not chat_id:
+    if not token or not target_chat_id:
         raise RuntimeError(
             "Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID in environment/.env"
         )
 
     api_url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {
-        "chat_id": chat_id,
+        "chat_id": target_chat_id,
         "text": message,
         "parse_mode": "HTML",
         "disable_web_page_preview": disable_web_page_preview,
@@ -87,3 +92,24 @@ def send_telegram(job: Job, score: Score) -> None:
 
 def send_actionable_telegram(job: Job, score: Score, resume_note: str) -> None:
     send_telegram_message(format_actionable_job_message(job, score, resume_note))
+
+
+def get_telegram_updates(offset: int | None = None) -> list[dict]:
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not token:
+        raise RuntimeError("Missing TELEGRAM_BOT_TOKEN in environment/.env")
+
+    api_url = f"https://api.telegram.org/bot{token}/getUpdates"
+    params: dict[str, object] = {
+        "timeout": 0,
+        "allowed_updates": '["message"]',
+    }
+    if offset is not None:
+        params["offset"] = offset
+
+    response = requests.get(api_url, params=params, timeout=20)
+    response.raise_for_status()
+    data = response.json()
+    if not data.get("ok"):
+        raise RuntimeError(f"Telegram getUpdates failed: {data}")
+    return list(data.get("result", []))

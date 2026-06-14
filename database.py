@@ -189,3 +189,39 @@ def top_companies_since(db_path: str, since_iso: str, *, limit: int = 5) -> list
             (since_iso, limit),
         ).fetchall()
     return [(str(company), int(count)) for company, count in rows]
+
+
+def search_jobs(db_path: str, query: str, *, limit: int = 5) -> list[dict[str, str | None]]:
+    needle = f"%{query.lower()}%"
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            """
+            SELECT source, title, company, location, url, posted_time,
+                   first_seen_time, last_seen_time, notified_time
+            FROM jobs
+            WHERE lower(title) LIKE ?
+               OR lower(company) LIKE ?
+               OR lower(url) LIKE ?
+            ORDER BY last_seen_time DESC
+            LIMIT ?
+            """,
+            (needle, needle, needle, limit),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def recent_jobs(db_path: str, *, limit: int = 5) -> list[dict[str, str | None]]:
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            """
+            SELECT source, title, company, location, url, posted_time,
+                   first_seen_time, last_seen_time, notified_time
+            FROM jobs
+            ORDER BY first_seen_time DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    return [dict(row) for row in rows]

@@ -29,8 +29,9 @@ Sea, Grab, NVIDIA, Intel, Salesforce, Oracle, SAP, IBM, Dell, HP, AMD,
 Broadcom, Marvell, MediaTek, GlobalFoundries, ASML, Applied Materials, Lam
 Research, KLA, Western Digital, Seagate, Samsung, Dyson, Keysight, Siemens,
 Illumina, Qualcomm, Micron, Synopsys, Cadence, Arm, PayPal, ServiceNow,
-Atlassian, Canva, Workato, Razer, ST Engineering, Visa, Mastercard, Bloomberg,
-GIC, and Temasek.
+Atlassian, Canva, Workato, Razer, ST Engineering, Carousell, ShopBack, Ninja
+Van, Circles.Life, PropertyGuru, Endowus, Syfe, Aspire, Airwallex, YouTrip,
+M-DAQ, NCS, Synapxe, Singtel, Visa, Mastercard, Bloomberg, GIC, and Temasek.
 
 ## Alert Rules
 
@@ -194,6 +195,20 @@ Apply Here
 
 The job title and `Apply Here` both link to the posting.
 
+## Telegram Commands
+
+Commands are handled through Telegram `getUpdates` during each GitHub Actions
+run. This means replies are not instant; the bot replies when the next scheduled
+or manually triggered workflow runs.
+
+- `/help` - show available commands
+- `/faq` - explain scrape cadence, alerts, and manual boards
+- `/status` - show the latest saved monitor run summary
+- `/date <job/company/title/url>` - look up posted date, first-seen date, and last-seen date
+- `/recent` - show recently discovered jobs
+- `/sources` - show latest source counts
+- `/schedule` - show the Singapore-time scrape schedule
+
 ## Local Setup
 
 ```powershell
@@ -250,7 +265,7 @@ without exact posting times do not repeatedly alert on every scheduled run.
 Manual runs are only for testing or forcing an immediate check. Manual runs can
 send start/finish status messages; scheduled runs send job alerts,
 near-match digest, actionable digest, the 20:00 SGT manual-review digest,
-heartbeat, and weekly summary when due.
+heartbeat, weekly summary, and replies to pending Telegram commands when due.
 
 The workflow has a concurrency group so frequent scheduled runs do not stack up
 on top of one another if GitHub Actions is slow.

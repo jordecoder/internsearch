@@ -15,6 +15,9 @@ def test_display_company_formats_known_slugs():
     assert display_company("globalfoundries") == "GlobalFoundries"
     assert display_company("mediatek") == "MediaTek"
     assert display_company("asml") == "ASML"
+    assert display_company("shopback") == "ShopBack"
+    assert display_company("m-daq") == "M-DAQ"
+    assert display_company("synapxe") == "Synapxe"
 
 
 def test_display_source_formats_provider_and_company():

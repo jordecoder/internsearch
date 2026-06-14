@@ -82,6 +82,15 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py --once
 
+      - name: Handle Telegram commands
+        id: telegram_commands
+        if: ${{ always() }}
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py --handle-telegram-commands
+
       - name: Upload application tracker
         id: upload_tracker
         if: ${{ always() && hashFiles('applications.csv') != '' }}
@@ -97,4 +106,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python main.py --status-message "Finished GitHub Actions monitor run with status: ${{ job.status }} | install=${{ steps.install.outcome }} config=${{ steps.config.outcome }} tests=${{ steps.tests.outcome }} cache=${{ steps.cache.outcome }} monitor=${{ steps.monitor.outcome }} upload=${{ steps.upload_tracker.outcome }}"
+          python main.py --status-message "Finished GitHub Actions monitor run with status: ${{ job.status }} | install=${{ steps.install.outcome }} config=${{ steps.config.outcome }} tests=${{ steps.tests.outcome }} cache=${{ steps.cache.outcome }} monitor=${{ steps.monitor.outcome }} commands=${{ steps.telegram_commands.outcome }} upload=${{ steps.upload_tracker.outcome }}"

@@ -512,6 +512,16 @@ priority_companies:
   - ShopBack
   - Ninja Van
   - Circles.Life
+  - PropertyGuru
+  - Endowus
+  - Syfe
+  - Aspire
+  - Airwallex
+  - YouTrip
+  - M-DAQ
+  - NCS
+  - Synapxe
+  - Singtel
   - Optiver
   - IMC
   - AMD
@@ -600,6 +610,19 @@ referral_priority_companies:
   - Synopsys
   - Cadence
   - Arm
+  - Carousell
+  - ShopBack
+  - Ninja Van
+  - PropertyGuru
+  - Endowus
+  - Syfe
+  - Aspire
+  - Airwallex
+  - YouTrip
+  - M-DAQ
+  - NCS
+  - Synapxe
+  - Singtel
   - Visa
   - Mastercard
   - Accenture
@@ -1055,6 +1078,62 @@ sources:
       - name: ST Engineering
         company: ST Engineering
         url: https://www.stengg.com/en/careers/
+        default_location: Singapore
+      - name: Carousell
+        company: Carousell
+        url: https://careers.carousell.com/
+        default_location: Singapore
+      - name: ShopBack
+        company: ShopBack
+        url: https://www.shopback.com/careers
+        default_location: Singapore
+      - name: Ninja Van
+        company: Ninja Van
+        url: https://www.ninjavan.co/en-sg/careers
+        default_location: Singapore
+      - name: Circles.Life
+        company: Circles.Life
+        url: https://www.circles.life/sg/careers/
+        default_location: Singapore
+      - name: PropertyGuru
+        company: PropertyGuru
+        url: https://www.propertygurugroup.com/careers/
+        default_location: Singapore
+      - name: Endowus
+        company: Endowus
+        url: https://endowus.com/careers
+        default_location: Singapore
+      - name: Syfe
+        company: Syfe
+        url: https://www.syfe.com/careers
+        default_location: Singapore
+      - name: Aspire
+        company: Aspire
+        url: https://aspireapp.com/careers
+        default_location: Singapore
+      - name: Airwallex
+        company: Airwallex
+        url: https://www.airwallex.com/careers
+        default_location: Singapore
+      - name: YouTrip
+        company: YouTrip
+        url: https://www.you.co/sg/careers
+        default_location: Singapore
+      - name: M-DAQ
+        company: M-DAQ
+        url: https://www.m-daq.com/careers/
+        default_location: Singapore
+      - name: NCS
+        company: NCS
+        url: https://www.ncs.co/en-sg/career/
+        default_location: Singapore
+      - name: Synapxe
+        company: Synapxe
+        url: https://www.synapxe.sg/careers
+        default_location: Singapore
+      - name: Singtel
+        company: Singtel
+        url: https://www.singtel.com/about-us/careers
         default_location: Singapore
 
   mycareersfuture:
