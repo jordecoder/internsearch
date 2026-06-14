@@ -42,9 +42,9 @@ The default config alerts only when all of these pass:
 The scoring model evaluates role, skills, Singapore location, August/September
 2027 internship fit, and undergraduate/Bachelor's degree fit.
 
-## Daily Heartbeat
+## 2-Hour Heartbeat
 
-The monitor sends one Telegram heartbeat message every 24 hours by default, even
+The monitor sends one Telegram heartbeat message every 2 hours by default, even
 when no job alerts are sent. It includes the latest run time plus fetched,
 matched, sent, and per-source fetched counts.
 
@@ -53,12 +53,12 @@ To change this, edit `config.yaml`:
 ```yaml
 heartbeat:
   enabled: true
-  interval_hours: 24
+  interval_hours: 2
 ```
 
-## Daily Near-Match Digest
+## 2-Hour Near-Match Digest
 
-The monitor also sends one daily digest of promising jobs that did not pass the
+The monitor also sends one digest every 2 hours of promising jobs that did not pass the
 strict alert thresholds. These are worth manual review because career pages often
 omit exact internship dates or use broad role titles. Digest entries include
 resume keyword coverage, missing resume keywords, and a referral suggestion for
@@ -71,7 +71,7 @@ marketing, sales, support, or other non-target role terms.
 ```yaml
 near_match_digest:
   enabled: true
-  interval_hours: 24
+  interval_hours: 2
   max_items: 10
   min_overall: 55
   min_location: 70
@@ -81,13 +81,13 @@ near_match_digest:
 
 Some valuable sources, especially Indeed, MyCareersFuture, and broad Google
 Careers searches, may block automation or render dynamically. The monitor sends
-a daily manual-review digest with direct links for those sources instead of
+a manual-review digest every 2 hours with direct links for those sources instead of
 pretending it scraped them reliably.
 
 ```yaml
 manual_review_digest:
   enabled: true
-  interval_hours: 24
+  interval_hours: 2
 ```
 
 ## Resume Matching
@@ -202,8 +202,8 @@ The workflow restores and saves `jobs.sqlite3` with `actions/cache` so jobs
 without exact posting times do not repeatedly alert on every scheduled run.
 
 Manual runs are only for testing or forcing an immediate check. Manual runs can
-send start/finish status messages; scheduled two-hour runs only send job alerts,
-daily digest, weekly summary, or heartbeat when those messages are due.
+send start/finish status messages; scheduled two-hour runs send job alerts,
+near-match digest, manual-review digest, heartbeat, and weekly summary when due.
 
 ## Docker
 
