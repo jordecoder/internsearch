@@ -14,6 +14,10 @@ GitHub Actions. Check them manually when you want broader coverage.
 - [Indeed Singapore: data engineer intern](https://sg.indeed.com/jobs?q=data+engineer+intern&l=Singapore)
 - [Indeed Singapore: machine learning intern](https://sg.indeed.com/jobs?q=machine+learning+intern&l=Singapore)
 - [Indeed Singapore: software engineer intern](https://sg.indeed.com/jobs?q=software+engineer+intern&l=Singapore)
+- [LinkedIn Jobs: Singapore tech internships](https://www.linkedin.com/jobs/search/?keywords=software%20engineer%20intern&location=Singapore)
+- [NodeFlair: Singapore internships](https://nodeflair.com/jobs?query=intern&location=Singapore)
+- [Glints: Singapore tech internships](https://glints.com/sg/opportunities/jobs/explore?keyword=software%20engineer%20intern)
+- [Prosple Singapore: technology internships](https://sg.prosple.com/search-jobs?keywords=technology%20intern)
 
 ## Public Sector / Singapore Tech
 
@@ -23,6 +27,17 @@ GitHub Actions. Check them manually when you want broader coverage.
 - [Careers@Gov](https://www.careers.gov.sg/)
 - [DSTA internships](https://www.dsta.gov.sg/join-us/student/internships)
 - [CSIT internships](https://www.csit.gov.sg/join-us/internships)
+- [AI Singapore careers](https://aisingapore.org/careers/)
+- [SGInnovate careers](https://www.sginnovate.com/careers)
+- [HTX careers](https://www.htx.gov.sg/careers)
+- [DSO careers](https://www.dso.org.sg/careers)
+- [IMDA careers](https://www.imda.gov.sg/about-imda/careers)
+
+## University Portals
+
+- [NUS TalentConnect](https://nus-csm.symplicity.com/)
+- [NTU InPlace](https://inplace.ntu.edu.sg/)
+- [SMU OnTRAC](https://ontrac.smu.edu.sg/)
 
 ## Search Terms To Rotate
 

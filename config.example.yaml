@@ -28,6 +28,89 @@ new_actionable_alerts:
   min_overall: 55
   min_location: 70
 
+opportunity_classification:
+  programme_page_terms:
+    - student
+    - students
+    - graduates
+    - internship programme
+    - internship program
+    - internships
+    - join-us
+    - careers
+
+source_health:
+  known_manual_or_blocked_sources:
+    - Indeed
+    - MyCareersFuture
+    - LinkedIn
+    - Google Careers dynamic search
+    - University career portals
+
+role_families:
+  AI/ML/RAG:
+    - rag
+    - llm
+    - generative ai
+    - genai
+    - machine learning
+    - ai engineer
+    - ml engineer
+    - nlp
+    - embeddings
+    - vector database
+  Data Engineering:
+    - data engineer
+    - data engineering
+    - data pipeline
+    - data platform
+    - etl
+    - spark
+    - airflow
+    - dbt
+    - data warehouse
+  Data Science / Analytics:
+    - data science
+    - data scientist
+    - data analyst
+    - analytics
+    - business intelligence
+    - experimentation
+    - dashboard
+  Software Engineering:
+    - software engineer
+    - software engineering
+    - backend
+    - frontend
+    - full stack
+    - application developer
+    - platform engineer
+    - api
+  Cybersecurity:
+    - cybersecurity
+    - cyber security
+    - security engineer
+    - infosec
+  Cloud / DevOps:
+    - cloud
+    - devops
+    - site reliability
+    - kubernetes
+    - docker
+    - infrastructure
+  Tech Consulting:
+    - technology consulting
+    - tech consulting
+    - it consulting
+    - it consultant
+    - solutions engineer
+    - solution architect
+    - requirements gathering
+  Product / Technical Analyst:
+    - product analyst
+    - technical analyst
+    - business analyst
+
 manual_review_digest:
   enabled: true
   interval_hours: 0.25
@@ -54,6 +137,42 @@ manual_review_digest:
     - label: Google Careers - data engineering Singapore
       url: https://www.google.com/about/careers/applications/jobs/results/?location=Singapore&q=data%20engineering
       note: Dynamic page; review manually.
+    - label: LinkedIn Jobs - Singapore tech internships
+      url: https://www.linkedin.com/jobs/search/?keywords=software%20engineer%20intern&location=Singapore
+      note: Login-gated and dynamic; use saved alerts manually.
+    - label: Careers@Gov - tech internships
+      url: https://www.careers.gov.sg/
+      note: Check GovTech, DSTA, HTX, IMDA, DSO, and other public-sector postings.
+    - label: DSTA internships
+      url: https://www.dsta.gov.sg/join-us/student/internships
+      note: Programme page; verify current intake and deadline.
+    - label: CSIT internships
+      url: https://www.csit.gov.sg/join-us/internships
+      note: Programme page; verify current intake and deadline.
+    - label: AI Singapore opportunities
+      url: https://aisingapore.org/careers/
+      note: Check for AI, ML, data, and research engineering internships.
+    - label: SGInnovate careers
+      url: https://www.sginnovate.com/careers
+      note: Check ecosystem and deep-tech roles.
+    - label: NodeFlair Singapore internships
+      url: https://nodeflair.com/jobs?query=intern&location=Singapore
+      note: Dynamic job board; useful for tech-specific roles.
+    - label: Glints Singapore tech internships
+      url: https://glints.com/sg/opportunities/jobs/explore?keyword=software%20engineer%20intern
+      note: Dynamic job board; review manually.
+    - label: Prosple Singapore technology internships
+      url: https://sg.prosple.com/search-jobs?keywords=technology%20intern
+      note: Graduate/internship board; review manually.
+    - label: NUS TalentConnect
+      url: https://nus-csm.symplicity.com/
+      note: Login-gated university portal; check manually.
+    - label: NTU InPlace
+      url: https://inplace.ntu.edu.sg/
+      note: Login-gated university portal; check manually.
+    - label: SMU OnTRAC
+      url: https://ontrac.smu.edu.sg/
+      note: Login-gated university portal; check manually.
 
 candidate_filters:
   min_location: 70

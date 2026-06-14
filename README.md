@@ -120,14 +120,52 @@ resume_match:
 ## Application Tracker
 
 Promising strict matches and near matches are written to `applications.csv` with
-status, score, resume coverage, missing keywords, and notes. GitHub Actions
-preserves it in the workflow cache and uploads it as an artifact when present.
+status, priority, referral status, opportunity type, role family, deadline,
+score, resume coverage, missing keywords, next action, resume suggestion, and
+notes. GitHub Actions preserves it in the workflow cache and uploads it as an
+artifact when present.
 
 ```yaml
 application_tracker:
   enabled: true
   path: applications.csv
 ```
+
+Use the `status` and `referral_status` columns as your workflow:
+
+- `found`
+- `referral_requested`
+- `applied`
+- `oa_received`
+- `interview`
+- `rejected`
+- `offer`
+
+The monitor does not overwrite your manual status with a different status; it
+updates the same row with the latest score, last-seen date, resume gaps, and
+recommended next action.
+
+## Opportunity Classification
+
+The monitor now separates exact postings from broader pages:
+
+- `job_posting`
+- `internship_programme_page`
+- `career_page`
+- `manual_search_link`
+
+This stops generic pages such as DSTA/CSIT internship programme pages from being
+treated like exact new job postings. It also labels each candidate by role
+family, such as Data Engineering, AI/ML/RAG, Software Engineering, Cybersecurity,
+Cloud/DevOps, Tech Consulting, or Product/Technical Analyst.
+
+## Source Health
+
+Heartbeats include source health so you can tell the difference between "no
+internships found" and "this source needs manual/API handling." Sources such as
+Indeed, LinkedIn, MyCareersFuture, Google Careers dynamic search, and university
+portals are tracked as manual-review sources instead of silently pretending they
+were scraped.
 
 ## Weekly Summary
 
@@ -217,6 +255,9 @@ without exact posting times do not repeatedly alert on every scheduled run.
 Manual runs are only for testing or forcing an immediate check. Manual runs can
 send start/finish status messages; scheduled runs send job alerts,
 near-match digest, manual-review digest, heartbeat, and weekly summary when due.
+
+The workflow has a concurrency group so frequent scheduled runs do not stack up
+on top of one another if GitHub Actions is slow.
 
 ## Docker
 

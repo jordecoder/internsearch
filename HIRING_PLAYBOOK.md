@@ -9,9 +9,12 @@ Use the monitor as an early-warning system, not as the whole job search.
    broad titles, so manually inspect the top 10.
 3. For any priority company, look for a referral before applying.
 4. Track each application in a spreadsheet or issue tracker with status:
-   `found`, `referral_requested`, `applied`, `interview`, `rejected`, `offer`.
+   `found`, `referral_requested`, `applied`, `oa_received`, `interview`,
+   `rejected`, `offer`.
    The monitor writes promising roles to `applications.csv`; use that as the
    starting point instead of re-entering jobs manually.
+5. For every high-priority role, update `referral_status` and `follow_up_date`
+   in `applications.csv` so the next artifact still reflects your real pipeline.
 
 ## Best Channels
 
@@ -22,6 +25,11 @@ Use the monitor as an early-warning system, not as the whole job search.
 - Glints
 - NodeFlair
 - Prosple Singapore
+- NodeFlair
+- Glints
+- Careers@Gov
+- AI Singapore
+- SGInnovate
 - University career portals
 - LinkedIn alerts, checked manually
 

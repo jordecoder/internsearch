@@ -3,6 +3,10 @@ name: Singapore Internship Job Monitor
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+concurrency:
+  group: singapore-internship-monitor
+  cancel-in-progress: false
+
 on:
   schedule:
     # Temporary verification cadence: runs every 15 minutes.

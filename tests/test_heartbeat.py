@@ -12,6 +12,7 @@ from main import (
     send_status_telegram_message,
     send_test_telegram_message,
 )
+from opportunity_insights import OpportunityInsights
 from resume_matcher import ResumeMatch
 from scoring import Score
 
@@ -101,7 +102,14 @@ def test_near_match_digest_includes_job_links_and_scores():
                 job,
                 score,
                 ResumeMatch(["python"], ["docker"], 50, 2),
-                "Action: seek referral before applying",
+                OpportunityInsights(
+                    opportunity_type="job_posting",
+                    role_family="Data Engineering",
+                    deadline="No deadline found",
+                    recommended_action="Apply quickly and seek referral before or immediately after applying.",
+                    resume_suggestion="Tailor Data Engineering resume bullets toward: docker.",
+                    referral_priority=True,
+                ),
             )
         ],
         now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
@@ -113,7 +121,25 @@ def test_near_match_digest_includes_job_links_and_scores():
     assert "Resume coverage: 50%" in message
     assert "gaps: docker" in message
     assert "seek referral" in message
+    assert "Role: Data Engineering" in message
+    assert "Deadline: No deadline found" in message
     assert "https://example.com/job?a=1&amp;b=2" in message
+
+
+def test_heartbeat_message_includes_source_health():
+    message = format_heartbeat_message(
+        fetched=100,
+        matched=1,
+        sent=1,
+        now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
+        source_counts={"InternSG": 10},
+        actionable_candidates=2,
+        source_health=["InternSG: ok (10)", "Indeed: manual/API needed"],
+    )
+
+    assert "Source health:" in message
+    assert "InternSG: ok (10)" in message
+    assert "Indeed: manual/API needed" in message
 
 
 def test_weekly_summary_includes_totals_and_gaps():

@@ -21,6 +21,11 @@ from database import (
 )
 from http_client import PoliteHttpClient
 from notifier import send_actionable_telegram, send_telegram, send_telegram_message
+from opportunity_insights import (
+    OpportunityInsights,
+    build_opportunity_insights,
+    build_source_health,
+)
 from resume_matcher import ResumeMatch, load_resume_profile, match_resume_to_job
 from scoring import Score, is_actionable_candidate, is_fresh, passes_threshold, score_job
 from time_utils import format_singapore_time
@@ -182,6 +187,15 @@ def _format_source_counts(source_counts: dict[str, int]) -> str:
     return "\n".join(lines)
 
 
+def _format_source_health(source_health: list[str] | None) -> str:
+    if not source_health:
+        return ""
+    lines = ["Source health:"]
+    for item in source_health[:12]:
+        lines.append(f"- {html.escape(item)}")
+    return "\n".join(lines)
+
+
 def format_heartbeat_message(
     fetched: int,
     matched: int,
@@ -189,6 +203,7 @@ def format_heartbeat_message(
     now: datetime,
     source_counts: dict[str, int] | None = None,
     actionable_candidates: int | None = None,
+    source_health: list[str] | None = None,
 ) -> str:
     timestamp = format_singapore_time(now)
     actionable_line = ""
@@ -202,6 +217,7 @@ def format_heartbeat_message(
         f"Passed filters: {matched}\n"
         f"Telegram job alerts sent: {sent}\n\n"
         f"{_format_source_counts(source_counts or {})}"
+        + (f"\n\n{_format_source_health(source_health)}" if source_health else "")
     )
 
 
@@ -214,6 +230,7 @@ def maybe_send_heartbeat(
     sent: int,
     source_counts: dict[str, int],
     actionable_candidates: int | None = None,
+    source_health: list[str] | None = None,
 ) -> None:
     heartbeat = config.get("heartbeat", {})
     if not heartbeat.get("enabled", True):
@@ -232,6 +249,7 @@ def maybe_send_heartbeat(
             now,
             source_counts,
             actionable_candidates,
+            source_health,
         ),
         disable_web_page_preview=True,
     )
@@ -247,18 +265,8 @@ def _format_resume_note(resume_match: ResumeMatch) -> str:
     return f"Resume coverage: {resume_match.coverage_percent}% | gaps: {html.escape(gaps)}"
 
 
-def _referral_note(job: Any, config: dict[str, Any]) -> str:
-    companies = {
-        str(company).lower()
-        for company in config.get("referral_priority_companies", [])
-    }
-    if job.company.lower() in companies:
-        return "Action: seek referral before applying"
-    return "Action: review and apply if fit"
-
-
 def format_near_match_digest(
-    items: list[tuple[Any, Score, ResumeMatch, str]],
+    items: list[tuple[Any, Score, ResumeMatch, OpportunityInsights]],
     *,
     now: datetime,
 ) -> str:
@@ -269,7 +277,7 @@ def format_near_match_digest(
         f"Generated: {timestamp}",
         "",
     ]
-    for index, (job, score, resume_match, referral_note) in enumerate(items, start=1):
+    for index, (job, score, resume_match, insights) in enumerate(items, start=1):
         title = html.escape(job.title)
         company = html.escape(job.company)
         location = html.escape(job.location or "Unknown")
@@ -278,9 +286,12 @@ def format_near_match_digest(
             [
                 f"{index}. <a href=\"{url}\">{title}</a>",
                 f"{company} | {location} | score {score.overall}/100",
+                f"Type: {html.escape(insights.opportunity_type)} | Role: {html.escape(insights.role_family)}",
                 f"Timeline: {html.escape(score.timeline_match)}",
+                f"Deadline: {html.escape(insights.deadline)}",
                 _format_resume_note(resume_match),
-                html.escape(referral_note),
+                html.escape(insights.recommended_action),
+                html.escape(insights.resume_suggestion),
                 "",
             ]
         )
@@ -405,7 +416,7 @@ def maybe_send_weekly_summary(
     config: dict[str, Any],
     *,
     fetched_postings: int,
-    actionable_items: list[tuple[Any, Score, ResumeMatch, str]],
+    actionable_items: list[tuple[Any, Score, ResumeMatch, OpportunityInsights]],
     alerts_sent: int,
     missing_keyword_counts: dict[str, int],
 ) -> None:
@@ -489,8 +500,8 @@ def run_once(config: dict[str, Any]) -> int:
 
     sent = 0
     matched = 0
-    near_matches: list[tuple[Any, Score, ResumeMatch, str]] = []
-    actionable_items: list[tuple[Any, Score, ResumeMatch, str]] = []
+    near_matches: list[tuple[Any, Score, ResumeMatch, OpportunityInsights]] = []
+    actionable_items: list[tuple[Any, Score, ResumeMatch, OpportunityInsights]] = []
     missing_keyword_counts: dict[str, int] = {}
     digest_config = config.get("near_match_digest", {})
     near_min_overall = int(digest_config.get("min_overall", 45))
@@ -519,9 +530,9 @@ def run_once(config: dict[str, Any]) -> int:
         resume_match = match_resume_to_job(job, resume_profile, tracked_resume_keywords)
         for keyword in resume_match.missing_keywords:
             missing_keyword_counts[keyword] = missing_keyword_counts.get(keyword, 0) + 1
-        note = _referral_note(job, config)
+        insights = build_opportunity_insights(job, score, resume_match, config)
         resume_note = _format_resume_note(resume_match)
-        actionable_items.append((job, score, resume_match, note))
+        actionable_items.append((job, score, resume_match, insights))
         strict_match = passes_threshold(score, config)
 
         should_send_actionable_alert = (
@@ -533,7 +544,19 @@ def run_once(config: dict[str, Any]) -> int:
         )
         if should_send_actionable_alert:
             try:
-                send_actionable_telegram(job, score, resume_note)
+                send_actionable_telegram(
+                    job,
+                    score,
+                    "\n".join(
+                        [
+                            resume_note,
+                            f"Type: {insights.opportunity_type}",
+                            f"Role family: {insights.role_family}",
+                            f"Deadline: {insights.deadline}",
+                            insights.recommended_action,
+                        ]
+                    ),
+                )
                 mark_notified(db_path, job)
                 sent += 1
                 LOGGER.info(
@@ -551,14 +574,15 @@ def run_once(config: dict[str, Any]) -> int:
                 score.overall >= near_min_overall
                 and score.location_relevance >= near_min_location
             ):
-                near_matches.append((job, score, resume_match, note))
+                near_matches.append((job, score, resume_match, insights))
                 if tracker_enabled:
                     update_application_tracker(
                         tracker_path,
                         job,
                         score,
                         resume_match,
-                        notes=note,
+                        insights=insights,
+                        notes=insights.recommended_action,
                     )
             LOGGER.info(
                 "job_below_threshold",
@@ -582,7 +606,8 @@ def run_once(config: dict[str, Any]) -> int:
                     job,
                     score,
                     resume_match,
-                    notes=_referral_note(job, config),
+                    insights=insights,
+                    notes=insights.recommended_action,
                 )
             sent += 1
             LOGGER.info(
@@ -629,6 +654,7 @@ def run_once(config: dict[str, Any]) -> int:
         LOGGER.exception("weekly_summary_send_failed")
 
     try:
+        source_health = build_source_health(source_counts, config)
         maybe_send_heartbeat(
             db_path,
             config,
@@ -637,6 +663,7 @@ def run_once(config: dict[str, Any]) -> int:
             sent=sent,
             source_counts=source_counts,
             actionable_candidates=len(actionable_items),
+            source_health=source_health,
         )
     except Exception:
         LOGGER.exception("heartbeat_send_failed")
