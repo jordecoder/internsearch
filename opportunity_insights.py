@@ -98,6 +98,58 @@ ROLE_FAMILY_TERMS = {
     ],
 }
 
+DEFAULT_EXACT_SOURCE_PREFIXES = [
+    "greenhouse:",
+    "lever:",
+    "ashby:",
+    "smartrecruiters:",
+    "internsg",
+    "workday:",
+]
+
+DEFAULT_PROGRAMME_PAGE_TERMS = [
+    "student",
+    "students",
+    "graduates",
+    "graduate programme",
+    "graduate program",
+    "internship programme",
+    "internship program",
+    "internships",
+    "early careers",
+    "campus",
+    "university",
+    "join-us",
+    "join us",
+    "careers",
+]
+
+DEFAULT_EXACT_URL_TERMS = [
+    "/job/",
+    "/jobs/",
+    "/posting/",
+    "/postings/",
+    "/open-positions/",
+    "/position/",
+    "gh_jid=",
+    "lever.co/",
+    "greenhouse.io/",
+    "ashbyhq.com/",
+    "smartrecruiters.com/",
+]
+
+DEFAULT_GENERIC_TITLE_TERMS = [
+    "careers",
+    "join us",
+    "join-us",
+    "students and graduates",
+    "students & graduates",
+    "internships",
+    "student programmes",
+    "student programs",
+    "early careers",
+]
+
 
 def _text(job: Job) -> str:
     return " ".join(
@@ -109,8 +161,61 @@ def _contains_any(text: str, terms: list[str]) -> bool:
     return any(term.lower() in text for term in terms)
 
 
-def classify_opportunity_type(job: Job, config: dict[str, Any]) -> str:
+def _source_has_prefix(source: str, prefixes: list[str]) -> bool:
+    return any(source.startswith(prefix.lower()) for prefix in prefixes)
+
+
+def is_exact_job_posting(job: Job, config: dict[str, Any]) -> bool:
     text = _text(job)
+    title = (job.title or "").lower()
+    source = (job.source or "").lower()
+    url = (job.url or "").lower()
+
+    detection = config.get("exact_job_detection", {})
+    exact_source_prefixes = [
+        str(prefix).lower()
+        for prefix in detection.get("exact_source_prefixes", DEFAULT_EXACT_SOURCE_PREFIXES)
+    ]
+    exact_url_terms = [
+        str(term).lower()
+        for term in detection.get("exact_url_terms", DEFAULT_EXACT_URL_TERMS)
+    ]
+    generic_title_terms = [
+        str(term).lower()
+        for term in detection.get("generic_title_terms", DEFAULT_GENERIC_TITLE_TERMS)
+    ]
+    programme_terms = [
+        str(term).lower()
+        for term in config.get("opportunity_classification", {}).get(
+            "programme_page_terms",
+            DEFAULT_PROGRAMME_PAGE_TERMS,
+        )
+    ]
+    concrete_role_terms = [
+        str(term).lower()
+        for term in config.get("candidate_filters", {}).get("technical_terms", [])
+    ]
+
+    has_internship = "intern" in text or "internship" in text
+    has_concrete_role = _contains_any(title, concrete_role_terms)
+    generic_title = _contains_any(title, generic_title_terms)
+
+    if generic_title and not has_concrete_role:
+        return False
+
+    if source.startswith("careerspage"):
+        programme_like = _contains_any(url, programme_terms) or _contains_any(title, programme_terms)
+        exact_url = _contains_any(url, exact_url_terms)
+        return has_internship and has_concrete_role and (exact_url or not programme_like)
+
+    if _source_has_prefix(source, exact_source_prefixes):
+        return has_internship and not generic_title
+
+    exact_url = _contains_any(url, exact_url_terms)
+    return has_internship and has_concrete_role and exact_url
+
+
+def classify_opportunity_type(job: Job, config: dict[str, Any]) -> str:
     title = (job.title or "").lower()
     source = (job.source or "").lower()
     url = (job.url or "").lower()
@@ -120,21 +225,23 @@ def classify_opportunity_type(job: Job, config: dict[str, Any]) -> str:
 
     programme_terms = config.get("opportunity_classification", {}).get(
         "programme_page_terms",
-        ["student", "students", "graduates", "internships", "join-us", "careers"],
+        DEFAULT_PROGRAMME_PAGE_TERMS,
     )
     concrete_role_terms = config.get("candidate_filters", {}).get("technical_terms", [])
 
-    if source.startswith("careerspage") and (
+    if is_exact_job_posting(job, config):
+        return "job_posting"
+
+    if (
         _contains_any(url, programme_terms) or _contains_any(title, programme_terms)
     ):
-        if not _contains_any(title, concrete_role_terms):
-            return "internship_programme_page"
+        return "internship_programme_page"
 
     if "manual" in source:
         return "manual_search_link"
 
-    if "intern" in text or "internship" in text:
-        return "job_posting"
+    if _contains_any(title, concrete_role_terms):
+        return "career_page"
 
     return "career_page"
 

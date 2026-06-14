@@ -5,6 +5,7 @@ from opportunity_insights import (
     classify_opportunity_type,
     classify_role_family,
     extract_deadline,
+    is_exact_job_posting,
 )
 from resume_matcher import ResumeMatch
 from scoring import Score
@@ -35,6 +36,35 @@ def test_classifies_generic_public_sector_page_as_programme_page():
     )
 
     assert classify_opportunity_type(job, CONFIG) == "internship_programme_page"
+    assert not is_exact_job_posting(job, CONFIG)
+
+
+def test_classifies_api_backed_internship_as_exact_job_posting():
+    job = Job(
+        source="Greenhouse:workato",
+        title="Analytics Engineer Intern",
+        company="Workato",
+        location="Singapore",
+        url="https://job-boards.greenhouse.io/workato/jobs/123",
+        description="Analytics internship using Python and SQL.",
+    )
+
+    assert is_exact_job_posting(job, CONFIG)
+    assert classify_opportunity_type(job, CONFIG) == "job_posting"
+
+
+def test_careers_page_exact_role_link_can_be_exact_posting():
+    job = Job(
+        source="CareersPage:Example",
+        title="Data Engineering Intern",
+        company="Example",
+        location="Singapore",
+        url="https://example.com/careers/jobs/data-engineering-intern-123",
+        description="Build data pipelines.",
+    )
+
+    assert is_exact_job_posting(job, CONFIG)
+    assert classify_opportunity_type(job, CONFIG) == "job_posting"
 
 
 def test_classifies_role_family_and_deadline():

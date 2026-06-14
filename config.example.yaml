@@ -27,11 +27,43 @@ actionable_digest:
   enabled: true
   interval_hours: 0.25
   max_items: 10
+  exact_job_postings_only: true
 
 new_actionable_alerts:
   enabled: true
   min_overall: 55
   min_location: 70
+
+exact_job_detection:
+  exact_source_prefixes:
+    - greenhouse:
+    - lever:
+    - ashby:
+    - smartrecruiters:
+    - internsg
+    - workday:
+  exact_url_terms:
+    - /job/
+    - /jobs/
+    - /posting/
+    - /postings/
+    - /open-positions/
+    - /position/
+    - gh_jid=
+    - lever.co/
+    - greenhouse.io/
+    - ashbyhq.com/
+    - smartrecruiters.com/
+  generic_title_terms:
+    - careers
+    - join us
+    - join-us
+    - students and graduates
+    - students & graduates
+    - internships
+    - student programmes
+    - student programs
+    - early careers
 
 opportunity_classification:
   programme_page_terms:

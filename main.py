@@ -594,6 +594,10 @@ def run_once(config: dict[str, Any]) -> int:
         if (
             score.overall >= actionable_alert_min_overall
             and score.location_relevance >= actionable_alert_min_location
+            and (
+                not config.get("actionable_digest", {}).get("exact_job_postings_only", True)
+                or insights.opportunity_type == "job_posting"
+            )
         ):
             current_actionable_items.append((job, score, resume_match, insights, is_new))
             if tracker_enabled:
@@ -618,6 +622,7 @@ def run_once(config: dict[str, Any]) -> int:
             actionable_alerts_enabled
             and is_new
             and not strict_match
+            and insights.opportunity_type == "job_posting"
             and score.overall >= actionable_alert_min_overall
             and score.location_relevance >= actionable_alert_min_location
         )
@@ -662,6 +667,17 @@ def run_once(config: dict[str, Any]) -> int:
                     "score": score.overall,
                     "timeline": score.timeline_relevance,
                     "location": score.location_relevance,
+                },
+            )
+            continue
+
+        if insights.opportunity_type != "job_posting":
+            LOGGER.info(
+                "strict_match_not_exact_posting",
+                extra={
+                    "title": job.title,
+                    "company": job.company,
+                    "opportunity_type": insights.opportunity_type,
                 },
             )
             continue
