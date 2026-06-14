@@ -1,0 +1,75 @@
+name: Jordan
+
+strength_keywords:
+  - python
+  - sql
+  - javascript
+  - java
+  - golang
+  - r
+  - aws lambda
+  - amazon athena
+  - amazon rds
+  - azure
+  - google cloud platform
+  - postgresql
+  - mysql
+  - oracle database
+  - pandas
+  - numpy
+  - matplotlib
+  - tensorflow
+  - rag
+  - retrieval-augmented generation
+  - gpt-4o
+  - llamaindex
+  - lancedb
+  - gradio
+  - semantic search
+  - query rewriting
+  - relevance filtering
+  - data engineering
+  - data transformation
+  - reporting workflows
+  - dashboards
+  - data cleaning
+  - validation
+  - quality assurance
+  - postgis
+  - geospatial data
+  - spatial queries
+  - ai
+  - minimax
+  - alpha-beta pruning
+
+project_highlights:
+  - Agentic RAG platform for safety investigation reports using GPT-4o, LlamaIndex, and LanceDB.
+  - SQL data transformation and reporting workflows from a data engineering internship.
+  - Geospatial analytics project using Python, PostgreSQL, and PostGIS.
+  - AI search/game engine project using Minimax and Alpha-Beta pruning.
+
+target_resume_keywords:
+  - python
+  - sql
+  - rag
+  - llm
+  - generative ai
+  - data engineering
+  - machine learning
+  - tensorflow
+  - postgresql
+  - aws
+  - azure
+  - google cloud
+  - pandas
+  - numpy
+  - fastapi
+  - docker
+  - spark
+  - airflow
+  - kafka
+  - dbt
+  - pytorch
+  - kubernetes
+  - vector database
+  - semantic search

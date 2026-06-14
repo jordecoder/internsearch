@@ -14,6 +14,8 @@ source lists.
 - Greenhouse public job boards
 - Lever public job boards
 - Ashby public job boards
+- SmartRecruiters public job boards
+- Configured Workday CXS endpoints
 - Direct company career pages, best-effort HTML scan
 - MyCareersFuture, optional and disabled by default because public endpoints can change
 - Company boards you add in `config.yaml`
@@ -49,7 +51,9 @@ heartbeat:
 
 The monitor also sends one daily digest of promising jobs that did not pass the
 strict alert thresholds. These are worth manual review because career pages often
-omit exact internship dates or use broad role titles.
+omit exact internship dates or use broad role titles. Digest entries include
+resume keyword coverage, missing resume keywords, and a referral suggestion for
+priority companies.
 
 ```yaml
 near_match_digest:
@@ -58,6 +62,44 @@ near_match_digest:
   max_items: 10
   min_overall: 45
   min_location: 35
+```
+
+## Resume Matching
+
+The monitor reads `resume_profile.yaml` and compares each promising job against
+tracked resume keywords. This does not commit your original resume document.
+
+```yaml
+resume_profile_path: resume_profile.yaml
+resume_match:
+  tracked_keywords:
+    - python
+    - sql
+    - docker
+    - kubernetes
+```
+
+## Application Tracker
+
+Promising strict matches and near matches are written to `applications.csv` with
+status, score, resume coverage, missing keywords, and notes. GitHub Actions
+preserves it in the workflow cache and uploads it as an artifact when present.
+
+```yaml
+application_tracker:
+  enabled: true
+  path: applications.csv
+```
+
+## Weekly Summary
+
+The monitor sends a weekly Telegram summary with new jobs seen, strict alerts,
+top companies, and common missing resume keywords.
+
+```yaml
+weekly_summary:
+  enabled: true
+  interval_hours: 168
 ```
 
 ## Telegram Format
@@ -175,6 +217,30 @@ https://jobs.ashbyhq.com/anthropic -> anthropic
 ```
 
 Add slugs under `sources.ashby.boards`.
+
+SmartRecruiters company identifier:
+
+```yaml
+sources:
+  smartrecruiters:
+    enabled: true
+    companies:
+      - Visa
+```
+
+Workday endpoints are company-specific. Add them only after confirming the
+public CXS endpoint:
+
+```yaml
+sources:
+  workday:
+    enabled: true
+    sites:
+      - name: Example
+        company: Example
+        endpoint: https://example.wd1.myworkdayjobs.com/wday/cxs/example/site/jobs
+        career_base_url: https://example.wd1.myworkdayjobs.com/site
+```
 
 Direct career page:
 

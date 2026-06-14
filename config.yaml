@@ -1,5 +1,6 @@
 log_level: INFO
 database_path: jobs.sqlite3
+resume_profile_path: resume_profile.yaml
 posted_within_hours: 24
 check_interval_minutes: 120
 
@@ -13,6 +14,16 @@ near_match_digest:
   max_items: 10
   min_overall: 45
   min_location: 35
+
+weekly_summary:
+  enabled: true
+  interval_hours: 168
+  max_companies: 5
+  max_missing_keywords: 8
+
+application_tracker:
+  enabled: true
+  path: applications.csv
 
 http:
   user_agent: "SGInternshipJobMonitor/1.0 (+personal internship alerts)"
@@ -145,6 +156,63 @@ priority_companies:
   - Ninja Van
   - Circles.Life
 
+referral_priority_companies:
+  - Google
+  - Microsoft
+  - Amazon
+  - AWS
+  - Meta
+  - Apple
+  - NVIDIA
+  - OpenAI
+  - Anthropic
+  - Databricks
+  - Snowflake
+  - Stripe
+  - Wise
+  - Grab
+  - Shopee
+  - Sea
+  - TikTok
+  - ByteDance
+  - GovTech Singapore
+  - DBS
+  - GIC
+  - Temasek
+  - Bloomberg
+  - Visa
+  - Mastercard
+
+resume_match:
+  tracked_keywords:
+    - python
+    - sql
+    - java
+    - javascript
+    - golang
+    - aws
+    - azure
+    - google cloud
+    - docker
+    - kubernetes
+    - spark
+    - airflow
+    - kafka
+    - dbt
+    - fastapi
+    - postgresql
+    - pytorch
+    - tensorflow
+    - pandas
+    - numpy
+    - rag
+    - llm
+    - generative ai
+    - vector database
+    - semantic search
+    - machine learning
+    - data engineering
+
 sources:
   internsg:
     enabled: true
@@ -207,6 +275,18 @@ sources:
       - replicate
       - elevenlabs
       - ramp
+
+  smartrecruiters:
+    enabled: true
+    companies:
+      - Visa
+      - Bosch
+      - Ubisoft
+      - Wise
+
+  workday:
+    enabled: false
+    sites: []
 
   careers_pages:
     enabled: true

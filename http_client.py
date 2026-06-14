@@ -26,13 +26,19 @@ class PoliteHttpClient:
         self._last_request_at = 0.0
 
     def get(self, url: str, **kwargs: Any) -> requests.Response:
+        return self.request("GET", url, **kwargs)
+
+    def post(self, url: str, **kwargs: Any) -> requests.Response:
+        return self.request("POST", url, **kwargs)
+
+    def request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
         timeout = kwargs.pop("timeout", self.timeout_seconds)
         last_error: Exception | None = None
 
         for attempt in range(1, self.retries + 1):
             self._respect_rate_limit()
             try:
-                response = self.session.get(url, timeout=timeout, **kwargs)
+                response = self.session.request(method, url, timeout=timeout, **kwargs)
                 if response.status_code in {429, 500, 502, 503, 504}:
                     response.raise_for_status()
                 return response

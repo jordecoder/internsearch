@@ -6,9 +6,11 @@ import main
 from main import (
     format_heartbeat_message,
     format_near_match_digest,
+    format_weekly_summary,
     heartbeat_due,
     send_test_telegram_message,
 )
+from resume_matcher import ResumeMatch
 from scoring import Score
 
 
@@ -73,14 +75,40 @@ def test_near_match_digest_includes_job_links_and_scores():
     )
 
     message = format_near_match_digest(
-        [(job, score)],
+        [
+            (
+                job,
+                score,
+                ResumeMatch(["python"], ["docker"], 50),
+                "Action: seek referral before applying",
+            )
+        ],
         now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
     )
 
     assert "Daily near-match internship digest" in message
     assert "Data Platform Intern" in message
     assert "score 65/100" in message
+    assert "Resume coverage: 50%" in message
+    assert "gaps: docker" in message
+    assert "seek referral" in message
     assert "https://example.com/job?a=1&amp;b=2" in message
+
+
+def test_weekly_summary_includes_totals_and_gaps():
+    message = format_weekly_summary(
+        now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
+        jobs_seen=42,
+        alerts_sent=3,
+        top_companies=[("Grab", 5)],
+        common_missing_keywords=[("docker", 4)],
+    )
+
+    assert "Weekly internship search summary" in message
+    assert "New jobs seen: 42" in message
+    assert "Strict alerts sent: 3" in message
+    assert "Grab: 5" in message
+    assert "docker: 4" in message
 
 
 def test_send_test_telegram_message_uses_notifier(monkeypatch):

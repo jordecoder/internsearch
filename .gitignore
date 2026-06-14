@@ -3,6 +3,7 @@
 *.sqlite3
 *.db
 *.log
+applications.csv
 __pycache__/
 .pytest_cache/
 .mypy_cache/

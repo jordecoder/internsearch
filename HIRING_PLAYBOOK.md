@@ -10,6 +10,8 @@ Use the monitor as an early-warning system, not as the whole job search.
 3. For any priority company, look for a referral before applying.
 4. Track each application in a spreadsheet or issue tracker with status:
    `found`, `referral_requested`, `applied`, `interview`, `rejected`, `offer`.
+   The monitor writes promising roles to `applications.csv`; use that as the
+   starting point instead of re-entering jobs manually.
 
 ## Best Channels
 
@@ -93,3 +95,6 @@ Every week, review:
 - Which companies repeatedly post relevant roles.
 
 Then update `config.yaml` with new company boards and keywords.
+
+Also update `resume_profile.yaml` after you improve your resume or add a new
+project. The near-match digest uses this profile to show missing keywords.

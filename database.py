@@ -151,3 +151,41 @@ def set_metadata(db_path: str, key: str, value: str) -> None:
             """,
             (key, value),
         )
+
+
+def count_jobs_since(db_path: str, since_iso: str) -> int:
+    with sqlite3.connect(db_path) as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) FROM jobs WHERE first_seen_time >= ?",
+            (since_iso,),
+        ).fetchone()
+    return int(row[0] if row else 0)
+
+
+def count_notifications_since(db_path: str, since_iso: str) -> int:
+    with sqlite3.connect(db_path) as conn:
+        row = conn.execute(
+            """
+            SELECT COUNT(*)
+            FROM jobs
+            WHERE notified_time IS NOT NULL AND notified_time >= ?
+            """,
+            (since_iso,),
+        ).fetchone()
+    return int(row[0] if row else 0)
+
+
+def top_companies_since(db_path: str, since_iso: str, *, limit: int = 5) -> list[tuple[str, int]]:
+    with sqlite3.connect(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT company, COUNT(*) AS count
+            FROM jobs
+            WHERE first_seen_time >= ?
+            GROUP BY company
+            ORDER BY count DESC, company ASC
+            LIMIT ?
+            """,
+            (since_iso, limit),
+        ).fetchall()
+    return [(str(company), int(count)) for company, count in rows]

@@ -38,7 +38,9 @@ jobs:
       - name: Restore SQLite dedupe database
         uses: actions/cache@v4
         with:
-          path: jobs.sqlite3
+          path: |
+            jobs.sqlite3
+            applications.csv
           key: internship-monitor-db-${{ github.run_id }}
           restore-keys: |
             internship-monitor-db-
@@ -55,3 +57,10 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py --once
+
+      - name: Upload application tracker
+        if: ${{ always() && hashFiles('applications.csv') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: applications
+          path: applications.csv
