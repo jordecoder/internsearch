@@ -105,6 +105,8 @@ DEFAULT_EXACT_SOURCE_PREFIXES = [
     "smartrecruiters:",
     "internsg",
     "workday:",
+    "linkedin",
+    "mycareersfuture",
 ]
 
 DEFAULT_PROGRAMME_PAGE_TERMS = [

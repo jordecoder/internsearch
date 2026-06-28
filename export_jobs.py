@@ -90,7 +90,8 @@ def _passes_dashboard_filter(job: Job, score: Score, config: dict) -> bool:
         return False
 
     technical_terms = [str(t).lower() for t in filters.get("technical_terms", [])]
-    if technical_terms and not any(t in title for t in technical_terms):
+    text = f"{title} {(job.company or '').lower()} {(job.location or '').lower()}"
+    if technical_terms and not any(t in text for t in technical_terms):
         trusted = [str(c).lower() for c in filters.get("trusted_technical_companies", [])]
         company = (job.company or "").lower()
         if not any(t in company for t in trusted):
