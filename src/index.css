@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 25% 97%;
+    --foreground: 25 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 25 15% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 15% 12%;
+    --primary: 152 35% 37%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 35 20% 92%;
+    --secondary-foreground: 25 15% 25%;
+    --muted: 35 20% 93%;
+    --muted-foreground: 25 10% 50%;
+    --accent: 35 20% 92%;
+    --accent-foreground: 25 15% 25%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 35 18% 85%;
+    --input: 35 18% 85%;
+    --ring: 152 35% 37%;
+    --radius: 0.75rem;
+  }
+  .dark {
+    --background: 25 18% 8%;
+    --foreground: 35 35% 93%;
+    --card: 25 15% 13%;
+    --card-foreground: 35 35% 93%;
+    --popover: 25 15% 13%;
+    --popover-foreground: 35 35% 93%;
+    --primary: 152 30% 55%;
+    --primary-foreground: 152 35% 10%;
+    --secondary: 25 12% 20%;
+    --secondary-foreground: 35 30% 85%;
+    --muted: 25 12% 18%;
+    --muted-foreground: 25 8% 55%;
+    --accent: 25 12% 20%;
+    --accent-foreground: 35 30% 85%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 25 12% 22%;
+    --input: 25 12% 22%;
+    --ring: 152 30% 55%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { @apply bg-border; border-radius: 3px; }
+
+/* Skeleton shimmer */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%);
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+.dark .skeleton-shimmer::after {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+}
+
+/* Select dropdown fix */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23a29890' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  padding-right: 28px !important;
+}
