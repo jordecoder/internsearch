@@ -1157,27 +1157,27 @@ sources:
       - keywords: "software engineer intern"
         location: Singapore
         max_results: 75
-        time_filter: r604800
+        time_filter: r86400
       - keywords: "data engineer intern"
         location: Singapore
         max_results: 50
-        time_filter: r604800
+        time_filter: r86400
       - keywords: "machine learning intern"
         location: Singapore
         max_results: 50
-        time_filter: r604800
+        time_filter: r86400
       - keywords: "data analyst intern"
         location: Singapore
         max_results: 50
-        time_filter: r604800
+        time_filter: r86400
       - keywords: "generative ai intern"
         location: Singapore
         max_results: 25
-        time_filter: r604800
+        time_filter: r86400
       - keywords: "analytics engineer intern"
         location: Singapore
         max_results: 25
-        time_filter: r604800
+        time_filter: r86400
 
   mycareersfuture:
     enabled: false
