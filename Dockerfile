@@ -5,9 +5,11 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# API dependencies first (better layer caching)
+COPY api/requirements.txt ./api/requirements.txt
+RUN pip install --no-cache-dir -r api/requirements.txt
 
-COPY . .
+COPY api/ ./api/
 
-CMD ["python", "main.py"]
+EXPOSE 8080
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080"]
