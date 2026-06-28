@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 import yaml
 
 from job_model import Job
-from scoring import is_actionable_candidate, score_job
+from scoring import Score, is_actionable_candidate, score_job
 
 _DB_PATH = os.environ.get("DB_PATH", "jobs.sqlite3")
 _CONFIG_PATH = os.environ.get("CONFIG_PATH", "config.yaml")
@@ -62,6 +62,35 @@ def _to_job(row: dict) -> Job:
     )
 
 
+def _passes_dashboard_filter(job: Job, score: Score, config: dict) -> bool:
+    """Looser than is_actionable_candidate: requires SG intern role with no
+    rejected terms, but skips the technical-terms check so near-misses like
+    generic 'Intern' roles at SG companies are still included."""
+    filters = config.get("candidate_filters", {})
+    title = (job.title or "").lower()
+    location_text = (job.location or "").lower()
+
+    if score.location_relevance < int(filters.get("min_location", 70)):
+        return False
+
+    required = filters.get("required_locations", ["singapore"])
+    if required and location_text and not any(r in location_text for r in required):
+        return False
+    if required and not location_text and not any(
+        r in f"{title} {job.company}".lower() for r in required
+    ):
+        return False
+
+    if not any(t in title for t in ["intern", "internship"]):
+        return False
+
+    rejected = [str(t).lower() for t in filters.get("rejected_terms", [])]
+    if any(t in title for t in rejected):
+        return False
+
+    return True
+
+
 def main() -> None:
     config = _load_config()
     rows = _fetch_rows(_DB_PATH)
@@ -70,6 +99,8 @@ def main() -> None:
     for row in rows:
         job = _to_job(row)
         score = score_job(job, config)
+        if not _passes_dashboard_filter(job, score, config):
+            continue
         actionable = is_actionable_candidate(job, score, config)
         results.append(
             {
