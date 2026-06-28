@@ -11,7 +11,7 @@ import yaml
 
 from job_model import Job
 from opportunity_insights import is_exact_job_posting
-from scoring import Score, is_actionable_candidate, score_job
+from scoring import is_actionable_candidate, score_job
 
 _DB_PATH = os.environ.get("DB_PATH", "jobs.sqlite3")
 _CONFIG_PATH = os.environ.get("CONFIG_PATH", "config.yaml")
@@ -109,8 +109,9 @@ def main() -> None:
         score = score_job(job, config)
         if not _passes_dashboard_filter(job, score, config):
             continue
+        if not is_exact_job_posting(job, config):
+            continue
         actionable = is_actionable_candidate(job, score, config)
-        exact_posting = is_exact_job_posting(job, config)
         results.append(
             {
                 "stable_id": row["stable_id"],
@@ -124,7 +125,6 @@ def main() -> None:
                 "last_seen_time": row["last_seen_time"],
                 "notified": bool(row["notified_time"]),
                 "actionable": actionable,
-                "exact_posting": exact_posting,
                 "score": {
                     "overall": score.overall,
                     "role": score.role_relevance,

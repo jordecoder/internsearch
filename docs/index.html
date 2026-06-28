@@ -292,7 +292,7 @@ function sourceLabel(src) {
 
 /* ─── stats ─── */
 function renderStats(jobs, exportedAt) {
-  const actionable = jobs.filter(j => j.actionable && j.exact_posting).length;
+  const actionable = jobs.filter(j => j.actionable).length;
   const notified   = jobs.filter(j => j.notified).length;
   const newToday   = jobs.filter(j => (Date.now() - new Date(j.first_seen_time)) < 86400000).length;
 
@@ -348,8 +348,7 @@ const SKIP_TIMELINE = new Set([
 function renderCard(job) {
   const sc      = job.score || {};
   const overall = sc.overall ?? 0;
-  const isAct   = job.actionable && job.exact_posting;
-  const isProg  = !job.exact_posting;
+  const isAct   = job.actionable;
 
   const timeline    = (sc.timeline_match || '').trim();
   const showTimeline = timeline && !SKIP_TIMELINE.has(timeline.toLowerCase());
@@ -369,7 +368,6 @@ function renderCard(job) {
   /* badges */
   let badgeHtml = '';
   if (isAct)       badgeHtml += `<span class="badge" style="color:#2d6249;background:#daeae0;border-color:#aed0bb;">Actionable</span>`;
-  if (isProg)      badgeHtml += `<span class="badge" style="color:#a29890;background:#f0ede8;border-color:#dbd5c9;">Programme page</span>`;
   if (job.notified)badgeHtml += `<span class="badge" style="color:#5a5550;background:#edeae2;border-color:#dbd5c9;">Notified</span>`;
   if (showTimeline)badgeHtml += `<span class="badge" style="color:#5a5550;background:#edeae2;border-color:#dbd5c9;">${timeline}</span>`;
 
@@ -402,7 +400,7 @@ function applyFilters() {
   let jobs = ALL_JOBS.filter(j => {
     if (q      && !`${j.title} ${j.company}`.toLowerCase().includes(q))    return false;
     if (src    && sourceLabel(j.source) !== src)                             return false;
-    if (action === 'actionable' && !(j.actionable && j.exact_posting))       return false;
+    if (action === 'actionable' && !j.actionable)                            return false;
     if (action === 'notified'   && !j.notified)                              return false;
     return true;
   });
