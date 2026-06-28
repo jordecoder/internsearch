@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SG Intern Watch</title>
+  <title>Intern Scout</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -14,127 +14,275 @@
       theme: {
         extend: {
           colors: {
-            sage:  { 50:'#f2f5f2', 100:'#e4ece5', 200:'#c6d9c8', 300:'#9dbfa1', 400:'#6d9e74', 500:'#4d7b62', 600:'#3a6049', 700:'#2d4a38' },
-            warm:  { 50:'#f5f3ee', 100:'#ede9e2', 200:'#dcd5cb', 300:'#c4bbb0', 400:'#a59d95', 500:'#7c756e', 600:'#5c5650', 700:'#3d3934', 800:'#252220', 900:'#141210' }
+            sage: { 50:'#f0f6f2', 100:'#daeae0', 200:'#aed0bb', 300:'#7db59a', 400:'#52997a', 500:'#3a7d5e', 600:'#2d6249', 700:'#214936' },
+            warm: { 50:'#f7f5f0', 100:'#edeae2', 200:'#dbd5c9', 300:'#c3bab0', 400:'#a29890', 500:'#7a736c', 600:'#5a5550', 700:'#3c3934', 800:'#242220', 900:'#131110' }
           },
-          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+          fontFamily: {
+            display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            sans:    ['"Inter"', 'system-ui', 'sans-serif'],
+          }
         }
       }
     }
   </script>
   <style>
-    * { -webkit-font-smoothing: antialiased; }
-    .card-enter { animation: rise .2s ease both; }
-    @keyframes rise { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-    .tag { display:inline-block; padding:1px 7px; border-radius:4px; font-size:.68rem; font-weight:500; letter-spacing:.04em; text-transform:uppercase; }
-    ::-webkit-scrollbar { width:5px; }
-    ::-webkit-scrollbar-track { background:transparent; }
-    ::-webkit-scrollbar-thumb { background:#c4bbb0; border-radius:3px; }
-    .dark ::-webkit-scrollbar-thumb { background:#3d3934; }
-    select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a59d95' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px !important; }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; }
+
+    /* ── Hero background ── */
+    .hero-bg {
+      background: linear-gradient(140deg, #f0f6f1 0%, #f3f0f7 45%, #f7f3ed 100%);
+    }
+    .dark .hero-bg {
+      background: linear-gradient(140deg, #0d1210 0%, #100d13 45%, #12100c 100%);
+    }
+
+    /* ── Floating colour orbs ── */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(72px);
+      pointer-events: none;
+      will-change: transform;
+    }
+    .orb-1 { width:480px; height:480px; top:-120px; left:-80px;
+              background: radial-gradient(circle, rgba(90,170,110,0.28) 0%, transparent 70%);
+              animation: f1 26s ease-in-out infinite; }
+    .orb-2 { width:380px; height:380px; top:0; right:5%;
+              background: radial-gradient(circle, rgba(150,120,210,0.22) 0%, transparent 70%);
+              animation: f2 32s ease-in-out infinite; }
+    .orb-3 { width:300px; height:300px; bottom:-60px; left:38%;
+              background: radial-gradient(circle, rgba(220,165,80,0.18) 0%, transparent 70%);
+              animation: f3 22s ease-in-out infinite; }
+    .orb-4 { width:220px; height:220px; bottom:-20px; right:18%;
+              background: radial-gradient(circle, rgba(80,150,210,0.14) 0%, transparent 70%);
+              animation: f4 28s ease-in-out infinite; }
+
+    .dark .orb-1 { background: radial-gradient(circle, rgba(70,150,90,0.22) 0%, transparent 70%); }
+    .dark .orb-2 { background: radial-gradient(circle, rgba(120,95,190,0.18) 0%, transparent 70%); }
+    .dark .orb-3 { background: radial-gradient(circle, rgba(190,135,50,0.15) 0%, transparent 70%); }
+    .dark .orb-4 { background: radial-gradient(circle, rgba(55,125,190,0.12) 0%, transparent 70%); }
+
+    @keyframes f1 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      25%      { transform: translate(55px,-35px) scale(1.06); }
+      50%      { transform: translate(25px,55px) scale(0.96); }
+      75%      { transform: translate(-35px,20px) scale(1.03); }
+    }
+    @keyframes f2 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33%      { transform: translate(-70px,45px) scale(1.09); }
+      66%      { transform: translate(55px,-55px) scale(0.93); }
+    }
+    @keyframes f3 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      40%      { transform: translate(75px,-40px) scale(1.07); }
+      80%      { transform: translate(-45px,35px) scale(0.92); }
+    }
+    @keyframes f4 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      30%      { transform: translate(-40px,-55px) scale(1.12); }
+      70%      { transform: translate(60px,30px) scale(0.91); }
+    }
+
+    /* ── Cards ── */
+    .job-card {
+      display: block;
+      text-decoration: none;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+    }
+    .job-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+    }
+    .dark .job-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.28); }
+
+    .card-enter { animation: rise 0.22s ease both; }
+    @keyframes rise { from { opacity:0; transform:translateY(8px); } to { opacity:1; } }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      padding: 1px 7px 2px;
+      border-radius: 5px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+
+    /* ── Select ── */
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23a29890' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 9px center;
+      padding-right: 28px !important;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #c3bab0; border-radius: 3px; }
+    .dark ::-webkit-scrollbar-thumb { background: #3c3934; }
   </style>
 </head>
-<body class="min-h-full bg-warm-50 dark:bg-warm-900 text-warm-800 dark:text-warm-100 transition-colors duration-200" style="font-family:'Inter',system-ui,sans-serif;">
+<body class="bg-warm-50 dark:bg-warm-900 text-warm-800 dark:text-warm-100 transition-colors duration-300"
+      style="font-family:'Inter',system-ui,sans-serif; min-height:100vh;">
 
-<!-- NAV -->
-<header class="sticky top-0 z-20 border-b border-warm-200 dark:border-warm-800 bg-warm-50/90 dark:bg-warm-900/90 backdrop-blur-sm">
-  <div class="max-w-4xl mx-auto px-5 h-13 flex items-center justify-between gap-4" style="height:52px;">
-    <div>
-      <span class="text-sm font-semibold tracking-tight text-warm-800 dark:text-warm-100">SG Intern Watch</span>
+<!-- ════════════════════════════ HERO ════════════════════════════ -->
+<div class="hero-bg relative overflow-hidden">
+  <!-- orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+
+  <div class="relative z-10 max-w-4xl mx-auto px-5">
+
+    <!-- top bar -->
+    <div class="flex items-center justify-between h-14">
+      <span class="text-xs font-semibold tracking-[0.12em] uppercase text-warm-400 dark:text-warm-500"
+            style="font-family:'Plus Jakarta Sans',sans-serif;">Intern Scout</span>
+      <div class="flex items-center gap-5">
+        <span id="last-updated" class="hidden sm:block text-xs text-warm-400 dark:text-warm-500"></span>
+        <button onclick="toggleDark()" title="Toggle theme"
+                class="text-warm-400 dark:text-warm-500 hover:text-warm-600 dark:hover:text-warm-300 transition-colors">
+          <svg id="icon-sun" class="w-[18px] h-[18px] hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+          </svg>
+          <svg id="icon-moon" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+          </svg>
+        </button>
+      </div>
     </div>
-    <div class="flex items-center gap-4">
-      <span id="last-updated" class="text-xs text-warm-400 dark:text-warm-500 hidden sm:block"></span>
-      <button onclick="toggleDark()" class="text-warm-400 dark:text-warm-500 hover:text-warm-600 dark:hover:text-warm-300 transition-colors" title="Toggle theme">
-        <svg id="icon-sun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
-        <svg id="icon-moon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-      </button>
+
+    <!-- wordmark + tagline -->
+    <div class="pt-6 pb-3">
+      <h1 class="text-[2.8rem] sm:text-[3.6rem] font-extrabold leading-[1.05] tracking-tight text-warm-900 dark:text-warm-50"
+          style="font-family:'Plus Jakarta Sans',sans-serif;">
+        Intern Scout
+      </h1>
+      <p class="mt-3 text-[0.95rem] text-warm-500 dark:text-warm-400 font-normal leading-relaxed max-w-xs">
+        Singapore tech internships,<br>discovered and scored.
+      </p>
     </div>
+
+    <!-- stats row -->
+    <div id="stats" class="flex flex-wrap items-end gap-x-7 gap-y-4 py-7"></div>
   </div>
-</header>
 
-<main class="max-w-4xl mx-auto px-5 py-8">
+  <!-- bottom fade into content -->
+  <div class="absolute bottom-0 inset-x-0 h-14 pointer-events-none"
+       style="background:linear-gradient(to bottom, transparent, var(--fade-to, #f7f5f0));"></div>
+  <script>
+    (function(){
+      const el = document.querySelector('.hero-bg + div, .hero-bg').parentElement.querySelector('[style*="fade-to"]');
+    })();
+  </script>
+</div>
+<!-- fade fix for dark mode via inline style on a wrapper we control -->
+<style>
+  body:not(.dark) [style*="fade-to"] { --fade-to: #f7f5f0; }
+  body.dark       [style*="fade-to"] { --fade-to: #131110; }
+</style>
+<script>
+  /* mirror dark class to body so the CSS var trick works */
+  (function syncBody(){
+    const sync = () => document.body.classList.toggle('dark', document.documentElement.classList.contains('dark'));
+    sync();
+    new MutationObserver(sync).observe(document.documentElement, { attributes:true, attributeFilter:['class'] });
+  })();
+</script>
 
-  <!-- STATS -->
-  <div id="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8"></div>
+<!-- ════════════════════════════ CONTENT ════════════════════════════ -->
+<main class="max-w-4xl mx-auto px-5 pt-5 pb-16">
 
-  <!-- FILTERS -->
+  <!-- filter bar -->
   <div class="flex flex-wrap gap-2 items-center mb-5">
-    <div class="relative flex-1 min-w-[180px]">
+    <div class="flex-1 min-w-[180px]">
       <input id="search" type="text" placeholder="Search title or company" oninput="applyFilters()"
-        class="w-full px-3 py-2 text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-800 dark:text-warm-100 placeholder-warm-300 dark:placeholder-warm-600" />
+        class="w-full px-3 py-[7px] text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-800 dark:text-warm-100 placeholder-warm-300 dark:placeholder-warm-600" />
     </div>
     <select id="filter-source" onchange="applyFilters()"
-      class="text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-700 dark:text-warm-300">
+      class="text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-[7px] focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-700 dark:text-warm-300">
       <option value="">All sources</option>
     </select>
     <select id="filter-actionable" onchange="applyFilters()"
-      class="text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-700 dark:text-warm-300">
+      class="text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-[7px] focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-700 dark:text-warm-300">
       <option value="">All listings</option>
       <option value="actionable">Actionable only</option>
       <option value="notified">Notified only</option>
     </select>
     <select id="sort-by" onchange="applyFilters()"
-      class="text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-700 dark:text-warm-300">
+      class="text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-[7px] focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-700 dark:text-warm-300">
       <option value="newest">Newest</option>
       <option value="score">Top score</option>
-      <option value="company">Company</option>
+      <option value="company">Company A–Z</option>
     </select>
-    <span id="result-count" class="text-xs text-warm-400 dark:text-warm-500 ml-auto whitespace-nowrap"></span>
+    <span id="result-count" class="ml-auto text-xs text-warm-400 dark:text-warm-500 whitespace-nowrap tabular-nums"></span>
   </div>
 
-  <!-- JOB LIST -->
-  <div id="job-list" class="space-y-2"></div>
+  <!-- listings -->
+  <div id="job-list" class="space-y-2.5"></div>
 
-  <!-- EMPTY -->
-  <div id="empty-state" class="hidden text-center py-20">
+  <!-- empty -->
+  <div id="empty-state" class="hidden py-20 text-center">
     <p class="text-sm font-medium text-warm-500 dark:text-warm-400">No listings match your filters</p>
-    <p class="text-xs text-warm-400 dark:text-warm-500 mt-1">Try widening your search</p>
+    <p class="text-xs text-warm-400 dark:text-warm-500 mt-1">Try widening your search or changing the filter</p>
   </div>
 
-  <!-- LOADING -->
-  <div id="loading" class="flex flex-col items-center justify-center py-24 text-warm-300 dark:text-warm-600">
-    <svg class="animate-spin w-5 h-5 mb-3" fill="none" viewBox="0 0 24 24">
+  <!-- loading -->
+  <div id="loading" class="flex flex-col items-center justify-center py-24 gap-3 text-warm-300 dark:text-warm-600">
+    <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
     </svg>
-    <p class="text-xs">Loading</p>
+    <p class="text-xs tracking-wide">Loading</p>
   </div>
 
-  <!-- ERROR -->
-  <div id="error-state" class="hidden text-center py-20">
+  <!-- error -->
+  <div id="error-state" class="hidden py-20 text-center">
     <p class="text-sm font-medium text-warm-500 dark:text-warm-400">Could not load job data</p>
-    <p class="text-xs text-warm-400 dark:text-warm-500 mt-1">Enable GitHub Pages (Settings → Pages → Branch: main, /docs) and wait for the next workflow run.</p>
+    <p class="text-xs text-warm-400 dark:text-warm-500 mt-1.5 max-w-xs mx-auto leading-relaxed">
+      Enable GitHub Pages under Settings &#8594; Pages &#8594; Branch: main, /docs, then wait for the next workflow run.
+    </p>
   </div>
 </main>
 
 <script>
+/* ─── state ─── */
 let ALL_JOBS = [];
 
-// Dark mode
+/* ─── dark mode ─── */
 function toggleDark() {
   const dark = document.documentElement.classList.toggle('dark');
   localStorage.setItem('theme', dark ? 'dark' : 'light');
+  syncIcons(dark);
+}
+function syncIcons(dark) {
   document.getElementById('icon-sun').classList.toggle('hidden', !dark);
   document.getElementById('icon-moon').classList.toggle('hidden', dark);
 }
 (function initTheme() {
   const saved = localStorage.getItem('theme');
-  const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const dark  = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
   if (dark) document.documentElement.classList.add('dark');
-  document.getElementById('icon-sun').classList.toggle('hidden', !dark);
-  document.getElementById('icon-moon').classList.toggle('hidden', dark);
+  syncIcons(dark);
 })();
 
-// Helpers
+/* ─── helpers ─── */
 function relativeTime(iso) {
   if (!iso) return '';
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
   if (s < 60)     return 'just now';
-  if (s < 3600)   return `${Math.floor(s/60)}m ago`;
-  if (s < 86400)  return `${Math.floor(s/3600)}h ago`;
+  if (s < 3600)   return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400)  return `${Math.floor(s / 3600)}h ago`;
   if (s < 172800) return 'yesterday';
-  if (s < 604800) return `${Math.floor(s/86400)}d ago`;
-  return new Date(iso).toLocaleDateString('en-SG', { day:'numeric', month:'short' });
+  if (s < 604800) return `${Math.floor(s / 86400)}d ago`;
+  return new Date(iso).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' });
 }
 
 function sourceLabel(src) {
@@ -142,37 +290,33 @@ function sourceLabel(src) {
   return src.includes(':') ? src.split(':')[0] : src;
 }
 
-function scoreColor(s) {
-  if (s >= 80) return 'text-sage-600 dark:text-sage-400 bg-sage-50 dark:bg-sage-900/30 border-sage-200 dark:border-sage-800';
-  if (s >= 65) return 'text-warm-600 dark:text-warm-400 bg-warm-100 dark:bg-warm-800 border-warm-200 dark:border-warm-700';
-  return 'text-warm-400 dark:text-warm-600 bg-warm-50 dark:bg-warm-800 border-warm-100 dark:border-warm-700';
-}
-
-function statCard(label, value, sub) {
-  return `
-  <div class="bg-white dark:bg-warm-800 rounded-lg border border-warm-200 dark:border-warm-700 px-4 py-3">
-    <p class="text-[11px] font-medium text-warm-400 dark:text-warm-500 uppercase tracking-widest">${label}</p>
-    <p class="text-2xl font-light text-warm-800 dark:text-warm-100 mt-0.5 tabular-nums">${value}</p>
-    ${sub ? `<p class="text-[11px] text-warm-300 dark:text-warm-600 mt-0.5">${sub}</p>` : ''}
-  </div>`;
-}
-
+/* ─── stats ─── */
 function renderStats(jobs, exportedAt) {
-  const actionable = jobs.filter(j => j.actionable).length;
+  const actionable = jobs.filter(j => j.actionable && j.exact_posting).length;
   const notified   = jobs.filter(j => j.notified).length;
   const newToday   = jobs.filter(j => (Date.now() - new Date(j.first_seen_time)) < 86400000).length;
-  const sources    = new Set(jobs.map(j => sourceLabel(j.source))).size;
+
+  const stat = (n, label, sub) => `
+    <div class="flex flex-col">
+      <span class="text-[2.1rem] font-light tabular-nums leading-none text-warm-900 dark:text-warm-50"
+            style="font-family:'Plus Jakarta Sans',sans-serif;">${n}</span>
+      <span class="mt-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-warm-500 dark:text-warm-400">${label}</span>
+      ${sub ? `<span class="text-[0.65rem] text-warm-400 dark:text-warm-600 mt-0.5">${sub}</span>` : ''}
+    </div>`;
+
+  const divider = `<div class="self-stretch w-px bg-warm-200 dark:bg-warm-700 opacity-60"></div>`;
 
   document.getElementById('stats').innerHTML =
-    statCard('Listings', jobs.length, 'last 14 days') +
-    statCard('New today', newToday, 'past 24 hours') +
-    statCard('Actionable', actionable, 'pass all filters') +
-    statCard('Notified', notified, 'sent to Telegram');
+    stat(jobs.length, 'Listings', 'last 14 days') + divider +
+    stat(newToday,   'New today', 'past 24 h')     + divider +
+    stat(actionable, 'Actionable', 'direct postings') + divider +
+    stat(notified,   'Notified',   'sent to Telegram');
 
   if (exportedAt)
     document.getElementById('last-updated').textContent = `Updated ${relativeTime(exportedAt)}`;
 }
 
+/* ─── source filter ─── */
 function populateSourceFilter(jobs) {
   const sel = document.getElementById('filter-source');
   [...new Set(jobs.map(j => sourceLabel(j.source)))].sort().forEach(s => {
@@ -182,51 +326,73 @@ function populateSourceFilter(jobs) {
   });
 }
 
-function renderCard(job) {
-  const score   = job.score || {};
-  const overall = score.overall ?? 0;
+/* ─── score badge colour ─── */
+function scoreBadgeStyle(n) {
+  if (n >= 80) return 'color:#2d6249;background:#daeae0;border-color:#aed0bb;';
+  if (n >= 65) return 'color:#5a5550;background:#edeae2;border-color:#dbd5c9;';
+  return            'color:#a29890;background:#f7f5f0;border-color:#dbd5c9;';
+}
+function scoreBadgeStyleDark(n) {
+  if (n >= 80) return 'color:#7db59a;background:rgba(58,125,94,0.18);border-color:rgba(58,125,94,0.35);';
+  if (n >= 65) return 'color:#a29890;background:rgba(90,85,80,0.3);border-color:rgba(90,85,80,0.4);';
+  return            'color:#7a736c;background:rgba(60,57,52,0.4);border-color:rgba(90,85,80,0.3);';
+}
 
-  const SKIP = new Set(['newly discovered, timeline unspecified','recent posting, timeline unspecified','fresh posting, timeline unspecified']);
-  const timeline = (score.timeline_match || '').trim();
-  const showTimeline = timeline && !SKIP.has(timeline.toLowerCase());
+/* ─── card ─── */
+const SKIP_TIMELINE = new Set([
+  'newly discovered, timeline unspecified',
+  'recent posting, timeline unspecified',
+  'fresh posting, timeline unspecified',
+]);
+
+function renderCard(job) {
+  const sc      = job.score || {};
+  const overall = sc.overall ?? 0;
+  const isAct   = job.actionable && job.exact_posting;
+  const isProg  = !job.exact_posting;
+
+  const timeline    = (sc.timeline_match || '').trim();
+  const showTimeline = timeline && !SKIP_TIMELINE.has(timeline.toLowerCase());
 
   const time = relativeTime(job.posted_time || job.first_seen_time);
   const src  = sourceLabel(job.source);
+  const loc  = (job.location || '').toLowerCase();
+  const showLoc = job.location && loc !== 'singapore' && loc !== 'singapore, singapore';
 
-  const meta = [src, job.company].filter(Boolean);
-  if (job.location && job.location.toLowerCase() !== 'singapore' && job.location.toLowerCase() !== 'singapore, singapore')
-    meta.push(job.location);
-  if (time) meta.push(time);
+  const metaParts = [src, job.company, showLoc ? job.location : null, time].filter(Boolean);
 
-  const pills = [];
-  if (job.actionable && job.exact_posting) pills.push(`<span class="tag bg-sage-50 dark:bg-sage-900/30 text-sage-600 dark:text-sage-400 border border-sage-200 dark:border-sage-800">Actionable</span>`);
-  if (!job.exact_posting) pills.push(`<span class="tag bg-warm-100 dark:bg-warm-700 text-warm-400 dark:text-warm-500 border border-warm-200 dark:border-warm-600">Programme page</span>`);
-  if (job.notified)   pills.push(`<span class="tag bg-warm-100 dark:bg-warm-700 text-warm-500 dark:text-warm-300 border border-warm-200 dark:border-warm-600">Notified</span>`);
-  if (showTimeline)   pills.push(`<span class="tag bg-warm-100 dark:bg-warm-700 text-warm-500 dark:text-warm-300 border border-warm-200 dark:border-warm-600">${timeline}</span>`);
+  /* left accent border for actionable */
+  const leftBorder = isAct
+    ? 'border-l-[3px] border-l-sage-500 dark:border-l-sage-400'
+    : 'border-l-[3px] border-l-transparent';
 
-  const missingNote = (score.timeline_match || '').includes('missing:')
-    ? '' // already in timeline_match — skip (shouldn't happen but guard)
-    : '';
+  /* badges */
+  let badgeHtml = '';
+  if (isAct)       badgeHtml += `<span class="badge" style="color:#2d6249;background:#daeae0;border-color:#aed0bb;">Actionable</span>`;
+  if (isProg)      badgeHtml += `<span class="badge" style="color:#a29890;background:#f0ede8;border-color:#dbd5c9;">Programme page</span>`;
+  if (job.notified)badgeHtml += `<span class="badge" style="color:#5a5550;background:#edeae2;border-color:#dbd5c9;">Notified</span>`;
+  if (showTimeline)badgeHtml += `<span class="badge" style="color:#5a5550;background:#edeae2;border-color:#dbd5c9;">${timeline}</span>`;
 
-  const tooltipParts = [`Role ${score.role}`, `Skill ${score.skill}`, `Location ${score.location}`, `Timeline ${score.timeline}`];
+  const scoreTitle = `Role ${sc.role} · Skill ${sc.skill} · Location ${sc.location} · Timeline ${sc.timeline}`;
 
   return `
-  <a href="${job.url}" target="_blank" rel="noopener" class="card-enter block bg-white dark:bg-warm-800 rounded-lg border border-warm-200 dark:border-warm-700 px-5 py-4 hover:border-sage-300 dark:hover:border-sage-700 hover:shadow-sm transition-all duration-150 group no-underline">
-    <div class="flex items-start gap-4">
-      <div class="flex-1 min-w-0">
-        <div class="flex flex-wrap gap-1.5 mb-2">
-          ${pills.join('')}
-        </div>
-        <p class="text-sm font-semibold text-warm-800 dark:text-warm-100 group-hover:text-sage-600 dark:group-hover:text-sage-400 transition-colors leading-snug">${job.title}</p>
-        <p class="text-xs text-warm-400 dark:text-warm-500 mt-1.5">${meta.join(' &middot; ')}</p>
-      </div>
-      <div class="flex-shrink-0 flex flex-col items-end gap-1.5">
-        <span class="tag border ${scoreColor(overall)} tabular-nums" title="${tooltipParts.join(' · ')}">${overall}</span>
-      </div>
+<a href="${job.url}" target="_blank" rel="noopener"
+   class="job-card card-enter bg-white dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 ${leftBorder} px-5 py-4 group">
+  <div class="flex items-start gap-4">
+    <div class="flex-1 min-w-0">
+      ${badgeHtml ? `<div class="flex flex-wrap gap-1.5 mb-2.5">${badgeHtml}</div>` : ''}
+      <p class="text-[0.88rem] font-semibold leading-snug text-warm-800 dark:text-warm-100
+                group-hover:text-sage-600 dark:group-hover:text-sage-300 transition-colors truncate">${job.title}</p>
+      <p class="mt-1.5 text-xs text-warm-400 dark:text-warm-500 truncate">${metaParts.join(' · ')}</p>
     </div>
-  </a>`;
+    <div class="flex-shrink-0 mt-0.5">
+      <span class="badge tabular-nums" style="${scoreBadgeStyle(overall)}" title="${scoreTitle}">${overall}</span>
+    </div>
+  </div>
+</a>`;
 }
 
+/* ─── filters + sort ─── */
 function applyFilters() {
   const q      = document.getElementById('search').value.trim().toLowerCase();
   const src    = document.getElementById('filter-source').value;
@@ -234,27 +400,26 @@ function applyFilters() {
   const sort   = document.getElementById('sort-by').value;
 
   let jobs = ALL_JOBS.filter(j => {
-    if (q && !`${j.title} ${j.company}`.toLowerCase().includes(q)) return false;
-    if (src    && sourceLabel(j.source) !== src)              return false;
-    if (action === 'actionable' && !(j.actionable && j.exact_posting)) return false;
-    if (action === 'notified'   && !j.notified)               return false;
+    if (q      && !`${j.title} ${j.company}`.toLowerCase().includes(q))    return false;
+    if (src    && sourceLabel(j.source) !== src)                             return false;
+    if (action === 'actionable' && !(j.actionable && j.exact_posting))       return false;
+    if (action === 'notified'   && !j.notified)                              return false;
     return true;
   });
 
-  if      (sort === 'score')   jobs.sort((a,b) => (b.score?.overall??0) - (a.score?.overall??0));
-  else if (sort === 'company') jobs.sort((a,b) => (a.company||'').localeCompare(b.company||''));
-  else                         jobs.sort((a,b) => new Date(b.first_seen_time) - new Date(a.first_seen_time));
+  if      (sort === 'score')   jobs.sort((a, b) => (b.score?.overall ?? 0) - (a.score?.overall ?? 0));
+  else if (sort === 'company') jobs.sort((a, b) => (a.company || '').localeCompare(b.company || ''));
+  else                         jobs.sort((a, b) => new Date(b.first_seen_time) - new Date(a.first_seen_time));
 
   const list  = document.getElementById('job-list');
   const empty = document.getElementById('empty-state');
-
-  document.getElementById('result-count').textContent =
-    jobs.length ? `${jobs.length} listing${jobs.length !== 1 ? 's' : ''}` : '';
+  document.getElementById('result-count').textContent = jobs.length ? `${jobs.length} listing${jobs.length !== 1 ? 's' : ''}` : '';
 
   if (!jobs.length) { list.innerHTML = ''; empty.classList.remove('hidden'); }
-  else { empty.classList.add('hidden'); list.innerHTML = jobs.map(renderCard).join(''); }
+  else              { empty.classList.add('hidden'); list.innerHTML = jobs.map(renderCard).join(''); }
 }
 
+/* ─── init ─── */
 async function init() {
   try {
     const res  = await fetch('jobs.json');
@@ -265,7 +430,7 @@ async function init() {
     renderStats(ALL_JOBS, data.exported_at);
     populateSourceFilter(ALL_JOBS);
     applyFilters();
-  } catch (e) {
+  } catch {
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('error-state').classList.remove('hidden');
   }
