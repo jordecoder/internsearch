@@ -69,9 +69,9 @@
     </select>
     <select id="filter-actionable" onchange="applyFilters()"
       class="text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-700 dark:text-warm-300">
-      <option value="actionable">Actionable</option>
       <option value="">All listings</option>
-      <option value="notified">Notified</option>
+      <option value="actionable">Actionable only</option>
+      <option value="notified">Notified only</option>
     </select>
     <select id="sort-by" onchange="applyFilters()"
       class="text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-700 dark:text-warm-300">
@@ -199,7 +199,8 @@ function renderCard(job) {
   if (time) meta.push(time);
 
   const pills = [];
-  if (job.actionable) pills.push(`<span class="tag bg-sage-50 dark:bg-sage-900/30 text-sage-600 dark:text-sage-400 border border-sage-200 dark:border-sage-800">Actionable</span>`);
+  if (job.actionable && job.exact_posting) pills.push(`<span class="tag bg-sage-50 dark:bg-sage-900/30 text-sage-600 dark:text-sage-400 border border-sage-200 dark:border-sage-800">Actionable</span>`);
+  if (!job.exact_posting) pills.push(`<span class="tag bg-warm-100 dark:bg-warm-700 text-warm-400 dark:text-warm-500 border border-warm-200 dark:border-warm-600">Programme page</span>`);
   if (job.notified)   pills.push(`<span class="tag bg-warm-100 dark:bg-warm-700 text-warm-500 dark:text-warm-300 border border-warm-200 dark:border-warm-600">Notified</span>`);
   if (showTimeline)   pills.push(`<span class="tag bg-warm-100 dark:bg-warm-700 text-warm-500 dark:text-warm-300 border border-warm-200 dark:border-warm-600">${timeline}</span>`);
 
@@ -235,7 +236,7 @@ function applyFilters() {
   let jobs = ALL_JOBS.filter(j => {
     if (q && !`${j.title} ${j.company}`.toLowerCase().includes(q)) return false;
     if (src    && sourceLabel(j.source) !== src)              return false;
-    if (action === 'actionable' && !j.actionable)             return false;
+    if (action === 'actionable' && !(j.actionable && j.exact_posting)) return false;
     if (action === 'notified'   && !j.notified)               return false;
     return true;
   });
