@@ -2,63 +2,89 @@ from __future__ import annotations
 
 import html
 import os
+from datetime import datetime, timezone
 
 import requests
 
-from display_utils import display_company, display_source, display_title, posted_date
+from display_utils import display_company, display_title
 from job_model import Job
 from scoring import Score
+
+_SKIP_TIMELINE = {
+    "newly discovered, timeline unspecified",
+    "recent posting, timeline unspecified",
+    "fresh posting, timeline unspecified",
+}
 
 
 def _escape(value: str) -> str:
     return html.escape(value or "", quote=True)
 
 
-def format_job_message(job: Job, score: Score) -> str:
-    posted = posted_date(job.posted_at)
+def _relative_time(posted_at: datetime | None) -> str:
+    if not posted_at:
+        return ""
+    if posted_at.tzinfo is None:
+        posted_at = posted_at.replace(tzinfo=timezone.utc)
+    hours = int((datetime.now(timezone.utc) - posted_at).total_seconds() / 3600)
+    if hours < 1:
+        return "just now"
+    if hours < 24:
+        return f"{hours}h ago"
+    days = hours // 24
+    if days == 1:
+        return "yesterday"
+    if days < 14:
+        return f"{days}d ago"
+    return posted_at.strftime("%d %b").lstrip("0").strip()
+
+
+def _source_short(source: str) -> str:
+    return source.split(":")[0] if ":" in source else source
+
+
+def _build_message(
+    job: Job,
+    score: Score,
+    resume_note: str,
+    *,
+    near_match: bool,
+) -> str:
     title = _escape(display_title(job.title))
     company = _escape(display_company(job.company))
-    location = _escape(job.location)
-    source = _escape(display_source(job.source))
     url = _escape(job.url)
-    timeline = _escape(score.timeline_match)
+    source = _escape(_source_short(job.source))
+    time_str = _relative_time(job.posted_at)
+    score_str = f"~{score.overall}" if near_match else str(score.overall)
 
-    return (
-        "🚨 <b>New Internship Match</b>\n\n"
-        f"<b><a href=\"{url}\">{title}</a></b>\n"
-        f"<b>Company</b>: {company}\n"
-        f"<b>Location</b>: {location}\n"
-        f"<b>Source</b>: {source}\n"
-        f"<b>Posted Time</b>: {posted}\n"
-        f"<b>Relevance Score</b>: {score.overall}/100\n"
-        f"<b>Timeline Match</b>: {timeline}\n\n"
-        f"<a href=\"{url}\">Apply Here</a>"
-    )
+    line1 = f'<b><a href="{url}">{title}</a></b> — {company}'
+
+    meta = [source]
+    if time_str:
+        meta.append(time_str)
+    meta.append(score_str)
+    line2 = " · ".join(meta)
+
+    lines = [line1, line2]
+
+    extras = []
+    timeline = (score.timeline_match or "").strip()
+    if timeline and timeline.lower() not in _SKIP_TIMELINE:
+        extras.append(_escape(timeline))
+    if resume_note:
+        extras.append(_escape(resume_note))
+    if extras:
+        lines.append(" · ".join(extras))
+
+    return "\n".join(lines)
 
 
-def format_actionable_job_message(job: Job, score: Score, resume_note: str) -> str:
-    posted = posted_date(job.posted_at)
-    title = _escape(display_title(job.title))
-    company = _escape(display_company(job.company))
-    location = _escape(job.location)
-    source = _escape(display_source(job.source))
-    url = _escape(job.url)
-    timeline = _escape(score.timeline_match)
-    resume = _escape(resume_note)
+def format_job_message(job: Job, score: Score, resume_note: str = "") -> str:
+    return _build_message(job, score, resume_note, near_match=False)
 
-    return (
-        "🆕 <b>New Actionable Internship Posting</b>\n\n"
-        f"<b><a href=\"{url}\">{title}</a></b>\n"
-        f"<b>Company</b>: {company}\n"
-        f"<b>Location</b>: {location}\n"
-        f"<b>Source</b>: {source}\n"
-        f"<b>Posted Time</b>: {posted}\n"
-        f"<b>Relevance Score</b>: {score.overall}/100\n"
-        f"<b>Timeline Match</b>: {timeline}\n"
-        f"<b>Resume Signal</b>: {resume}\n\n"
-        "This passed the Singapore tech internship requirements, but missed the stricter score filter.\n\n"
-        f"<a href=\"{url}\">Review Posting</a>"
-    )
+
+def format_actionable_job_message(job: Job, score: Score, resume_note: str = "") -> str:
+    return _build_message(job, score, resume_note, near_match=True)
 
 
 def send_telegram_message(
@@ -87,11 +113,11 @@ def send_telegram_message(
     response.raise_for_status()
 
 
-def send_telegram(job: Job, score: Score) -> None:
-    send_telegram_message(format_job_message(job, score))
+def send_telegram(job: Job, score: Score, resume_note: str = "") -> None:
+    send_telegram_message(format_job_message(job, score, resume_note))
 
 
-def send_actionable_telegram(job: Job, score: Score, resume_note: str) -> None:
+def send_actionable_telegram(job: Job, score: Score, resume_note: str = "") -> None:
     send_telegram_message(format_actionable_job_message(job, score, resume_note))
 
 

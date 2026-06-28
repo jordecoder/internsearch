@@ -255,12 +255,10 @@ def maybe_send_heartbeat(
 
 
 def _format_resume_note(resume_match: ResumeMatch) -> str:
-    if resume_match.tracked_keywords_found == 0:
-        return "Resume keyword signal: no tracked technical keywords found"
     if not resume_match.missing_keywords:
-        return f"Resume coverage: {resume_match.coverage_percent}%"
-    gaps = ", ".join(resume_match.missing_keywords[:5])
-    return f"Resume coverage: {resume_match.coverage_percent}% | gaps: {html.escape(gaps)}"
+        return ""
+    gaps = ", ".join(resume_match.missing_keywords[:4])
+    return f"missing: {html.escape(gaps)}"
 
 
 def format_near_match_digest(
@@ -761,19 +759,7 @@ def run_once(config: dict[str, Any]) -> int:
         )
         if should_send_actionable_alert:
             try:
-                send_actionable_telegram(
-                    job,
-                    score,
-                    "\n".join(
-                        [
-                            resume_note,
-                            f"Type: {insights.opportunity_type}",
-                            f"Role family: {insights.role_family}",
-                            f"Deadline: {insights.deadline}",
-                            insights.recommended_action,
-                        ]
-                    ),
-                )
+                send_actionable_telegram(job, score, resume_note)
                 mark_notified(db_path, job)
                 sent += 1
                 LOGGER.info(
@@ -817,7 +803,7 @@ def run_once(config: dict[str, Any]) -> int:
 
         matched += 1
         try:
-            send_telegram(job, score)
+            send_telegram(job, score, resume_note)
             mark_notified(db_path, job)
             sent += 1
             LOGGER.info(
