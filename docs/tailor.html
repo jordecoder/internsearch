@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Client-side PDF and DOCX parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -28,25 +31,16 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html { -webkit-font-smoothing: antialiased; }
-    .hero-bg {
-      background: linear-gradient(140deg, #f0f6f1 0%, #f3f0f7 45%, #f7f3ed 100%);
-    }
-    .dark .hero-bg {
-      background: linear-gradient(140deg, #0d1210 0%, #100d13 45%, #12100c 100%);
-    }
+    .hero-bg { background: linear-gradient(140deg,#f0f6f1 0%,#f3f0f7 45%,#f7f3ed 100%); }
+    .dark .hero-bg { background: linear-gradient(140deg,#0d1210 0%,#100d13 45%,#12100c 100%); }
     .orb { position:absolute; border-radius:50%; filter:blur(72px); pointer-events:none; }
-    .orb-1 { width:400px;height:400px;top:-100px;left:-60px;
-              background:radial-gradient(circle,rgba(90,170,110,0.25) 0%,transparent 70%); }
-    .orb-2 { width:320px;height:320px;top:0;right:5%;
-              background:radial-gradient(circle,rgba(150,120,210,0.2) 0%,transparent 70%); }
+    .orb-1 { width:400px;height:400px;top:-100px;left:-60px; background:radial-gradient(circle,rgba(90,170,110,0.25) 0%,transparent 70%); }
+    .orb-2 { width:320px;height:320px;top:0;right:5%; background:radial-gradient(circle,rgba(150,120,210,0.2) 0%,transparent 70%); }
     .dark .orb-1 { background:radial-gradient(circle,rgba(70,150,90,0.2) 0%,transparent 70%); }
     .dark .orb-2 { background:radial-gradient(circle,rgba(120,95,190,0.16) 0%,transparent 70%); }
-
     .drop-zone { transition: border-color 0.15s, background 0.15s; }
-    .drop-zone.dragover { border-color: #52997a; background: rgba(82,153,122,0.06); }
-
+    .drop-zone.dragover { border-color:#52997a; background:rgba(82,153,122,0.06); }
     .skill-chip { display:inline-block; padding:2px 10px 3px; border-radius:999px; font-size:0.72rem; font-weight:600; }
-
     ::-webkit-scrollbar { width:5px; }
     ::-webkit-scrollbar-track { background:transparent; }
     ::-webkit-scrollbar-thumb { background:#c3bab0; border-radius:3px; }
@@ -56,95 +50,68 @@
 <body class="bg-warm-50 dark:bg-warm-900 text-warm-800 dark:text-warm-100 transition-colors duration-300"
       style="font-family:'Inter',system-ui,sans-serif; min-height:100vh;">
 
-<!-- ── HERO ── -->
+<!-- HERO -->
 <div class="hero-bg relative overflow-hidden">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
   <div class="relative z-10 max-w-2xl mx-auto px-5">
-    <!-- top bar -->
     <div class="flex items-center justify-between h-14">
-      <a href="index.html"
-         class="text-xs font-semibold tracking-[0.12em] uppercase text-warm-400 dark:text-warm-500 hover:text-warm-600 dark:hover:text-warm-300 transition-colors"
-         style="font-family:'Plus Jakarta Sans',sans-serif;">← Jobs</a>
+      <a href="index.html" class="text-xs font-semibold tracking-[0.12em] uppercase text-warm-400 dark:text-warm-500 hover:text-warm-600 dark:hover:text-warm-300 transition-colors" style="font-family:'Plus Jakarta Sans',sans-serif;">← Jobs</a>
       <div class="flex items-center gap-4">
-        <span id="username-display" class="hidden text-xs text-warm-400 dark:text-warm-500"></span>
-        <button id="signout-btn" class="hidden text-xs text-warm-400 hover:text-warm-600 dark:hover:text-warm-300 transition-colors" onclick="signOut()">Sign out</button>
-        <button onclick="toggleDark()" title="Toggle theme"
-                class="text-warm-400 dark:text-warm-500 hover:text-warm-600 dark:hover:text-warm-300 transition-colors">
-          <svg id="icon-sun" class="w-[18px] h-[18px] hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
-          </svg>
-          <svg id="icon-moon" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-          </svg>
+        <button id="change-key-btn" class="hidden text-xs text-warm-400 hover:text-warm-600 dark:hover:text-warm-300 transition-colors" onclick="showKeyPanel()">Change API key</button>
+        <button onclick="toggleDark()" title="Toggle theme" class="text-warm-400 dark:text-warm-500 hover:text-warm-600 dark:hover:text-warm-300 transition-colors">
+          <svg id="icon-sun" class="w-[18px] h-[18px] hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+          <svg id="icon-moon" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
         </button>
       </div>
     </div>
-    <!-- title -->
     <div class="pt-6 pb-8">
-      <h1 class="text-[2.4rem] sm:text-[3rem] font-extrabold leading-tight tracking-tight text-warm-900 dark:text-warm-50"
-          style="font-family:'Plus Jakarta Sans',sans-serif;">Resume Tailor</h1>
-      <p class="mt-2 text-[0.95rem] text-warm-500 dark:text-warm-400 max-w-xs leading-relaxed">
-        Upload your resume, paste a job description, get a tailored match.
-      </p>
+      <h1 class="text-[2.4rem] sm:text-[3rem] font-extrabold leading-tight tracking-tight text-warm-900 dark:text-warm-50" style="font-family:'Plus Jakarta Sans',sans-serif;">Resume Tailor</h1>
+      <p class="mt-2 text-[0.95rem] text-warm-500 dark:text-warm-400 max-w-xs leading-relaxed">Upload your resume, paste a job description, get a tailored match.</p>
     </div>
   </div>
-  <div class="absolute bottom-0 inset-x-0 h-10 pointer-events-none"
-       style="background:linear-gradient(to bottom,transparent,var(--fade-to,#f7f5f0));"></div>
+  <div class="absolute bottom-0 inset-x-0 h-10 pointer-events-none" style="background:linear-gradient(to bottom,transparent,var(--fade-to,#f7f5f0));"></div>
 </div>
 <style>
   body:not(.dark) [style*="fade-to"] { --fade-to:#f7f5f0; }
   body.dark       [style*="fade-to"] { --fade-to:#131110; }
 </style>
 <script>
-  (function syncBody(){
+  (function(){
     const sync = () => document.body.classList.toggle('dark', document.documentElement.classList.contains('dark'));
     sync();
     new MutationObserver(sync).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
   })();
 </script>
 
-<!-- ── MAIN ── -->
 <main class="max-w-2xl mx-auto px-5 pt-8 pb-20">
 
-  <!-- AUTH PANEL (shown when not logged in) -->
-  <div id="auth-panel" class="hidden">
+  <!-- API KEY SETUP PANEL -->
+  <div id="key-panel" class="hidden">
     <div class="bg-white dark:bg-warm-800 rounded-2xl border border-warm-200 dark:border-warm-700 p-7 max-w-sm mx-auto">
-      <h2 id="auth-title" class="text-base font-semibold mb-5 text-warm-900 dark:text-warm-50"
-          style="font-family:'Plus Jakarta Sans',sans-serif;">Sign in</h2>
-
-      <div id="error-msg" class="hidden mb-4 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2"></div>
-
-      <div class="space-y-3">
-        <input id="a-username" type="text" placeholder="Username" autocomplete="username"
-               class="w-full px-3 py-2 text-sm rounded-lg border border-warm-200 dark:border-warm-600 bg-warm-50 dark:bg-warm-700 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-800 dark:text-warm-100 placeholder-warm-300 dark:placeholder-warm-500" />
-        <input id="a-password" type="password" placeholder="Password" autocomplete="current-password"
-               class="w-full px-3 py-2 text-sm rounded-lg border border-warm-200 dark:border-warm-600 bg-warm-50 dark:bg-warm-700 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-800 dark:text-warm-100 placeholder-warm-300 dark:placeholder-warm-500" />
-        <input id="a-invite" type="text" placeholder="Invite code" class="hidden w-full px-3 py-2 text-sm rounded-lg border border-warm-200 dark:border-warm-600 bg-warm-50 dark:bg-warm-700 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-800 dark:text-warm-100 placeholder-warm-300 dark:placeholder-warm-500" />
-      </div>
-
-      <button id="auth-submit" onclick="submitAuth()"
-              class="mt-4 w-full py-2 rounded-lg text-sm font-semibold bg-sage-600 hover:bg-sage-700 text-white transition-colors">
-        Sign in
-      </button>
-
-      <button onclick="toggleAuthMode()"
-              class="mt-3 w-full py-1.5 text-xs text-warm-400 hover:text-warm-600 dark:hover:text-warm-300 transition-colors">
-        <span id="auth-toggle-label">Don't have an account? Register</span>
+      <h2 class="text-base font-semibold mb-1 text-warm-900 dark:text-warm-50" style="font-family:'Plus Jakarta Sans',sans-serif;">Gemini API Key</h2>
+      <p class="text-xs text-warm-400 dark:text-warm-500 mb-5 leading-relaxed">
+        Get a free key at <span class="text-sage-600 dark:text-sage-400">aistudio.google.com</span> → Get API Key. Stored locally in your browser only.
+      </p>
+      <div id="key-error" class="hidden mb-3 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2"></div>
+      <input id="key-input" type="password" placeholder="AIza…"
+             class="w-full px-3 py-2 text-sm rounded-lg border border-warm-200 dark:border-warm-600 bg-warm-50 dark:bg-warm-700 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-800 dark:text-warm-100 placeholder-warm-300 dark:placeholder-warm-500 font-mono" />
+      <button onclick="saveKey()"
+              class="mt-3 w-full py-2 rounded-lg text-sm font-semibold bg-sage-600 hover:bg-sage-700 text-white transition-colors">
+        Save &amp; continue
       </button>
     </div>
   </div>
 
-  <!-- TAILOR FORM (shown when logged in) -->
+  <!-- TAILOR FORM -->
   <div id="tailor-panel" class="hidden space-y-5">
 
-    <!-- Upload -->
+    <!-- Resume upload -->
     <div>
       <label class="block text-xs font-semibold uppercase tracking-wide text-warm-500 dark:text-warm-400 mb-2">Resume</label>
       <div id="drop-zone"
            class="drop-zone border-2 border-dashed border-warm-200 dark:border-warm-600 rounded-xl p-8 text-center cursor-pointer hover:border-sage-400 dark:hover:border-sage-600 transition-colors"
            onclick="document.getElementById('resume-input').click()"
-           ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+           ondragover="handleDragOver(event)" ondragleave="handleDragLeave()" ondrop="handleDrop(event)">
         <input id="resume-input" type="file" accept=".pdf,.docx,.doc,.txt" class="hidden" onchange="handleFile(this.files[0])" />
         <div id="drop-label">
           <svg class="w-8 h-8 mx-auto mb-2 text-warm-300 dark:text-warm-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.4">
@@ -179,10 +146,8 @@
   <!-- RESULTS -->
   <div id="results" class="hidden mt-8 space-y-4">
 
-    <!-- Role + coverage -->
     <div class="bg-white dark:bg-warm-800 rounded-2xl border border-warm-200 dark:border-warm-700 p-5">
-      <p id="res-role" class="text-lg font-bold text-warm-900 dark:text-warm-50 mb-3"
-         style="font-family:'Plus Jakarta Sans',sans-serif;"></p>
+      <p id="res-role" class="text-lg font-bold text-warm-900 dark:text-warm-50 mb-3" style="font-family:'Plus Jakarta Sans',sans-serif;"></p>
       <div class="flex items-center gap-3">
         <div class="flex-1 h-2 bg-warm-100 dark:bg-warm-700 rounded-full overflow-hidden">
           <div id="res-bar" class="h-full bg-sage-500 rounded-full transition-all duration-700" style="width:0%"></div>
@@ -192,7 +157,6 @@
       <p class="text-xs text-warm-400 dark:text-warm-500 mt-1.5">Skill coverage</p>
     </div>
 
-    <!-- Skills -->
     <div class="bg-white dark:bg-warm-800 rounded-2xl border border-warm-200 dark:border-warm-700 p-5">
       <p class="text-xs font-semibold uppercase tracking-wide text-warm-500 dark:text-warm-400 mb-3">Skills</p>
       <div class="mb-3">
@@ -205,37 +169,36 @@
       </div>
     </div>
 
-    <!-- Tailored summary -->
     <div class="bg-white dark:bg-warm-800 rounded-2xl border border-warm-200 dark:border-warm-700 p-5">
       <div class="flex items-center justify-between mb-3">
         <p class="text-xs font-semibold uppercase tracking-wide text-warm-500 dark:text-warm-400">Tailored Summary</p>
-        <button onclick="copyText('res-summary-text')" class="text-xs text-warm-400 hover:text-sage-600 dark:hover:text-sage-400 transition-colors">Copy</button>
+        <button onclick="copyEl('res-summary-text')" class="text-xs text-warm-400 hover:text-sage-600 dark:hover:text-sage-400 transition-colors">Copy</button>
       </div>
       <p id="res-summary-text" class="text-sm text-warm-700 dark:text-warm-300 leading-relaxed"></p>
     </div>
 
-    <!-- Bullets -->
     <div class="bg-white dark:bg-warm-800 rounded-2xl border border-warm-200 dark:border-warm-700 p-5">
       <div class="flex items-center justify-between mb-3">
         <p class="text-xs font-semibold uppercase tracking-wide text-warm-500 dark:text-warm-400">Priority Bullets</p>
-        <button onclick="copyText('res-bullets-text')" class="text-xs text-warm-400 hover:text-sage-600 dark:hover:text-sage-400 transition-colors">Copy</button>
+        <button onclick="copyEl('res-bullets-text')" class="text-xs text-warm-400 hover:text-sage-600 dark:hover:text-sage-400 transition-colors">Copy</button>
       </div>
-      <ul id="res-bullets-text" class="space-y-2 text-sm text-warm-700 dark:text-warm-300 leading-relaxed list-none"></ul>
+      <ul id="res-bullets-text" class="space-y-2 text-sm text-warm-700 dark:text-warm-300 leading-relaxed"></ul>
     </div>
 
-    <!-- Keyword tips -->
     <div class="bg-white dark:bg-warm-800 rounded-2xl border border-warm-200 dark:border-warm-700 p-5">
       <p class="text-xs font-semibold uppercase tracking-wide text-warm-500 dark:text-warm-400 mb-3">ATS Keyword Tips</p>
       <p id="res-keywords" class="text-sm text-warm-700 dark:text-warm-300 leading-relaxed"></p>
     </div>
-
   </div>
 </main>
 
 <script>
-const API_BASE = 'https://internsearch-api.onrender.com';
-let isRegisterMode = false;
+/* ── config ── */
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const KEY_STORE  = 'intern_scout_gemini_key';
+
 let selectedFile = null;
+let resumeText   = '';
 
 /* ── dark mode ── */
 function toggleDark() {
@@ -254,130 +217,127 @@ function syncIcons(dark) {
   syncIcons(dark);
 })();
 
-/* ── auth ── */
-function getToken() { return localStorage.getItem('intern_scout_token'); }
+/* ── API key ── */
+function getKey() { return localStorage.getItem(KEY_STORE); }
+
+function showKeyPanel() {
+  document.getElementById('key-panel').classList.remove('hidden');
+  document.getElementById('tailor-panel').classList.add('hidden');
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('change-key-btn').classList.add('hidden');
+}
 
 function showTailorPanel() {
-  const user = localStorage.getItem('intern_scout_username');
-  document.getElementById('auth-panel').classList.add('hidden');
+  document.getElementById('key-panel').classList.add('hidden');
   document.getElementById('tailor-panel').classList.remove('hidden');
-  document.getElementById('username-display').textContent = user || '';
-  document.getElementById('username-display').classList.remove('hidden');
-  document.getElementById('signout-btn').classList.remove('hidden');
+  document.getElementById('change-key-btn').classList.remove('hidden');
 }
 
-function showAuthPanel() {
-  document.getElementById('auth-panel').classList.remove('hidden');
-  document.getElementById('tailor-panel').classList.add('hidden');
-  document.getElementById('username-display').classList.add('hidden');
-  document.getElementById('signout-btn').classList.add('hidden');
-}
+async function saveKey() {
+  const key = document.getElementById('key-input').value.trim();
+  const errEl = document.getElementById('key-error');
+  errEl.classList.add('hidden');
 
-function signOut() {
-  localStorage.removeItem('intern_scout_token');
-  localStorage.removeItem('intern_scout_username');
-  showAuthPanel();
-}
+  if (!key.startsWith('AIza')) {
+    errEl.textContent = 'Invalid key — Gemini keys start with "AIza".';
+    errEl.classList.remove('hidden');
+    return;
+  }
 
-function toggleAuthMode() {
-  isRegisterMode = !isRegisterMode;
-  document.getElementById('auth-title').textContent        = isRegisterMode ? 'Create account' : 'Sign in';
-  document.getElementById('auth-submit').textContent       = isRegisterMode ? 'Register' : 'Sign in';
-  document.getElementById('auth-toggle-label').textContent = isRegisterMode ? 'Already have an account? Sign in' : "Don't have an account? Register";
-  document.getElementById('a-invite').classList.toggle('hidden', !isRegisterMode);
-  document.getElementById('a-password').setAttribute('autocomplete', isRegisterMode ? 'new-password' : 'current-password');
-  setError('');
-}
-
-function setError(msg) {
-  const el = document.getElementById('error-msg');
-  el.textContent = msg;
-  el.classList.toggle('hidden', !msg);
-}
-
-async function submitAuth() {
-  const username = document.getElementById('a-username').value.trim();
-  const password = document.getElementById('a-password').value;
-  const invite   = document.getElementById('a-invite').value.trim();
-  setError('');
-
-  if (!username || !password) { setError('Please fill in all fields.'); return; }
-
-  const btn = document.getElementById('auth-submit');
-  btn.disabled = true;
-  btn.textContent = isRegisterMode ? 'Registering…' : 'Signing in…';
-
+  // Quick validation ping
+  const btn = document.querySelector('#key-panel button[onclick="saveKey()"]');
+  btn.disabled = true; btn.textContent = 'Checking…';
   try {
-    if (isRegisterMode) {
-      const r = await fetch(`${API_BASE}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, invite_code: invite }),
-      });
-      const data = await r.json();
-      if (!r.ok) { setError(data.detail || 'Registration failed.'); return; }
-      // Auto-login after register
-      toggleAuthMode();
-    }
-
-    const r = await fetch(`${API_BASE}/auth/login`, {
+    const r = await fetch(`${GEMINI_URL}?key=${key}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ contents: [{ parts: [{ text: 'hi' }] }] })
     });
-    const data = await r.json();
-    if (!r.ok) { setError(data.detail || 'Login failed.'); return; }
-
-    localStorage.setItem('intern_scout_token', data.access_token);
-    localStorage.setItem('intern_scout_username', data.username);
-    showTailorPanel();
+    if (r.status === 400 || r.ok) {
+      localStorage.setItem(KEY_STORE, key);
+      showTailorPanel();
+    } else {
+      const d = await r.json();
+      errEl.textContent = d.error?.message || 'Invalid API key.';
+      errEl.classList.remove('hidden');
+    }
   } catch {
-    setError('Could not reach the server. Try again later.');
+    errEl.textContent = 'Could not reach Gemini API. Check your connection.';
+    errEl.classList.remove('hidden');
   } finally {
-    btn.disabled = false;
-    btn.textContent = isRegisterMode ? 'Register' : 'Sign in';
+    btn.disabled = false; btn.textContent = 'Save & continue';
   }
 }
 
-/* enter to submit */
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !document.getElementById('auth-panel').classList.contains('hidden'))
-    submitAuth();
-});
-
 /* ── file handling ── */
-function handleDragOver(e) {
-  e.preventDefault();
-  document.getElementById('drop-zone').classList.add('dragover');
-}
-function handleDragLeave() {
-  document.getElementById('drop-zone').classList.remove('dragover');
-}
+function handleDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('dragover'); }
+function handleDragLeave()  { document.getElementById('drop-zone').classList.remove('dragover'); }
 function handleDrop(e) {
   e.preventDefault();
   document.getElementById('drop-zone').classList.remove('dragover');
   const f = e.dataTransfer.files[0];
   if (f) handleFile(f);
 }
-function handleFile(f) {
+
+async function handleFile(f) {
   if (!f) return;
   selectedFile = f;
   document.getElementById('drop-label').classList.add('hidden');
   const lbl = document.getElementById('file-label');
-  lbl.textContent = `${f.name} (${(f.size/1024).toFixed(0)} KB)`;
+  lbl.textContent = `${f.name} (${(f.size/1024).toFixed(0)} KB) — parsing…`;
   lbl.classList.remove('hidden');
+
+  try {
+    resumeText = await extractText(f);
+    lbl.textContent = `${f.name} · ${resumeText.split(/\s+/).length} words extracted`;
+  } catch (err) {
+    lbl.textContent = `Error reading file: ${err.message}`;
+    selectedFile = null;
+  }
+}
+
+async function extractText(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  if (ext === 'txt') {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = e => res(e.target.result);
+      r.onerror = () => rej(new Error('Could not read file'));
+      r.readAsText(file);
+    });
+  }
+
+  if (ext === 'pdf') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const buf  = await file.arrayBuffer();
+    const pdf  = await pdfjsLib.getDocument({ data: buf }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page    = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(s => s.str).join(' ') + '\n';
+    }
+    return text;
+  }
+
+  if (ext === 'docx' || ext === 'doc') {
+    const buf = await file.arrayBuffer();
+    const res = await mammoth.extractRawText({ arrayBuffer: buf });
+    return res.value;
+  }
+
+  throw new Error('Unsupported file type. Use PDF, DOCX, or TXT.');
 }
 
 /* ── tailor ── */
 async function submitTailor() {
   const jd = document.getElementById('jd-input').value.trim();
-  if (jd.length < 50) {
-    document.getElementById('jd-hint').classList.remove('hidden');
-    return;
-  }
+  if (jd.length < 50) { document.getElementById('jd-hint').classList.remove('hidden'); return; }
   document.getElementById('jd-hint').classList.add('hidden');
 
-  if (!selectedFile) {
+  if (!resumeText) {
     document.getElementById('drop-zone').style.borderColor = '#f87171';
     setTimeout(() => document.getElementById('drop-zone').style.borderColor = '', 1500);
     return;
@@ -389,32 +349,58 @@ async function submitTailor() {
   document.getElementById('btn-spinner').classList.remove('hidden');
   document.getElementById('results').classList.add('hidden');
 
-  const form = new FormData();
-  form.append('resume', selectedFile);
-  form.append('job_description', jd);
+  const prompt = `You are an expert resume tailoring assistant.
+
+RESUME:
+${resumeText.slice(0, 6000)}
+
+JOB DESCRIPTION:
+${jd.slice(0, 3000)}
+
+Rules:
+- Only use experience and skills present in the resume. Never fabricate.
+- Reword bullets to lead with the most relevant skill for this role.
+- Be specific and quantified where the resume has numbers.
+
+Respond with ONLY a valid JSON object (no markdown, no code fences) with these exact fields:
+{
+  "role_title": "string",
+  "required_skills": ["string"],
+  "matched_skills": ["string"],
+  "missing_skills": ["string"],
+  "coverage_percent": 0,
+  "tailored_summary": "string",
+  "prioritised_bullets": ["string"],
+  "suggested_additions": ["string"],
+  "keyword_tips": "string"
+}`;
 
   try {
-    const r = await fetch(`${API_BASE}/api/tailor`, {
+    const r = await fetch(`${GEMINI_URL}?key=${getKey()}`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${getToken()}` },
-      body: form,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, responseMimeType: 'application/json' }
+      })
     });
 
-    if (r.status === 401) { signOut(); return; }
-    if (r.status === 429) {
-      alert('Rate limit reached (5 tailors/hour). Try again later.');
-      return;
+    if (r.status === 401 || r.status === 403) {
+      alert('API key rejected. Please update your key.');
+      showKeyPanel(); return;
     }
     if (!r.ok) {
-      const err = await r.json().catch(() => ({}));
-      alert(err.detail || 'Something went wrong. Try again.');
+      const e = await r.json().catch(() => ({}));
+      alert(e.error?.message || 'Gemini API error. Try again.');
       return;
     }
 
-    const d = await r.json();
+    const data = await r.json();
+    const raw  = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const d    = JSON.parse(raw);
     renderResults(d);
-  } catch {
-    alert('Could not reach the server. Try again later.');
+  } catch (err) {
+    alert(`Error: ${err.message}`);
   } finally {
     btn.disabled = false;
     document.getElementById('btn-label').textContent = 'Tailor my resume';
@@ -429,19 +415,23 @@ function renderResults(d) {
   document.getElementById('res-pct').textContent = `${pct}%`;
   setTimeout(() => { document.getElementById('res-bar').style.width = `${pct}%`; }, 50);
 
-  const chip = (text, color) =>
-    `<span class="skill-chip" style="background:${color.bg};color:${color.text};border:1px solid ${color.border};">${text}</span>`;
+  const chip = (t, bg, color, border) =>
+    `<span class="skill-chip" style="background:${bg};color:${color};border:1px solid ${border};">${t}</span>`;
 
   document.getElementById('res-matched').innerHTML =
-    (d.matched_skills || []).map(s => chip(s, {bg:'#daeae0',text:'#2d6249',border:'#aed0bb'})).join('') || '<span class="text-xs text-warm-300">None</span>';
+    (d.matched_skills || []).map(s => chip(s,'#daeae0','#2d6249','#aed0bb')).join('') ||
+    '<span class="text-xs text-warm-300 dark:text-warm-600">None</span>';
 
   document.getElementById('res-missing').innerHTML =
-    (d.missing_skills || []).map(s => chip(s, {bg:'#fef2f2',text:'#b91c1c',border:'#fecaca'})).join('') || '<span class="text-xs text-warm-300">None</span>';
+    (d.missing_skills || []).map(s => chip(s,'#fef2f2','#b91c1c','#fecaca')).join('') ||
+    '<span class="text-xs text-warm-300 dark:text-warm-600">None</span>';
 
   document.getElementById('res-summary-text').textContent = d.tailored_summary || '';
 
   document.getElementById('res-bullets-text').innerHTML =
-    (d.prioritised_bullets || []).map(b => `<li class="flex gap-2"><span class="text-sage-500 mt-0.5 flex-shrink-0">›</span><span>${b}</span></li>`).join('');
+    (d.prioritised_bullets || [])
+      .map(b => `<li class="flex gap-2"><span class="text-sage-500 mt-0.5 flex-shrink-0">›</span><span>${b}</span></li>`)
+      .join('');
 
   document.getElementById('res-keywords').textContent = d.keyword_tips || '';
 
@@ -450,21 +440,17 @@ function renderResults(d) {
   results.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function copyText(elId) {
-  const el = document.getElementById(elId);
-  const text = el.innerText || el.textContent;
+function copyEl(id) {
+  const text = document.getElementById(id).innerText;
   navigator.clipboard.writeText(text).then(() => {
-    /* brief visual feedback — swap button text */
-    const btns = document.querySelectorAll(`button[onclick="copyText('${elId}')"]`);
-    btns.forEach(b => { b.textContent = 'Copied!'; setTimeout(() => b.textContent = 'Copy', 1500); });
+    const btn = document.querySelector(`button[onclick="copyEl('${id}')"]`);
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
   });
 }
 
 /* ── init ── */
-(function init() {
-  const token = getToken();
-  if (token) { showTailorPanel(); } else { showAuthPanel(); }
-})();
+if (getKey()) { showTailorPanel(); } else { showKeyPanel(); }
 </script>
 </body>
 </html>

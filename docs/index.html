@@ -269,48 +269,23 @@ let RENDERED_JOBS = [];  // current filtered/sorted list (for apply button index
 
 const API_BASE = 'https://internsearch-api.onrender.com';
 
-function getToken()    { return localStorage.getItem('intern_scout_token'); }
-function getUsername() { return localStorage.getItem('intern_scout_username'); }
-
 function updateAuthLink() {
   const el = document.getElementById('auth-link');
-  if (!el) return;
-  const user = getUsername();
-  el.textContent = user ? `${user} · Tailor →` : 'Sign in →';
+  if (el) el.textContent = 'Tailor →';
 }
 
 async function loadApplied() {
-  const token = getToken();
-  if (!token) return;
-  try {
-    const r = await fetch(`${API_BASE}/api/applied`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (r.ok) {
-      APPLIED = (await r.json()).jobs || {};
-    } else if (r.status === 401) {
-      localStorage.removeItem('intern_scout_token');
-      localStorage.removeItem('intern_scout_username');
-    }
-  } catch {}
+  try { APPLIED = JSON.parse(localStorage.getItem('intern_scout_applied') || '{}'); }
+  catch { APPLIED = {}; }
 }
 
 async function markApplied(e, idx, status) {
   e.preventDefault(); e.stopPropagation();
-  const token = getToken();
-  if (!token) { location.href = 'tailor.html'; return; }
   const job = RENDERED_JOBS[idx];
   if (!job || APPLIED[job.url] === status) return;
   APPLIED[job.url] = status;
+  localStorage.setItem('intern_scout_applied', JSON.stringify(APPLIED));
   applyFilters();
-  try {
-    const r = await fetch(`${API_BASE}/api/mark-applied`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: job.url, job_status: status })
-    });
-    if (r.ok) { APPLIED = (await r.json()).jobs || {}; applyFilters(); }
-  } catch {}
 }
 
 /* ─── dark mode ─── */
