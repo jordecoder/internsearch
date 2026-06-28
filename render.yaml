@@ -1,0 +1,59 @@
+services:
+  # ── REST API (FastAPI) ──────────────────────────────────────────────────────
+  - type: web
+    name: internsearch-api
+    runtime: python
+    rootDir: .
+    buildCommand: pip install -r api/requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: JWT_SECRET
+        sync: false                  # Set once manually — do NOT use generateValue or friends get logged out on every redeploy
+      - key: GEMINI_API_KEY
+        sync: false                  # Set manually in Render dashboard
+      - key: INVITE_CODE
+        sync: false                  # Set manually — share this with friends
+      - key: GITHUB_TOKEN
+        sync: false                  # GitHub PAT with repo write access
+      - key: GITHUB_REPO
+        value: jordecoder/internsearch
+      - key: ALLOWED_ORIGIN
+        value: https://jordecoder.github.io
+      - key: USERS_DB_PATH
+        value: /tmp/internsearch_users.db   # ignored when DATABASE_URL is set
+      - key: DATABASE_URL
+        sync: false                  # Neon free-tier Postgres connection string (recommended)
+      - key: SENTRY_DSN
+        sync: false                  # Optional — create a free project at sentry.io
+
+  # ── Kafka consumer (always-on background worker) ────────────────────────────
+  # Subscribes to the internship-jobs Kafka topic and fires Telegram alerts the
+  # moment a new job event arrives — no cron delay.
+  - type: worker
+    name: internsearch-kafka-consumer
+    runtime: python
+    rootDir: .
+    buildCommand: pip install -r requirements.txt -r pipeline/requirements.txt
+    startCommand: python -m pipeline.run_consumer
+    plan: free
+    envVars:
+      # ── Kafka (Confluent Cloud) ──
+      - key: KAFKA_BOOTSTRAP_SERVERS
+        sync: false   # Upstash: your-cluster.upstash.io:9092 | Confluent: pkc-xxxx...confluent.cloud:9092
+      - key: KAFKA_API_KEY
+        sync: false
+      - key: KAFKA_API_SECRET
+        sync: false
+      - key: KAFKA_SASL_MECHANISM
+        value: SCRAM-SHA-256          # Upstash default; change to PLAIN for Confluent Cloud
+      - key: SENTRY_DSN
+        sync: false
+      # ── Telegram ──
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      # ── App ──
+      - key: DATABASE_PATH
+        value: /tmp/internsearch_consumer.sqlite3

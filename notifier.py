@@ -121,6 +121,29 @@ def send_actionable_telegram(job: Job, score: Score, resume_note: str = "") -> N
     send_telegram_message(format_actionable_job_message(job, score, resume_note))
 
 
+def register_bot_commands() -> None:
+    """Register bot command list with Telegram so /commands show in autocomplete."""
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not token:
+        raise RuntimeError("Missing TELEGRAM_BOT_TOKEN in environment/.env")
+
+    commands = [
+        {"command": "help", "description": "Show available commands"},
+        {"command": "status", "description": "Latest run summary"},
+        {"command": "sources", "description": "Source counts from last run"},
+        {"command": "recent", "description": "Recently discovered jobs"},
+        {"command": "date", "description": "Find when a job was posted"},
+        {"command": "applied", "description": "Mark a job as applied"},
+        {"command": "skip", "description": "Mark a job as not interested"},
+        {"command": "pipeline", "description": "Show your application pipeline"},
+        {"command": "schedule", "description": "Show scrape schedule"},
+        {"command": "faq", "description": "How the monitor works"},
+    ]
+    api_url = f"https://api.telegram.org/bot{token}/setMyCommands"
+    response = requests.post(api_url, json={"commands": commands}, timeout=20)
+    response.raise_for_status()
+
+
 def get_telegram_updates(
     offset: int | None = None,
     *,

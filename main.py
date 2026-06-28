@@ -37,6 +37,7 @@ from sources.internsg import fetch_internsg
 from sources.lever import fetch_lever_companies
 from sources.linkedin import fetch_linkedin_jobs
 from sources.mycareersfuture import fetch_mycareersfuture
+from sources.nodeflair import fetch_nodeflair_jobs
 from sources.smartrecruiters import fetch_smartrecruiters_companies
 from sources.workday import fetch_workday_sites
 
@@ -163,6 +164,15 @@ def fetch_all_jobs(config: dict[str, Any], client: PoliteHttpClient):
             ),
         )
         source_counts["MyCareersFuture"] = len(jobs)
+        all_jobs.extend(jobs)
+
+    nodeflair = sources.get("nodeflair", {})
+    if nodeflair.get("enabled", False):
+        jobs = _fetch_source(
+            "NodeFlair",
+            lambda: fetch_nodeflair_jobs(nodeflair.get("searches", []), client),
+        )
+        source_counts["NodeFlair"] = len(jobs)
         all_jobs.extend(jobs)
 
     unique = {}
@@ -968,8 +978,9 @@ def main() -> None:
 
     if args.handle_telegram_commands:
         db_path = config.get("database_path", "jobs.sqlite3")
+        tracker_path = config.get("application_tracker", {}).get("path", "applications.csv")
         init_db(db_path)
-        processed = process_telegram_commands(db_path)
+        processed = process_telegram_commands(db_path, tracker_path)
         LOGGER.info("telegram_commands_processed count=%s", processed)
         return
 

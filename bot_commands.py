@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import html
+import logging
 import os
 from datetime import datetime, timezone
 
+from application_tracker import read_pipeline_summary, set_job_status
 from database import get_metadata, recent_jobs, search_jobs, set_metadata
 from display_utils import display_company, display_source, display_title, posted_date
-from notifier import get_telegram_updates, send_telegram_message
+from notifier import get_telegram_updates, register_bot_commands, send_telegram_message
 from time_utils import format_singapore_time
 
+LOGGER = logging.getLogger(__name__)
 
 HELP_MESSAGE = """<b>Internship monitor commands</b>
 
@@ -19,6 +22,9 @@ HELP_MESSAGE = """<b>Internship monitor commands</b>
 /recent - Show recently discovered jobs
 /sources - Show latest source counts
 /schedule - Show the GitHub Actions scrape schedule
+/applied &lt;title, company, or URL&gt; - Mark a job as applied
+/skip &lt;title, company, or URL&gt; - Mark a job as not interested
+/pipeline - Show your application pipeline summary
 """
 
 
@@ -46,16 +52,33 @@ Scrape runs at:
 Manual-review links send only once daily at/after 20:00 SGT.
 """
 
+_STATUS_ORDER = ["applied", "interviewing", "offer", "rejected", "found", "skipped"]
+_STATUS_LABELS = {
+    "applied": "Applied",
+    "interviewing": "Interviewing",
+    "offer": "Offer",
+    "rejected": "Rejected",
+    "found": "Found (not yet applied)",
+    "skipped": "Skipped",
+}
 
-def process_telegram_commands(db_path: str) -> int:
+
+def process_telegram_commands(db_path: str, tracker_path: str = "applications.csv") -> int:
     expected_chat_id = os.getenv("TELEGRAM_CHAT_ID")
     if not expected_chat_id:
         raise RuntimeError("Missing TELEGRAM_CHAT_ID in environment/.env")
 
+    try:
+        register_bot_commands()
+    except Exception:
+        LOGGER.warning("register_bot_commands_failed", exc_info=True)
+
     last_offset = get_metadata(db_path, "telegram_last_update_offset")
     offset = int(last_offset) + 1 if last_offset and last_offset.isdigit() else None
     updates = get_telegram_updates(offset=offset)
-    return process_telegram_updates(db_path, updates, expected_chat_id=expected_chat_id)
+    return process_telegram_updates(
+        db_path, updates, expected_chat_id=expected_chat_id, tracker_path=tracker_path
+    )
 
 
 def process_telegram_updates(
@@ -63,6 +86,7 @@ def process_telegram_updates(
     updates: list[dict],
     *,
     expected_chat_id: str,
+    tracker_path: str = "applications.csv",
 ) -> int:
     processed = 0
     last_offset = get_metadata(db_path, "telegram_last_update_offset")
@@ -81,7 +105,7 @@ def process_telegram_updates(
         if not text.startswith("/"):
             continue
 
-        reply = handle_command(db_path, text)
+        reply = handle_command(db_path, text, tracker_path=tracker_path)
         send_telegram_message(reply, disable_web_page_preview=True, chat_id=chat_id)
         processed += 1
 
@@ -91,7 +115,9 @@ def process_telegram_updates(
     return processed
 
 
-def handle_command(db_path: str, text: str) -> str:
+def handle_command(
+    db_path: str, text: str, *, tracker_path: str = "applications.csv"
+) -> str:
     command, _, arg = text.partition(" ")
     command_name = command.split("@", 1)[0].lower()
     arg = arg.strip()
@@ -110,7 +136,82 @@ def handle_command(db_path: str, text: str) -> str:
         return _format_recent(db_path)
     if command_name == "/date":
         return _format_date_lookup(db_path, arg)
+    if command_name == "/applied":
+        return _handle_status_update(db_path, tracker_path, arg, "applied", "✅ Marked as applied")
+    if command_name == "/skip":
+        return _handle_status_update(db_path, tracker_path, arg, "skipped", "⏭ Marked as skipped")
+    if command_name == "/pipeline":
+        return _format_pipeline(tracker_path)
     return "Unknown command. Send /help for available commands."
+
+
+def _handle_status_update(
+    db_path: str, tracker_path: str, query: str, status: str, confirm_prefix: str
+) -> str:
+    if not query:
+        return f"Usage: /{status} &lt;job title, company, or URL&gt;"
+
+    rows = search_jobs(db_path, query, limit=5)
+    if not rows:
+        return f"No recorded jobs matched: {html.escape(query)}"
+
+    if len(rows) > 1:
+        lines = [
+            f"Multiple jobs found for <b>{html.escape(query)}</b>. Be more specific or paste the URL:",
+            "",
+        ]
+        for i, row in enumerate(rows, 1):
+            title = html.escape(display_title(str(row.get("title") or "")))
+            company = html.escape(display_company(str(row.get("company") or "")))
+            url = html.escape(str(row.get("url") or ""), quote=True)
+            lines.append(f'{i}. <a href="{url}">{title}</a> — {company}')
+        return "\n".join(lines)
+
+    row = rows[0]
+    job_url = str(row.get("url") or "")
+    title = html.escape(display_title(str(row.get("title") or "")))
+    company = html.escape(display_company(str(row.get("company") or "")))
+    escaped_url = html.escape(job_url, quote=True)
+
+    updated = set_job_status(tracker_path, job_url, status)
+    if updated:
+        return f'{confirm_prefix}: <a href="{escaped_url}">{title}</a> — {company}'
+
+    return (
+        f"Job found in DB but not yet in your pipeline tracker:\n"
+        f'<a href="{escaped_url}">{title}</a> — {company}\n'
+        "It will be tracked the next time it passes your filters."
+    )
+
+
+def _format_pipeline(tracker_path: str) -> str:
+    summary = read_pipeline_summary(tracker_path)
+    if not summary:
+        return "No tracked applications yet. Jobs appear here once they pass your filters."
+
+    total = sum(len(jobs) for jobs in summary.values())
+    lines = ["🗂 <b>Application Pipeline</b>", "", f"Total tracked: {total}", ""]
+
+    for status in _STATUS_ORDER:
+        jobs = summary.get(status, [])
+        if not jobs:
+            continue
+        label = _STATUS_LABELS.get(status, status.title())
+        lines.append(f"<b>{label}: {len(jobs)}</b>")
+        for job in jobs[:3]:
+            title = html.escape(display_title(str(job.get("title") or "")))
+            company = html.escape(display_company(str(job.get("company") or "")))
+            url = html.escape(str(job.get("job_url") or ""), quote=True)
+            score = job.get("score", "")
+            score_str = f" | {score}" if score else ""
+            lines.append(f'  • <a href="{url}">{title}</a> — {company}{score_str}')
+        if len(jobs) > 3:
+            lines.append(f"  … and {len(jobs) - 3} more")
+        lines.append("")
+
+    while lines and lines[-1] == "":
+        lines.pop()
+    return "\n".join(lines)
 
 
 def _format_status(db_path: str) -> str:
@@ -177,7 +278,7 @@ def _format_job_row(index: int, row: dict[str, str | None]) -> list[str]:
     last_seen = _format_iso_time(row.get("last_seen_time") or "")
 
     return [
-        f"{index}. <a href=\"{url}\">{title}</a>",
+        f'{index}. <a href="{url}">{title}</a>',
         f"{company} | {location} | {source}",
         f"Posted: {html.escape(posted)}",
         f"First seen: {html.escape(first_seen)}",

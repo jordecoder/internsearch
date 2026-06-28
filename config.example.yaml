@@ -48,6 +48,7 @@ exact_job_detection:
     - ashby:
     - smartrecruiters:
     - internsg
+    - nodeflair
     - workday:
   exact_url_terms:
     - /job/
@@ -1200,6 +1201,22 @@ sources:
         location: Singapore
         max_results: 25
         time_filter: r86400
+
+  nodeflair:
+    enabled: true
+    searches:
+      - query: "intern"
+        location: Singapore
+        seniority: Intern
+      - query: "data engineer intern"
+        location: Singapore
+        seniority: Intern
+      - query: "machine learning intern"
+        location: Singapore
+        seniority: Intern
+      - query: "software engineer intern"
+        location: Singapore
+        seniority: Intern
 
   mycareersfuture:
     enabled: false

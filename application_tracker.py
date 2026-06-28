@@ -107,6 +107,42 @@ def update_application_tracker(
         writer.writerows([{field: row.get(field, "") for field in FIELDNAMES} for row in rows])
 
 
+def set_job_status(path: str, url: str, status: str) -> bool:
+    """Update the status of a tracked job by URL. Returns True if found and updated."""
+    tracker_path = Path(path)
+    if not tracker_path.exists():
+        return False
+    with tracker_path.open("r", encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    found = False
+    for row in rows:
+        if row.get("job_url") == url:
+            row["status"] = status
+            found = True
+            break
+    if not found:
+        return False
+    with tracker_path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
+        writer.writeheader()
+        writer.writerows([{field: row.get(field, "") for field in FIELDNAMES} for row in rows])
+    return True
+
+
+def read_pipeline_summary(path: str) -> dict[str, list[dict]]:
+    """Return tracked jobs grouped by status, newest-first within each group."""
+    tracker_path = Path(path)
+    if not tracker_path.exists():
+        return {}
+    with tracker_path.open("r", encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    summary: dict[str, list[dict]] = {}
+    for row in rows:
+        status = row.get("status") or "found"
+        summary.setdefault(status, []).append(row)
+    return summary
+
+
 def _priority_label(score: int, insights: OpportunityInsights | None) -> str:
     if insights and insights.referral_priority:
         return "high"
