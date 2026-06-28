@@ -710,16 +710,37 @@ def run_once(config: dict[str, Any]) -> int:
     tracker_path = tracker_config.get("path", "applications.csv")
 
     for job in jobs:
-        is_new = record_discovery(db_path, job)
-        score = score_job(job, config)
-        actionable = is_actionable_candidate(job, score, config)
+        try:
+            is_new = record_discovery(db_path, job)
+            score = score_job(job, config)
+            actionable = is_actionable_candidate(job, score, config)
+        except Exception:
+            LOGGER.exception(
+                "job_scoring_failed",
+                extra={"title": job.title, "company": job.company, "url": job.url},
+            )
+            continue
         if not actionable:
             continue
 
-        resume_match = match_resume_to_job(job, resume_profile, tracked_resume_keywords)
+        try:
+            resume_match = match_resume_to_job(job, resume_profile, tracked_resume_keywords)
+        except Exception:
+            LOGGER.exception(
+                "resume_match_failed",
+                extra={"title": job.title, "company": job.company},
+            )
+            continue
         for keyword in resume_match.missing_keywords:
             missing_keyword_counts[keyword] = missing_keyword_counts.get(keyword, 0) + 1
-        insights = build_opportunity_insights(job, score, resume_match, config)
+        try:
+            insights = build_opportunity_insights(job, score, resume_match, config)
+        except Exception:
+            LOGGER.exception(
+                "insights_failed",
+                extra={"title": job.title, "company": job.company},
+            )
+            continue
         resume_note = _format_resume_note(resume_match)
         actionable_items.append((job, score, resume_match, insights))
         if (
