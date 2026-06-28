@@ -329,6 +329,9 @@ candidate_filters:
     - public policy
     - policy
     - finance
+    - financial
+    - tourism
+    - hospitality
     - legal
     - operations
     - human resources

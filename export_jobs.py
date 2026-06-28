@@ -64,9 +64,9 @@ def _to_job(row: dict) -> Job:
 
 
 def _passes_dashboard_filter(job: Job, score: Score, config: dict) -> bool:
-    """Looser than is_actionable_candidate: requires SG intern role with no
-    rejected terms, but skips the technical-terms check so near-misses like
-    generic 'Intern' roles at SG companies are still included."""
+    """Singapore tech intern roles only. Skips the strict score threshold but
+    keeps the technical-terms and rejected-terms checks so non-tech roles
+    (tourism, finance, marketing, etc.) are excluded from the dashboard."""
     filters = config.get("candidate_filters", {})
     title = (job.title or "").lower()
     location_text = (job.location or "").lower()
@@ -88,6 +88,13 @@ def _passes_dashboard_filter(job: Job, score: Score, config: dict) -> bool:
     rejected = [str(t).lower() for t in filters.get("rejected_terms", [])]
     if any(t in title for t in rejected):
         return False
+
+    technical_terms = [str(t).lower() for t in filters.get("technical_terms", [])]
+    if technical_terms and not any(t in title for t in technical_terms):
+        trusted = [str(c).lower() for c in filters.get("trusted_technical_companies", [])]
+        company = (job.company or "").lower()
+        if not any(t in company for t in trusted):
+            return False
 
     return True
 
