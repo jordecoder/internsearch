@@ -75,6 +75,7 @@ class JobConsumer:
     # ── main loop ──────────────────────────────────────────────────────────────
 
     def run(self) -> None:
+        """Continuous mode — runs until interrupted (for always-on workers)."""
         LOGGER.info("kafka_consumer_running")
         try:
             while True:
@@ -90,6 +91,33 @@ class JobConsumer:
         finally:
             self._consumer.close()
             LOGGER.info("kafka_consumer_closed")
+
+    def drain(self, idle_timeout: float = 10.0) -> None:
+        """Drain mode — process all pending messages then exit.
+
+        Exits after `idle_timeout` seconds of no new messages, which means
+        the topic is caught up. Safe to run on a schedule (GitHub Actions).
+        """
+        LOGGER.info("kafka_consumer_drain_starting idle_timeout=%ss", idle_timeout)
+        processed = 0
+        idle_seconds = 0.0
+        poll_interval = 1.0
+
+        try:
+            while idle_seconds < idle_timeout:
+                msg: Message | None = self._consumer.poll(timeout=poll_interval)
+                if msg is None:
+                    idle_seconds += poll_interval
+                    continue
+                if msg.error():
+                    self._handle_kafka_error(msg)
+                    continue
+                self._handle_message(msg)
+                processed += 1
+                idle_seconds = 0.0  # reset idle timer on each message
+        finally:
+            self._consumer.close()
+            LOGGER.info("kafka_consumer_drain_complete processed=%s", processed)
 
     # ── message handling ───────────────────────────────────────────────────────
 
