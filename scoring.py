@@ -53,7 +53,7 @@ def score_job(job: Job, config: dict[str, Any], *, now: datetime | None = None) 
 
     role_score = _score_role(text, role_terms)
     skill_score = _score_skills(text, skill_terms, job, priority_companies)
-    location_score = _score_location(text)
+    location_score = _score_location(text, job.location)
     timeline_score, timeline_match = _score_timeline(text, job, now)
     degree_score = _score_degree(text, degree_terms)
 
@@ -171,8 +171,18 @@ def _score_skills(
     return _bounded(base)
 
 
-def _score_location(text: str) -> int:
-    if "singapore" in text or re.search(r"\bsg\b", text):
+def _score_location(text: str, location: str = "") -> int:
+    if location:
+        loc = location.lower()
+        if "singapore" in loc:
+            if "remote" in loc or "remote" in text:
+                return 100
+            if "hybrid" in loc or "hybrid" in text:
+                return 95
+            return 90
+        return 20  # location field explicitly set to non-Singapore
+    # No dedicated location field — use full text as weaker signal
+    if "singapore" in text:
         if "remote" in text:
             return 100
         if "hybrid" in text:

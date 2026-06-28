@@ -35,6 +35,7 @@ from sources.careers_page import fetch_careers_pages
 from sources.greenhouse import fetch_greenhouse_boards
 from sources.internsg import fetch_internsg
 from sources.lever import fetch_lever_companies
+from sources.linkedin import fetch_linkedin_jobs
 from sources.mycareersfuture import fetch_mycareersfuture
 from sources.smartrecruiters import fetch_smartrecruiters_companies
 from sources.workday import fetch_workday_sites
@@ -140,6 +141,15 @@ def fetch_all_jobs(config: dict[str, Any], client: PoliteHttpClient):
             lambda: fetch_careers_pages(careers_pages.get("pages", []), client),
         )
         source_counts["Careers pages"] = len(jobs)
+        all_jobs.extend(jobs)
+
+    linkedin = sources.get("linkedin", {})
+    if linkedin.get("enabled", False):
+        jobs = _fetch_source(
+            "LinkedIn",
+            lambda: fetch_linkedin_jobs(linkedin.get("searches", []), client),
+        )
+        source_counts["LinkedIn"] = len(jobs)
         all_jobs.extend(jobs)
 
     mycareersfuture = sources.get("mycareersfuture", {})

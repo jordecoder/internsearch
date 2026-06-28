@@ -1086,10 +1086,6 @@ sources:
         company: Canva
         url: https://www.lifeatcanva.com/en/jobs/
         default_location: Singapore
-      - name: Workato
-        company: Workato
-        url: https://www.workato.com/company/careers
-        default_location: Singapore
       - name: Razer
         company: Razer
         url: https://www.razer.com/careers
@@ -1154,6 +1150,34 @@ sources:
         company: Singtel
         url: https://www.singtel.com/about-us/careers
         default_location: Singapore
+
+  linkedin:
+    enabled: true
+    searches:
+      - keywords: "software engineer intern"
+        location: Singapore
+        max_results: 75
+        time_filter: r604800
+      - keywords: "data engineer intern"
+        location: Singapore
+        max_results: 50
+        time_filter: r604800
+      - keywords: "machine learning intern"
+        location: Singapore
+        max_results: 50
+        time_filter: r604800
+      - keywords: "data analyst intern"
+        location: Singapore
+        max_results: 50
+        time_filter: r604800
+      - keywords: "generative ai intern"
+        location: Singapore
+        max_results: 25
+        time_filter: r604800
+      - keywords: "analytics engineer intern"
+        location: Singapore
+        max_results: 25
+        time_filter: r604800
 
   mycareersfuture:
     enabled: false
