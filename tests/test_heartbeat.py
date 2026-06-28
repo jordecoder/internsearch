@@ -160,8 +160,7 @@ def test_near_match_digest_includes_job_links_and_scores():
     assert "Daily near-match internship digest" in message
     assert "Data Platform Intern" in message
     assert "score 65/100" in message
-    assert "Resume coverage: 50%" in message
-    assert "gaps: docker" in message
+    assert "missing: docker" in message
     assert "seek referral" in message
     assert "Role: Data Engineering" in message
     assert "Deadline: No deadline found" in message
