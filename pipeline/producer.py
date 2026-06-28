@@ -48,19 +48,25 @@ def _build_config() -> dict:
 
 
 def _ensure_topic(cfg: dict) -> None:
-    admin = AdminClient(cfg)
-    meta = admin.list_topics(timeout=10)
-    if TOPIC not in meta.topics:
-        fs = admin.create_topics([
-            NewTopic(TOPIC, num_partitions=3, replication_factor=1)
-        ])
-        for topic, future in fs.items():
-            try:
-                future.result()
-                LOGGER.info("kafka_topic_created topic=%s", topic)
-            except Exception as exc:
-                # Topic may already exist in a race — not fatal
-                LOGGER.warning("kafka_topic_create_warning topic=%s error=%s", topic, exc)
+    try:
+        admin = AdminClient(cfg)
+        meta = admin.list_topics(timeout=10)
+        if TOPIC not in meta.topics:
+            fs = admin.create_topics([
+                NewTopic(TOPIC, num_partitions=3, replication_factor=1)
+            ])
+            for topic, future in fs.items():
+                try:
+                    future.result()
+                    LOGGER.info("kafka_topic_created topic=%s", topic)
+                except Exception as exc:
+                    LOGGER.warning("kafka_topic_create_warning topic=%s error=%s", topic, exc)
+        else:
+            LOGGER.info("kafka_topic_exists topic=%s", TOPIC)
+    except Exception as exc:
+        # Serverless brokers (RedPanda Cloud) may restrict AdminClient — not fatal
+        # as long as the topic was pre-created in the console.
+        LOGGER.warning("kafka_topic_check_skipped error=%s", exc)
 
 
 class JobProducer:
