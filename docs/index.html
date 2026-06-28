@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SG Intern Watch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -11,112 +14,103 @@
       theme: {
         extend: {
           colors: {
-            brand: { 50:'#f0f9ff', 100:'#e0f2fe', 500:'#0ea5e9', 600:'#0284c7', 700:'#0369a1' }
-          }
+            sage:  { 50:'#f2f5f2', 100:'#e4ece5', 200:'#c6d9c8', 300:'#9dbfa1', 400:'#6d9e74', 500:'#4d7b62', 600:'#3a6049', 700:'#2d4a38' },
+            warm:  { 50:'#f5f3ee', 100:'#ede9e2', 200:'#dcd5cb', 300:'#c4bbb0', 400:'#a59d95', 500:'#7c756e', 600:'#5c5650', 700:'#3d3934', 800:'#252220', 900:'#141210' }
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
         }
       }
     }
   </script>
   <style>
-    body { font-family: 'Inter', system-ui, sans-serif; }
-    .card-enter { animation: fadeSlideIn .25s ease both; }
-    @keyframes fadeSlideIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:9999px; font-size:.7rem; font-weight:600; letter-spacing:.03em; text-transform:uppercase; }
-    ::-webkit-scrollbar { width:6px; }
+    * { -webkit-font-smoothing: antialiased; }
+    .card-enter { animation: rise .2s ease both; }
+    @keyframes rise { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    .tag { display:inline-block; padding:1px 7px; border-radius:4px; font-size:.68rem; font-weight:500; letter-spacing:.04em; text-transform:uppercase; }
+    ::-webkit-scrollbar { width:5px; }
     ::-webkit-scrollbar-track { background:transparent; }
-    ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
-    .dark ::-webkit-scrollbar-thumb { background:#475569; }
+    ::-webkit-scrollbar-thumb { background:#c4bbb0; border-radius:3px; }
+    .dark ::-webkit-scrollbar-thumb { background:#3d3934; }
+    select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a59d95' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px !important; }
   </style>
 </head>
-<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+<body class="min-h-full bg-warm-50 dark:bg-warm-900 text-warm-800 dark:text-warm-100 transition-colors duration-200" style="font-family:'Inter',system-ui,sans-serif;">
 
-<!-- TOP NAV -->
-<header class="sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur border-b border-slate-200 dark:border-slate-800">
-  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-    <div class="flex items-center gap-2">
-      <span class="text-brand-600 dark:text-brand-500 text-xl">🎯</span>
-      <span class="font-bold text-slate-800 dark:text-white tracking-tight">SG Intern Watch</span>
+<!-- NAV -->
+<header class="sticky top-0 z-20 border-b border-warm-200 dark:border-warm-800 bg-warm-50/90 dark:bg-warm-900/90 backdrop-blur-sm">
+  <div class="max-w-4xl mx-auto px-5 h-13 flex items-center justify-between gap-4" style="height:52px;">
+    <div>
+      <span class="text-sm font-semibold tracking-tight text-warm-800 dark:text-warm-100">SG Intern Watch</span>
     </div>
-    <div class="flex items-center gap-3">
-      <span id="last-updated" class="text-xs text-slate-400 dark:text-slate-500 hidden sm:block"></span>
-      <button onclick="toggleDark()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Toggle theme">
-        <svg id="icon-sun" class="w-4 h-4 text-slate-500 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
-        <svg id="icon-moon" class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+    <div class="flex items-center gap-4">
+      <span id="last-updated" class="text-xs text-warm-400 dark:text-warm-500 hidden sm:block"></span>
+      <button onclick="toggleDark()" class="text-warm-400 dark:text-warm-500 hover:text-warm-600 dark:hover:text-warm-300 transition-colors" title="Toggle theme">
+        <svg id="icon-sun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+        <svg id="icon-moon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
       </button>
     </div>
   </div>
 </header>
 
-<main class="max-w-6xl mx-auto px-4 py-6">
+<main class="max-w-4xl mx-auto px-5 py-8">
 
-  <!-- STATS ROW -->
-  <div id="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6"></div>
+  <!-- STATS -->
+  <div id="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8"></div>
 
   <!-- FILTERS -->
-  <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 mb-6 flex flex-wrap gap-3 items-center">
+  <div class="flex flex-wrap gap-2 items-center mb-5">
     <div class="relative flex-1 min-w-[180px]">
-      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-      <input id="search" type="text" placeholder="Search title, company…" oninput="applyFilters()"
-        class="w-full pl-9 pr-4 py-2 text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-900 dark:text-slate-100 placeholder-slate-400" />
+      <input id="search" type="text" placeholder="Search title or company" oninput="applyFilters()"
+        class="w-full px-3 py-2 text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-800 dark:text-warm-100 placeholder-warm-300 dark:placeholder-warm-600" />
     </div>
-
     <select id="filter-source" onchange="applyFilters()"
-      class="text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-700 dark:text-slate-300">
+      class="text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-700 dark:text-warm-300">
       <option value="">All sources</option>
     </select>
-
     <select id="filter-actionable" onchange="applyFilters()"
-      class="text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-700 dark:text-slate-300">
-      <option value="actionable">Actionable only</option>
-      <option value="">All (incl. near-misses)</option>
-      <option value="notified">Notified only</option>
+      class="text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-700 dark:text-warm-300">
+      <option value="actionable">Actionable</option>
+      <option value="">All listings</option>
+      <option value="notified">Notified</option>
     </select>
-
     <select id="sort-by" onchange="applyFilters()"
-      class="text-sm rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-700 dark:text-slate-300">
-      <option value="newest">Newest first</option>
-      <option value="score">Highest score</option>
-      <option value="company">Company A→Z</option>
+      class="text-sm rounded-lg bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sage-400 text-warm-700 dark:text-warm-300">
+      <option value="newest">Newest</option>
+      <option value="score">Top score</option>
+      <option value="company">Company</option>
     </select>
-
-    <span id="result-count" class="text-sm text-slate-400 dark:text-slate-500 whitespace-nowrap ml-auto"></span>
+    <span id="result-count" class="text-xs text-warm-400 dark:text-warm-500 ml-auto whitespace-nowrap"></span>
   </div>
 
   <!-- JOB LIST -->
-  <div id="job-list" class="space-y-3"></div>
+  <div id="job-list" class="space-y-2"></div>
 
-  <!-- EMPTY STATE -->
-  <div id="empty-state" class="hidden text-center py-20 text-slate-400 dark:text-slate-600">
-    <div class="text-5xl mb-4">🔍</div>
-    <p class="text-lg font-medium">No jobs match your filters</p>
-    <p class="text-sm mt-1">Try adjusting your search or filters</p>
+  <!-- EMPTY -->
+  <div id="empty-state" class="hidden text-center py-20">
+    <p class="text-sm font-medium text-warm-500 dark:text-warm-400">No listings match your filters</p>
+    <p class="text-xs text-warm-400 dark:text-warm-500 mt-1">Try widening your search</p>
   </div>
 
   <!-- LOADING -->
-  <div id="loading" class="flex flex-col items-center justify-center py-24 text-slate-400">
-    <svg class="animate-spin w-8 h-8 mb-4 text-brand-500" fill="none" viewBox="0 0 24 24">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+  <div id="loading" class="flex flex-col items-center justify-center py-24 text-warm-300 dark:text-warm-600">
+    <svg class="animate-spin w-5 h-5 mb-3" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
     </svg>
-    <p class="text-sm">Loading job data…</p>
+    <p class="text-xs">Loading</p>
   </div>
 
   <!-- ERROR -->
   <div id="error-state" class="hidden text-center py-20">
-    <div class="text-5xl mb-4">⚠️</div>
-    <p class="text-lg font-medium text-slate-600 dark:text-slate-400">Could not load job data</p>
-    <p class="text-sm text-slate-400 mt-1">Make sure the GitHub Actions workflow has run at least once and GitHub Pages is enabled.</p>
+    <p class="text-sm font-medium text-warm-500 dark:text-warm-400">Could not load job data</p>
+    <p class="text-xs text-warm-400 dark:text-warm-500 mt-1">Enable GitHub Pages (Settings → Pages → Branch: main, /docs) and wait for the next workflow run.</p>
   </div>
 </main>
 
 <script>
-// ── State ────────────────────────────────────────────────────────────────────
 let ALL_JOBS = [];
 
-// ── Dark mode ────────────────────────────────────────────────────────────────
+// Dark mode
 function toggleDark() {
   const dark = document.documentElement.classList.toggle('dark');
   localStorage.setItem('theme', dark ? 'dark' : 'light');
@@ -125,224 +119,154 @@ function toggleDark() {
 }
 (function initTheme() {
   const saved = localStorage.getItem('theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const dark = saved ? saved === 'dark' : prefersDark;
+  const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
   if (dark) document.documentElement.classList.add('dark');
   document.getElementById('icon-sun').classList.toggle('hidden', !dark);
   document.getElementById('icon-moon').classList.toggle('hidden', dark);
 })();
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers
 function relativeTime(iso) {
   if (!iso) return '';
-  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
-  if (diff < 604800) return `${Math.floor(diff/86400)}d ago`;
+  const s = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (s < 60)     return 'just now';
+  if (s < 3600)   return `${Math.floor(s/60)}m ago`;
+  if (s < 86400)  return `${Math.floor(s/3600)}h ago`;
+  if (s < 172800) return 'yesterday';
+  if (s < 604800) return `${Math.floor(s/86400)}d ago`;
   return new Date(iso).toLocaleDateString('en-SG', { day:'numeric', month:'short' });
 }
 
 function sourceLabel(src) {
   if (!src) return 'Unknown';
-  const parts = src.split(':');
-  return parts.length > 1 ? parts[0] : src;
+  return src.includes(':') ? src.split(':')[0] : src;
 }
 
-function sourceBadgeClass(src) {
-  const label = sourceLabel(src).toLowerCase();
-  const map = {
-    greenhouse:  'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
-    lever:       'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400',
-    ashby:       'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-400',
-    linkedin:    'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
-    careerspage: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-    internsg:    'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400',
-    smartrecruiters: 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-400',
-  };
-  return map[label] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+function scoreColor(s) {
+  if (s >= 80) return 'text-sage-600 dark:text-sage-400 bg-sage-50 dark:bg-sage-900/30 border-sage-200 dark:border-sage-800';
+  if (s >= 65) return 'text-warm-600 dark:text-warm-400 bg-warm-100 dark:bg-warm-800 border-warm-200 dark:border-warm-700';
+  return 'text-warm-400 dark:text-warm-600 bg-warm-50 dark:bg-warm-800 border-warm-100 dark:border-warm-700';
 }
 
-function scoreRingClass(s) {
-  if (s >= 80) return 'text-emerald-600 dark:text-emerald-400';
-  if (s >= 65) return 'text-amber-500 dark:text-amber-400';
-  return 'text-slate-400 dark:text-slate-500';
-}
-
-function statCard(label, value, sub, color) {
+function statCard(label, value, sub) {
   return `
-  <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">${label}</p>
-    <p class="text-2xl font-bold mt-1 ${color}">${value}</p>
-    ${sub ? `<p class="text-xs text-slate-400 mt-0.5">${sub}</p>` : ''}
+  <div class="bg-white dark:bg-warm-800 rounded-lg border border-warm-200 dark:border-warm-700 px-4 py-3">
+    <p class="text-[11px] font-medium text-warm-400 dark:text-warm-500 uppercase tracking-widest">${label}</p>
+    <p class="text-2xl font-light text-warm-800 dark:text-warm-100 mt-0.5 tabular-nums">${value}</p>
+    ${sub ? `<p class="text-[11px] text-warm-300 dark:text-warm-600 mt-0.5">${sub}</p>` : ''}
   </div>`;
 }
 
-// ── Render stats ─────────────────────────────────────────────────────────────
 function renderStats(jobs, exportedAt) {
-  const total = jobs.length;
   const actionable = jobs.filter(j => j.actionable).length;
-  const notified = jobs.filter(j => j.notified).length;
-  const sources = [...new Set(jobs.map(j => sourceLabel(j.source)))].length;
-  const oneDayAgo = Date.now() - 86400000;
-  const newToday = jobs.filter(j => new Date(j.first_seen_time).getTime() > oneDayAgo).length;
+  const notified   = jobs.filter(j => j.notified).length;
+  const newToday   = jobs.filter(j => (Date.now() - new Date(j.first_seen_time)) < 86400000).length;
+  const sources    = new Set(jobs.map(j => sourceLabel(j.source))).size;
 
   document.getElementById('stats').innerHTML =
-    statCard('Total scraped', total, `last ${window._DAYS_BACK || 14} days`, 'text-slate-800 dark:text-white') +
-    statCard('New today', newToday, 'past 24 hours', 'text-brand-600 dark:text-brand-500') +
-    statCard('Actionable', actionable, 'pass all filters', 'text-emerald-600 dark:text-emerald-400') +
-    statCard('Notified', notified, 'sent to Telegram', 'text-violet-600 dark:text-violet-400');
+    statCard('Listings', jobs.length, 'last 14 days') +
+    statCard('New today', newToday, 'past 24 hours') +
+    statCard('Actionable', actionable, 'pass all filters') +
+    statCard('Notified', notified, 'sent to Telegram');
 
-  if (exportedAt) {
+  if (exportedAt)
     document.getElementById('last-updated').textContent = `Updated ${relativeTime(exportedAt)}`;
-  }
 }
 
-// ── Populate source filter ────────────────────────────────────────────────────
 function populateSourceFilter(jobs) {
-  const sources = [...new Set(jobs.map(j => sourceLabel(j.source)))].sort();
   const sel = document.getElementById('filter-source');
-  sources.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    sel.appendChild(opt);
+  [...new Set(jobs.map(j => sourceLabel(j.source)))].sort().forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s;
+    sel.appendChild(o);
   });
 }
 
-// ── Render a single job card ─────────────────────────────────────────────────
 function renderCard(job) {
-  const score = job.score || {};
+  const score   = job.score || {};
   const overall = score.overall ?? 0;
-  const src = sourceLabel(job.source);
-  const companyName = job.source?.includes(':') ? job.source.split(':')[1] : (job.company || '');
 
-  const notifiedBadge = job.notified
-    ? `<span class="badge bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400">✓ Notified</span>`
-    : '';
-  const actionableBadge = job.actionable && !job.notified
-    ? `<span class="badge bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">✦ Actionable</span>`
+  const SKIP = new Set(['newly discovered, timeline unspecified','recent posting, timeline unspecified','fresh posting, timeline unspecified']);
+  const timeline = (score.timeline_match || '').trim();
+  const showTimeline = timeline && !SKIP.has(timeline.toLowerCase());
+
+  const time = relativeTime(job.posted_time || job.first_seen_time);
+  const src  = sourceLabel(job.source);
+
+  const meta = [src, job.company].filter(Boolean);
+  if (job.location && job.location.toLowerCase() !== 'singapore' && job.location.toLowerCase() !== 'singapore, singapore')
+    meta.push(job.location);
+  if (time) meta.push(time);
+
+  const pills = [];
+  if (job.actionable) pills.push(`<span class="tag bg-sage-50 dark:bg-sage-900/30 text-sage-600 dark:text-sage-400 border border-sage-200 dark:border-sage-800">Actionable</span>`);
+  if (job.notified)   pills.push(`<span class="tag bg-warm-100 dark:bg-warm-700 text-warm-500 dark:text-warm-300 border border-warm-200 dark:border-warm-600">Notified</span>`);
+  if (showTimeline)   pills.push(`<span class="tag bg-warm-100 dark:bg-warm-700 text-warm-500 dark:text-warm-300 border border-warm-200 dark:border-warm-600">${timeline}</span>`);
+
+  const missingNote = (score.timeline_match || '').includes('missing:')
+    ? '' // already in timeline_match — skip (shouldn't happen but guard)
     : '';
 
-  const scoreTooltip = score.overall != null
-    ? `Role ${score.role} · Skill ${score.skill} · Loc ${score.location} · Timeline ${score.timeline}`
-    : '';
-
-  const timelineTag = score.timeline_match && score.timeline_match !== 'Newly discovered, timeline unspecified' && score.timeline_match !== 'Recent posting, timeline unspecified'
-    ? `<span class="badge bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-400">${score.timeline_match}</span>`
-    : '';
-
-  const postedLabel = job.posted_time
-    ? `Posted ${relativeTime(job.posted_time)}`
-    : `Seen ${relativeTime(job.first_seen_time)}`;
+  const tooltipParts = [`Role ${score.role}`, `Skill ${score.skill}`, `Location ${score.location}`, `Timeline ${score.timeline}`];
 
   return `
-  <div class="card-enter bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-150 group">
+  <a href="${job.url}" target="_blank" rel="noopener" class="card-enter block bg-white dark:bg-warm-800 rounded-lg border border-warm-200 dark:border-warm-700 px-5 py-4 hover:border-sage-300 dark:hover:border-sage-700 hover:shadow-sm transition-all duration-150 group no-underline">
     <div class="flex items-start gap-4">
-
-      <!-- Score ring -->
-      <div class="hidden sm:flex flex-col items-center flex-shrink-0 w-12 mt-0.5" title="${scoreTooltip}">
-        <div class="relative w-11 h-11">
-          <svg class="w-11 h-11 -rotate-90" viewBox="0 0 36 36">
-            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" stroke-width="3" class="dark:[stroke:#1e293b]"/>
-            <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" stroke-width="3"
-              stroke-dasharray="${overall} ${100 - overall}" stroke-linecap="round"
-              class="${scoreRingClass(overall)}"/>
-          </svg>
-          <span class="absolute inset-0 flex items-center justify-center text-xs font-bold ${scoreRingClass(overall)}">${overall}</span>
-        </div>
-      </div>
-
-      <!-- Content -->
       <div class="flex-1 min-w-0">
-        <div class="flex flex-wrap items-center gap-2 mb-1.5">
-          <span class="badge ${sourceBadgeClass(job.source)}">${src}</span>
-          ${notifiedBadge}
-          ${actionableBadge}
-          ${timelineTag}
+        <div class="flex flex-wrap gap-1.5 mb-2">
+          ${pills.join('')}
         </div>
-
-        <a href="${job.url}" target="_blank" rel="noopener"
-          class="text-base font-semibold text-slate-800 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition line-clamp-2 leading-snug">
-          ${job.title}
-        </a>
-
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-slate-500 dark:text-slate-400">
-          <span class="flex items-center gap-1">
-            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-            <span class="font-medium text-slate-700 dark:text-slate-300">${job.company || companyName || '—'}</span>
-          </span>
-          ${job.location ? `
-          <span class="flex items-center gap-1">
-            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            ${job.location}
-          </span>` : ''}
-          <span class="flex items-center gap-1">
-            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            ${postedLabel}
-          </span>
-        </div>
+        <p class="text-sm font-semibold text-warm-800 dark:text-warm-100 group-hover:text-sage-600 dark:group-hover:text-sage-400 transition-colors leading-snug">${job.title}</p>
+        <p class="text-xs text-warm-400 dark:text-warm-500 mt-1.5">${meta.join(' &middot; ')}</p>
       </div>
-
-      <!-- Arrow -->
-      <a href="${job.url}" target="_blank" rel="noopener" class="hidden sm:flex items-center self-center text-slate-300 dark:text-slate-700 group-hover:text-brand-500 transition">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-      </a>
+      <div class="flex-shrink-0 flex flex-col items-end gap-1.5">
+        <span class="tag border ${scoreColor(overall)} tabular-nums" title="${tooltipParts.join(' · ')}">${overall}</span>
+      </div>
     </div>
-  </div>`;
+  </a>`;
 }
 
-// ── Apply filters & re-render ─────────────────────────────────────────────────
 function applyFilters() {
-  const q = document.getElementById('search').value.trim().toLowerCase();
-  const srcFilter = document.getElementById('filter-source').value;
-  const actionFilter = document.getElementById('filter-actionable').value;
-  const sortBy = document.getElementById('sort-by').value;
+  const q      = document.getElementById('search').value.trim().toLowerCase();
+  const src    = document.getElementById('filter-source').value;
+  const action = document.getElementById('filter-actionable').value;
+  const sort   = document.getElementById('sort-by').value;
 
   let jobs = ALL_JOBS.filter(j => {
     if (q && !`${j.title} ${j.company}`.toLowerCase().includes(q)) return false;
-    if (srcFilter && sourceLabel(j.source) !== srcFilter) return false;
-    if (actionFilter === 'actionable' && !j.actionable) return false;
-    if (actionFilter === 'notified' && !j.notified) return false;
+    if (src    && sourceLabel(j.source) !== src)              return false;
+    if (action === 'actionable' && !j.actionable)             return false;
+    if (action === 'notified'   && !j.notified)               return false;
     return true;
   });
 
-  if (sortBy === 'score') jobs.sort((a, b) => (b.score?.overall ?? 0) - (a.score?.overall ?? 0));
-  else if (sortBy === 'company') jobs.sort((a, b) => (a.company || '').localeCompare(b.company || ''));
-  else jobs.sort((a, b) => new Date(b.first_seen_time) - new Date(a.first_seen_time));
+  if      (sort === 'score')   jobs.sort((a,b) => (b.score?.overall??0) - (a.score?.overall??0));
+  else if (sort === 'company') jobs.sort((a,b) => (a.company||'').localeCompare(b.company||''));
+  else                         jobs.sort((a,b) => new Date(b.first_seen_time) - new Date(a.first_seen_time));
 
-  const list = document.getElementById('job-list');
+  const list  = document.getElementById('job-list');
   const empty = document.getElementById('empty-state');
 
-  document.getElementById('result-count').textContent = `${jobs.length.toLocaleString()} result${jobs.length !== 1 ? 's' : ''}`;
+  document.getElementById('result-count').textContent =
+    jobs.length ? `${jobs.length} listing${jobs.length !== 1 ? 's' : ''}` : '';
 
-  if (jobs.length === 0) {
-    list.innerHTML = '';
-    empty.classList.remove('hidden');
-  } else {
-    empty.classList.add('hidden');
-    list.innerHTML = jobs.map(renderCard).join('');
-  }
+  if (!jobs.length) { list.innerHTML = ''; empty.classList.remove('hidden'); }
+  else { empty.classList.add('hidden'); list.innerHTML = jobs.map(renderCard).join(''); }
 }
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────────
 async function init() {
   try {
-    const res = await fetch('jobs.json');
+    const res  = await fetch('jobs.json');
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
-
-    window._DAYS_BACK = 14;
-    ALL_JOBS = data.jobs || [];
-
+    ALL_JOBS   = data.jobs || [];
     document.getElementById('loading').classList.add('hidden');
     renderStats(ALL_JOBS, data.exported_at);
     populateSourceFilter(ALL_JOBS);
     applyFilters();
-  } catch (err) {
+  } catch (e) {
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('error-state').classList.remove('hidden');
-    console.error('Failed to load jobs.json', err);
   }
 }
 
