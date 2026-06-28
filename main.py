@@ -687,6 +687,20 @@ def _format_metadata_time(value: str) -> str:
         return value
 
 
+def run_dashboard_only(config: dict[str, Any]) -> None:
+    """Fetch fresh jobs and record discoveries — no Telegram alerts."""
+    db_path = config.get("database_path", "jobs.sqlite3")
+    init_db(db_path)
+    client = make_client(config)
+    jobs, source_counts = fetch_all_jobs(config, client)
+    for job in jobs:
+        try:
+            record_discovery(db_path, job)
+        except Exception:
+            LOGGER.exception("record_discovery_failed title=%s url=%s", job.title, job.url)
+    LOGGER.info("dashboard_fetch_complete fetched=%s sources=%s", len(jobs), source_counts)
+
+
 def run_once(config: dict[str, Any]) -> int:
     db_path = config.get("database_path", "jobs.sqlite3")
     posted_within_hours = int(config.get("posted_within_hours", 24))
@@ -946,6 +960,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--once", action="store_true", help="Run one check and exit.")
     parser.add_argument(
+        "--dashboard-only",
+        action="store_true",
+        help="Fetch jobs and update SQLite without sending any Telegram alerts.",
+    )
+    parser.add_argument(
         "--test-telegram",
         action="store_true",
         help="Send a Telegram test message and exit.",
@@ -970,6 +989,10 @@ def main() -> None:
     load_dotenv()
     config = load_config(args.config)
     configure_logging(config.get("log_level", "INFO"))
+
+    if args.dashboard_only:
+        run_dashboard_only(config)
+        return
 
     if args.status_message:
         send_status_telegram_message(args.status_message)

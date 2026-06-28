@@ -1,0 +1,61 @@
+name: Dashboard Refresh
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
+# Same concurrency group as job-monitor so they never run simultaneously
+# and corrupt the shared SQLite cache.
+concurrency:
+  group: singapore-internship-monitor
+  cancel-in-progress: false
+
+on:
+  schedule:
+    - cron: "30 * * * *"   # Every hour at :30 (offset from job-monitor's :00)
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Prepare config
+        run: cp config.example.yaml config.yaml
+
+      - name: Restore SQLite dedupe database
+        uses: actions/cache@v4
+        with:
+          path: |
+            jobs.sqlite3
+            applications.csv
+          key: internship-monitor-db-${{ github.run_id }}
+          restore-keys: |
+            internship-monitor-db-
+
+      - name: Fetch jobs (no alerts)
+        run: python main.py --dashboard-only
+
+      - name: Export jobs to dashboard JSON
+        continue-on-error: true
+        run: python export_jobs.py
+
+      - name: Publish dashboard data
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/jobs.json
+          git diff --staged --quiet || git commit -m "chore: update dashboard job data [skip ci]"
+          git push
