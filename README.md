@@ -1,223 +1,163 @@
-# Singapore Internship Job Monitor
+# Data Analytics Pipeline & KPI Monitoring System
 
-Monitors public Singapore internship postings for Data Engineering, AI/ML, LLM,
-Generative AI, and RAG roles, then sends Telegram alerts for fresh high-signal
-matches.
+An end-to-end data ingestion, scoring, and automated reporting pipeline built in Python. Aggregates structured job-market data from 10+ sources, applies a configurable multi-dimensional relevance scoring framework, tracks KPIs in SQLite, and delivers daily/weekly analytics digests via Telegram.
 
-The project avoids LinkedIn and login-based scraping. It uses public pages/APIs,
-polite request spacing, retry logic, SQLite deduplication, and configurable
-source lists.
+**Tech stack:** Python · SQLite · GitHub Actions · Docker · REST APIs · YAML config · pytest
 
-## What It Checks
+---
 
-- InternSG public listings
-- Greenhouse public job boards
-- Lever public job boards
-- Ashby public job boards
-- SmartRecruiters public job boards
-- Configured Workday CXS endpoints
-- Direct company career pages, best-effort HTML scan
-- MyCareersFuture, optional and disabled by default because public endpoints can change
-- Company boards you add in `config.yaml`
+## What This Demonstrates
 
-The default company coverage emphasizes Singapore internships across data
-engineering, RAG/AI, machine learning, software engineering, analytics, cloud,
-cybersecurity, and technology consulting. It includes public-sector and tech
-targets such as GovTech, Open Government Products, DSTA, CSIT, Careers@Gov,
-Accenture, Google, Microsoft, Amazon, Apple, Meta, TikTok, ByteDance, Shopee,
-Sea, Grab, NVIDIA, Intel, Salesforce, Oracle, SAP, IBM, Dell, HP, AMD,
-Broadcom, Marvell, MediaTek, GlobalFoundries, ASML, Applied Materials, Lam
-Research, KLA, Western Digital, Seagate, Samsung, Dyson, Keysight, Siemens,
-Illumina, Qualcomm, Micron, Synopsys, Cadence, Arm, PayPal, ServiceNow,
-Atlassian, Canva, Workato, Razer, ST Engineering, Carousell, ShopBack, Ninja
-Van, Circles.Life, PropertyGuru, Endowus, Syfe, Aspire, Airwallex, YouTrip,
-M-DAQ, NCS, Synapxe, Singtel, Visa, Mastercard, Bloomberg, GIC, and Temasek.
+| Capability | Implementation |
+|---|---|
+| Multi-source data ingestion | 10+ heterogeneous APIs and HTML sources, normalized into a unified schema |
+| Data quality scoring framework | 5-dimensional weighted scoring model (role, skill, location, timeline, degree) |
+| KPI tracking & monitoring | SQLite-backed metrics store with per-run telemetry and trend summaries |
+| Automated reporting & digests | Daily/weekly analytics summaries with actionable recommendations |
+| Keyword gap analysis | Cross-references target profiles against data signals to surface skill gaps |
+| Pipeline reliability | Rate-limited HTTP client, retry logic, deduplication, structured logging |
+| Scheduled automation | GitHub Actions cron workflow; also containerized via Docker |
 
-## Alert Rules
+---
 
-The default config alerts only when all of these pass:
+## Architecture
 
-- overall relevance >= 70
-- timeline relevance >= 80
-- location relevance >= 70
-- posting is within the last 24 hours
-- unknown posting time appears for the first time in the SQLite database
-
-The scoring model evaluates role, skills, Singapore location, August/September
-2027 internship fit, and undergraduate/Bachelor's degree fit.
-
-The monitor also sends a one-time update when it first discovers a new
-actionable Singapore tech/CS internship posting that passes the actionable
-filters, even if it does not meet the stricter high-confidence alert threshold.
-
-```yaml
-new_actionable_alerts:
-  enabled: true
-  min_overall: 0
-  min_location: 70
+```
+Data Sources (10+)          Scoring Engine              Reporting Layer
+────────────────────        ──────────────────          ─────────────────────
+Greenhouse API    ─┐        role_relevance   ─┐         Real-time Telegram alerts
+Lever API         ─┤        skill_relevance  ─┤         Daily near-match digest
+Ashby API         ─┤──► normalize ──► score ─┼──► KPI ──► Weekly summary report
+SmartRecruiters   ─┤        location         ─┤   store   Keyword gap analysis
+LinkedIn API      ─┤        timeline         ─┤           Application CSV tracker
+MyCareersFuture   ─┤        degree_match     ─┘
+NodeFlair, etc.   ─┘             │
+                           SQLite dedup +
+                           metadata store
 ```
 
-## Daily Heartbeat
+---
 
-The monitor sends one Telegram heartbeat per day. It includes the latest run
-time plus fetched, matched, sent, and per-source fetched counts.
+## Scoring Framework
 
-To change this, edit `config.yaml`:
+Each data record is scored across 5 weighted dimensions and aggregated into an overall quality score (0–100):
 
-```yaml
-heartbeat:
-  enabled: true
-  interval_hours: 24
+```
+overall = role(0.25) + skill(0.25) + location(0.20) + timeline(0.20) + degree(0.10)
 ```
 
-## 3-Hour Near-Match Digest
-
-The monitor also sends one digest every 3 hours of promising jobs that did not pass the
-strict alert thresholds. These are worth manual review because career pages often
-omit exact internship dates or use broad role titles. Digest entries include
-resume keyword coverage, missing resume keywords, and a referral suggestion for
-priority companies.
-
-Digest entries must still pass the actionable-candidate filter: Singapore
-location, internship title, technical relevance, and no senior/manager,
-marketing, sales, support, or other non-target role terms.
+Configurable thresholds determine which records advance to the alert/reporting stage:
 
 ```yaml
-near_match_digest:
-  enabled: true
-  interval_hours: 3
-  max_items: 10
-  min_overall: 55
-  min_location: 70
+thresholds:
+  overall: 70
+  timeline: 80
+  location: 70
 ```
 
-## Manual Review Digest
+---
 
-Some valuable sources, especially Indeed, MyCareersFuture, and broad Google
-Careers searches, may block automation or render dynamically. The monitor sends
-those manual-review links once per day at 20:00 SGT instead of repeatedly
-messaging them every scheduled run.
+## KPI Tracking
+
+Every pipeline run records the following metrics to SQLite and surfaces them in reports:
+
+- **Fetched:** total records ingested across all sources
+- **Actionable:** records passing quality and relevance filters
+- **Strict matches:** records exceeding all alert thresholds
+- **Alerts sent:** downstream notifications dispatched
+- **Per-source counts:** breakdown by data source for quality monitoring
 
 ```yaml
-manual_review_digest:
-  enabled: true
-  interval_hours: 24
-  daily_at_sgt: "20:00"
+# Example weekly summary output
+Fetched postings reviewed: 1,240
+Actionable candidates: 38
+Strict alerts sent: 12
+Top actionable companies: [TikTok, Grab, GovTech, ...]
+Common resume keyword gaps: [spark, dbt, airflow, ...]
 ```
 
-## Resume Matching
+---
 
-The monitor reads `resume_profile.yaml` and compares each promising job against
-tracked resume keywords. This does not commit your original resume document.
+## Automated Reporting
 
-```yaml
-resume_profile_path: resume_profile.yaml
-resume_match:
-  tracked_keywords:
-    - python
-    - sql
-    - docker
-    - kubernetes
+**Real-time alerts** — sent immediately when a record exceeds strict quality thresholds.
+
+**Daily near-match digest** — ranks borderline records by score and delivers them every 3 hours with resume coverage notes and gap recommendations.
+
+**Daily manual-review digest** — surfaces sources that cannot be reliably automated, sent at 20:00 SGT.
+
+**Weekly analytics summary** — aggregates pipeline performance, top sources by quality output, and most common keyword gaps across the week.
+
+**Heartbeat** — daily pipeline health confirmation with per-source telemetry.
+
+---
+
+## Keyword Gap Analysis
+
+The pipeline cross-references a target skill profile against each record's text signals. Missing keywords are counted across all records and surfaced in the weekly summary, enabling data-driven profile optimisation.
+
+```python
+# resume_matcher.py
+@dataclass
+class ResumeMatch:
+    matched_keywords: list[str]
+    missing_keywords: list[str]
+    coverage_score: float
 ```
 
-## Application Tracker
+---
 
-Promising strict matches and near matches are written to `applications.csv` with
-status, posted date, priority, referral status, opportunity type, role family,
-deadline, score, resume coverage, missing keywords, next action, resume
-suggestion, and notes. GitHub Actions preserves it in the workflow cache and
-uploads it as an artifact when present.
+## Data Sources
 
-```yaml
-application_tracker:
-  enabled: true
-  path: applications.csv
-```
+| Source | Type | Notes |
+|---|---|---|
+| Greenhouse | REST API | Structured JSON, most reliable |
+| Lever | REST API | Structured JSON |
+| Ashby | REST API | Structured JSON |
+| SmartRecruiters | REST API | Company-configurable |
+| LinkedIn | Guest API | Rate-limited, polite spacing |
+| MyCareersFuture | REST API | Singapore government jobs portal |
+| InternSG | HTML scraper | Best-effort extraction |
+| NodeFlair | REST API | Singapore tech-focused |
+| Workday | CXS endpoint | Company-specific configuration |
+| Career pages | HTML scraper | Direct company sites |
 
-Use the `status` and `referral_status` columns as your workflow:
-
-- `found`
-- `referral_requested`
-- `applied`
-- `oa_received`
-- `interview`
-- `rejected`
-- `offer`
-
-The monitor does not overwrite your manual status with a different status; it
-updates the same row with the latest score, last-seen date, resume gaps, and
-recommended next action.
+---
 
 ## Opportunity Classification
 
-The monitor now separates exact postings from broader pages:
+Records are classified by type to prevent false positives in KPI counts:
 
-- `job_posting`
-- `internship_programme_page`
-- `career_page`
-- `manual_search_link`
+- `job_posting` — exact, apply-worthy listing
+- `internship_programme_page` — general programme pages (excluded from strict alerts)
+- `career_page` — general careers landing pages
+- `manual_search_link` — sources requiring human review
 
-This stops generic pages such as DSTA/CSIT internship programme pages from being
-treated like exact new job postings. It also labels each candidate by role
-family, such as Data Engineering, AI/ML/RAG, Software Engineering, Cybersecurity,
-Cloud/DevOps, Tech Consulting, or Product/Technical Analyst.
+Each record is also tagged by role family: Data Engineering, AI/ML/RAG, Software Engineering, Cybersecurity, Cloud/DevOps, Tech Consulting, or Product/Technical Analyst.
 
-## Weekly Summary
+---
 
-The monitor sends a weekly Telegram summary with fetched postings reviewed,
-actionable Singapore tech internships found, strict alerts, top actionable
-companies, and common missing resume keywords. Fetched postings are not the same
-thing as apply-worthy internships.
+## Application Tracker
 
-```yaml
-weekly_summary:
-  enabled: true
-  interval_hours: 168
-```
+Qualifying records are written to `applications.csv` with the full analytics context:
 
-## Telegram Format
+| Column | Description |
+|---|---|
+| score | Overall quality score (0–100) |
+| role_relevance | Role dimension sub-score |
+| skill_relevance | Skill dimension sub-score |
+| resume_coverage | Matched keyword count |
+| missing_keywords | Gap keywords for profile optimisation |
+| opportunity_type | Classification label |
+| role_family | Role family tag |
+| deadline | Estimated deadline extracted from text |
+| recommended_action | Pipeline-generated next-step recommendation |
 
-Alerts are sent with Telegram HTML parse mode:
+The tracker preserves manual status updates (`found`, `applied`, `interview`, `offer`, etc.) and only updates analytics fields on subsequent runs.
 
-```text
-🚨 New Internship Match
+---
 
-Job Title
-Company
-Location
-Source
-Posted Time
-Relevance Score
-Timeline Match
-
-Apply Here
-```
-
-The job title and `Apply Here` both link to the posting.
-
-## Telegram Commands
-
-For instant replies, run the live Telegram worker:
-
-```powershell
-python live_bot.py
-```
-
-The live worker uses Telegram long polling and replies as soon as it receives a
-command. GitHub Actions still runs the scraper every 3 hours and sends job
-alerts. If you do not run the live worker, commands can still be handled by
-GitHub Actions only if you set the repository variable
-`ENABLE_ACTIONS_TELEGRAM_COMMANDS=true`.
-
-- `/help` - show available commands
-- `/faq` - explain scrape cadence, alerts, and manual boards
-- `/status` - show the latest saved monitor run summary
-- `/date <job/company/title/url>` - look up posted date, first-seen date, and last-seen date
-- `/recent` - show recently discovered jobs
-- `/sources` - show latest source counts
-- `/schedule` - show the Singapore-time scrape schedule
-
-## Local Setup
+## Setup
 
 ```powershell
 python -m venv venv
@@ -226,193 +166,56 @@ pip install -r requirements.txt
 copy .env.example .env
 ```
 
-Edit `.env`:
+Configure `.env`:
 
 ```env
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 TELEGRAM_CHAT_ID=your_chat_id_here
 ```
 
-Edit `config.yaml` to tune company boards, keywords, schedule, and thresholds.
-
-Run one check:
+Run one pipeline pass:
 
 ```powershell
 python main.py --once
 ```
 
-Run continuously every 3 hours:
+Run continuously (every 3 hours by default):
 
 ```powershell
 python main.py
 ```
 
-Run the live Telegram command bot:
-
-```powershell
-python live_bot.py
-```
-
-For optional 30-minute checks, change:
-
-```yaml
-check_interval_minutes: 30
-```
+---
 
 ## GitHub Actions
 
-The workflow is at `.github/workflows/job-monitor.yml` and is set to run every 3
-hours on a Singapore-time cadence, including a 20:00 SGT run for the daily
-manual-review links.
-After you add the Telegram secrets, you do not need to manually run it for the
-regular checks. GitHub starts it automatically from the cron schedule even when
-your computer is off.
-
-Add these repository secrets:
+Scheduled pipeline runs every 3 hours via `.github/workflows/job-monitor.yml`. SQLite state is persisted across runs using `actions/cache`. Required secrets:
 
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_CHAT_ID`
 
-The workflow restores and saves `jobs.sqlite3` with `actions/cache` so jobs
-without exact posting times do not repeatedly alert on every scheduled run.
-
-Manual runs are only for testing or forcing an immediate check. Manual runs can
-send start/finish status messages; scheduled runs send job alerts,
-near-match digest, actionable digest, the 20:00 SGT manual-review digest,
-heartbeat, and weekly summary when due. Telegram commands should normally be
-handled by the live worker. If you want GitHub Actions to handle pending
-commands instead, add this repository variable:
-
-- `ENABLE_ACTIONS_TELEGRAM_COMMANDS=true`
-
-The workflow has a concurrency group so frequent scheduled runs do not stack up
-on top of one another if GitHub Actions is slow.
-
-## Live Telegram Bot Hosting
-
-Deploy `python live_bot.py` as an always-on worker on a host such as Render,
-Railway, Fly.io, or a small VPS. The included `Procfile` declares:
-
-```text
-worker: python live_bot.py
-```
-
-Required environment variables:
-
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHAT_ID`
-
-Optional environment variables:
-
-- `TELEGRAM_POLL_TIMEOUT_SECONDS=25`
-- `TELEGRAM_ERROR_SLEEP_SECONDS=5`
-- `LIVE_BOT_SEND_STARTUP=true`
-
-The worker replies instantly to commands, but it only knows about jobs present
-in its local `jobs.sqlite3`. For production hosting, use persistent storage or
-mount the same database path so `/status`, `/recent`, and `/date` survive
-restarts.
+---
 
 ## Docker
 
-Build:
-
 ```bash
-docker build -t sg-internship-job-monitor .
+docker build -t data-analytics-pipeline .
+docker run --env-file .env -v "%cd%/jobs.sqlite3:/app/jobs.sqlite3" data-analytics-pipeline
 ```
 
-Run continuously:
+---
 
-```bash
-docker run --env-file .env -v "%cd%/jobs.sqlite3:/app/jobs.sqlite3" sg-internship-job-monitor
+## Telegram Bot Commands
+
+```
+/status    — latest pipeline run KPIs
+/recent    — recently ingested records
+/sources   — per-source ingestion counts
+/schedule  — pipeline run schedule (SGT)
+/date      — posting and discovery timestamps for a specific record
 ```
 
-Run the live Telegram bot:
-
-```bash
-docker run --env-file .env -v "%cd%/jobs.sqlite3:/app/jobs.sqlite3" sg-internship-job-monitor python live_bot.py
-```
-
-Run once:
-
-```bash
-docker run --env-file .env -v "%cd%/jobs.sqlite3:/app/jobs.sqlite3" sg-internship-job-monitor python main.py --once
-```
-
-## Add More Company Boards
-
-For application strategy, resume positioning, and referral workflow, see
-`HIRING_PLAYBOOK.md`.
-
-For sources that are useful but unreliable to scrape unattended, such as Indeed
-and broad Google Careers/MyCareersFuture searches, see `MANUAL_SEARCH_LINKS.md`.
-
-Greenhouse board token:
-
-```text
-https://job-boards.greenhouse.io/openai -> openai
-```
-
-Lever company slug:
-
-```text
-https://jobs.lever.co/stripe -> stripe
-```
-
-Add tokens under `sources.greenhouse.boards` or `sources.lever.companies` in
-`config.yaml`.
-
-Ashby board slug:
-
-```text
-https://jobs.ashbyhq.com/anthropic -> anthropic
-```
-
-Add slugs under `sources.ashby.boards`.
-
-SmartRecruiters company identifier:
-
-```yaml
-sources:
-  smartrecruiters:
-    enabled: true
-    companies:
-      - Visa
-```
-
-Workday endpoints are company-specific. Add them only after confirming the
-public CXS endpoint:
-
-```yaml
-sources:
-  workday:
-    enabled: true
-    sites:
-      - name: Example
-        company: Example
-        endpoint: https://example.wd1.myworkdayjobs.com/wday/cxs/example/site/jobs
-        career_base_url: https://example.wd1.myworkdayjobs.com/site
-```
-
-Direct career page:
-
-```yaml
-sources:
-  careers_pages:
-    enabled: true
-    pages:
-      - name: Example
-        company: Example
-        url: https://example.com/careers
-        default_location: Singapore
-```
-
-Direct career-page scans are best effort. API-backed Greenhouse, Lever, and
-Ashby sources are more reliable.
-
-The default direct career-page list includes Singapore public-sector and
-consulting targets such as GovTech, Open Government Products, Careers@Gov,
-Accenture Singapore, DSTA, and CSIT.
+---
 
 ## Tests
 
@@ -420,5 +223,20 @@ Accenture Singapore, DSTA, and CSIT.
 pytest
 ```
 
-Current focused tests cover scoring thresholds, timeline rejection, freshness for
-unknown post times, SQLite notification dedupe, and Telegram HTML formatting.
+Tests cover scoring thresholds, timeline rejection, freshness logic, SQLite deduplication, and Telegram HTML formatting.
+
+---
+
+## Adding Data Sources
+
+**Greenhouse** — add board token from `https://job-boards.greenhouse.io/<token>` to `sources.greenhouse.boards` in `config.yaml`.
+
+**Lever** — add company slug from `https://jobs.lever.co/<slug>` to `sources.lever.companies`.
+
+**Ashby** — add board slug from `https://jobs.ashbyhq.com/<slug>` to `sources.ashby.boards`.
+
+**Workday** — add the company's CXS endpoint to `sources.workday.sites`.
+
+**Career pages** — add direct URL to `sources.careers_pages.pages` for best-effort HTML extraction.
+
+See `ADD_MORE_COMPANIES.md` for the full list of currently monitored companies and `HIRING_PLAYBOOK.md` for sourcing and referral strategy.
