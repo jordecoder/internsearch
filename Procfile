@@ -1,1 +1,1 @@
-worker: python live_bot.py
+worker: python backend/live_bot.py

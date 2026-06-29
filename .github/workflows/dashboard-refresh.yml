@@ -29,26 +29,30 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
+        working-directory: backend
         run: python -m pip install -r requirements.txt
 
       - name: Prepare config
+        working-directory: backend
         run: cp config.example.yaml config.yaml
 
       - name: Restore SQLite dedupe database
         uses: actions/cache@v4
         with:
           path: |
-            jobs.sqlite3
-            applications.csv
+            backend/jobs.sqlite3
+            backend/applications.csv
           key: internship-monitor-db-${{ github.run_id }}
           restore-keys: |
             internship-monitor-db-
 
       - name: Fetch jobs (no alerts)
+        working-directory: backend
         run: python main.py --dashboard-only
 
       - name: Export jobs to dashboard JSON
         continue-on-error: true
+        working-directory: backend
         run: python export_jobs.py
 
       - name: Publish dashboard data

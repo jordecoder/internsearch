@@ -4,8 +4,8 @@ services:
     name: internsearch-api
     runtime: python
     rootDir: .
-    buildCommand: pip install -r api/requirements.txt
-    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r backend/api/requirements.txt
+    startCommand: cd backend && uvicorn api.main:app --host 0.0.0.0 --port $PORT
     plan: free
     envVars:
       - key: JWT_SECRET
@@ -34,8 +34,8 @@ services:
     name: internsearch-kafka-consumer
     runtime: python
     rootDir: .
-    buildCommand: pip install -r requirements.txt -r pipeline/requirements.txt
-    startCommand: python -m pipeline.run_consumer
+    buildCommand: pip install -r backend/requirements.txt -r backend/pipeline/requirements.txt
+    startCommand: cd backend && python -m pipeline.run_consumer
     plan: free
     envVars:
       # ── Kafka (Confluent Cloud) ──

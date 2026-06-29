@@ -6,6 +6,7 @@ import os
 import sqlite3
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 
 import yaml
 
@@ -15,7 +16,10 @@ from scoring import is_actionable_candidate, score_job
 
 _DB_PATH = os.environ.get("DB_PATH", "jobs.sqlite3")
 _CONFIG_PATH = os.environ.get("CONFIG_PATH", "config.yaml")
-_OUTPUT_PATH = "docs/jobs.json"
+_OUTPUT_PATH = os.environ.get(
+    "OUTPUT_PATH",
+    str(Path(__file__).parent.parent / "docs" / "jobs.json"),
+)
 _DAYS_BACK = 14
 
 
