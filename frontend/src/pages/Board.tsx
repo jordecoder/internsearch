@@ -58,19 +58,21 @@ function BoardCard({
           {editing ? (
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="h-7 text-xs mb-1" />
           ) : (
-            <p className="text-sm font-medium text-foreground truncate">{entry.title || '(untitled)'}</p>
+            <p className="text-sm font-medium text-foreground leading-snug line-clamp-2">{entry.title || '(untitled)'}</p>
           )}
           {editing ? (
-            <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" className="h-7 text-xs" />
+            <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" className="h-7 text-xs mt-1" />
           ) : (
-            <p className="text-xs text-muted-foreground truncate">{entry.company}</p>
+            <div className="flex items-center gap-1 mt-0.5">
+              <p className="text-xs text-muted-foreground truncate">{entry.company}</p>
+              {url && (
+                <a href={url} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground flex-shrink-0">
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+            </div>
           )}
         </div>
-        {url && (
-          <a href={url} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground flex-shrink-0">
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        )}
       </div>
 
       {editing ? (
@@ -230,8 +232,8 @@ export function Board() {
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">Drag cards between columns as your applications move.</p>
         </div>
-        <button onClick={logout} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-          <LogOut className="h-3 w-3" /> Log out ({username})
+        <button onClick={logout} className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+          <LogOut className="h-3 w-3" /> <span className="hidden sm:inline">Log out ({username})</span>
         </button>
       </div>
 
@@ -239,7 +241,8 @@ export function Board() {
         <p className="mb-4 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">{error}</p>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 items-start">
+      <div className="relative">
+      <div className="flex gap-3 items-start overflow-x-auto pb-4 -mx-5 px-5 sm:mx-0 sm:px-0">
         {COLUMNS.map((col) => (
           <div
             key={col.id}
@@ -252,7 +255,7 @@ export function Board() {
               }
               setDragUrl(null);
             }}
-            className="space-y-2"
+            className="space-y-2 w-[260px] flex-shrink-0"
           >
             <div className="flex items-center justify-between px-1">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{col.label}</p>
@@ -275,6 +278,8 @@ export function Board() {
             </div>
           </div>
         ))}
+      </div>
+      <div className="pointer-events-none absolute right-0 top-0 bottom-4 w-10 bg-gradient-to-l from-background to-transparent sm:hidden" />
       </div>
     </div>
   );

@@ -97,7 +97,7 @@ export function CoverLetter() {
   return (
     <div className="max-w-5xl mx-auto px-5 py-8 pb-20">
       <div className="mb-8 animate-fade-up">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
               Cover Letter & Essays
@@ -106,8 +106,8 @@ export function CoverLetter() {
               Draft a ready-to-send cover letter and answer "why this company" style essay questions.
             </p>
           </div>
-          <button onClick={changeKey} className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-            <KeyRound className="h-3 w-3" /> Change key
+          <button onClick={changeKey} className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+            <KeyRound className="h-3 w-3" /> <span className="hidden sm:inline">Change key</span>
           </button>
         </div>
       </div>
