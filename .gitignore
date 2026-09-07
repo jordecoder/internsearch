@@ -14,3 +14,7 @@ venv/
 _incoming_zip/
 node_modules/
 dist/
+
+# apply-agent: real PII and per-run review artifacts, never the example template
+backend/agent/candidate_profile.yaml
+backend/agent/review/

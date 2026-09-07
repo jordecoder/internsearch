@@ -1,0 +1,37 @@
+# Copy this file to candidate_profile.yaml (already gitignored) and fill in
+# your real details. Nothing in this repo ships with real PII — this example
+# only has placeholder values.
+
+name: Jordan Example
+email: jordan.example@example.com
+phone: "+65 8123 4567"
+location: Singapore
+
+linkedin_url: https://www.linkedin.com/in/jordan-example
+github_url: https://github.com/jordan-example
+portfolio_url: ""
+
+school: National University of Singapore
+degree: BSc Computer Science
+graduation_date: "2027-05"
+gpa: "4.5/5.0"
+
+# Free text is matched loosely against option labels on the real form
+# (radio buttons, selects) — "authorized" will match options like
+# "Yes, I am authorized to work in this country" or "Authorized".
+work_authorization: authorized
+sponsorship_required: false
+
+# Absolute paths — used for file-upload fields whose label contains
+# "resume"/"cv" or "cover letter".
+resume_pdf_path: ""
+cover_letter_path: ""
+
+# Canned answers for recurring screener questions. Matched loosely against
+# the field's label (substring match either direction), so keep the keys
+# close to how questions are usually phrased.
+answers:
+  years of python experience: "3"
+  are you currently enrolled: "Yes, full-time"
+  desired start date: "May 2027"
+  preferred pronouns: "they/them"

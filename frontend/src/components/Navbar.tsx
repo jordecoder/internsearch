@@ -31,9 +31,12 @@ export function Navbar() {
       >
         Intern Scout
       </Link>
-      <nav className="flex items-center gap-5">
+      <nav className="flex items-center gap-4 sm:gap-5">
         {link('/', 'Jobs')}
+        {link('/board', 'Board')}
         {link('/tailor', 'Tailor')}
+        {link('/cover-letter', 'Cover Letter')}
+        {link('/interview', 'Interview')}
         <Button variant="ghost" size="icon" onClick={toggle} className="h-8 w-8 text-muted-foreground hover:text-foreground">
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
