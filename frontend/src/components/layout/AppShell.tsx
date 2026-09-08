@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AppSidebar, useSidebarCollapsed } from '@/components/layout/AppSidebar';
 import { TopBar } from '@/components/layout/TopBar';
-import { CommandMenu } from '@/components/CommandMenu';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
@@ -20,19 +19,7 @@ const PAGE_TITLES: Record<string, string> = {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useSidebarCollapsed();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [commandOpen, setCommandOpen] = useState(false);
   const { pathname } = useLocation();
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setCommandOpen((o) => !o);
-      }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, []);
 
   useEffect(() => setMobileOpen(false), [pathname]);
 
@@ -53,13 +40,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <TopBar
             title={PAGE_TITLES[pathname] ?? 'Intern Scout'}
             onOpenMobileSidebar={() => setMobileOpen(true)}
-            onOpenCommandMenu={() => setCommandOpen(true)}
           />
           <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
       </div>
-
-      <CommandMenu open={commandOpen} onOpenChange={setCommandOpen} />
     </TooltipProvider>
   );
 }

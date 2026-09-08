@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
+import * as PopoverPrimitive from '@radix-ui/react-popover';
 import {
   Briefcase, Bookmark, Kanban, FileEdit, Mail, MessagesSquare, Settings, Search, ArrowRight,
 } from 'lucide-react';
@@ -10,6 +10,8 @@ import { useJobsQuery } from '@/hooks/useJobsQuery';
 interface CommandMenuProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** The search bar button this dropdown anchors to. */
+  anchor: React.ReactNode;
 }
 
 const PAGES = [
@@ -22,7 +24,12 @@ const PAGES = [
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
-export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
+/**
+ * Anchored search dropdown — appears directly under the search bar it's
+ * attached to, like a conventional search/autocomplete dropdown (not a
+ * centered command-palette overlay).
+ */
+export function CommandMenu({ open, onOpenChange, anchor }: CommandMenuProps) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -76,14 +83,16 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   };
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-fade-in" />
-        <DialogPrimitive.Content
-          className="fixed left-1/2 top-[18%] z-50 w-full max-w-lg -translate-x-1/2 rounded-lg border border-border bg-popover shadow-xl data-[state=open]:animate-fade-up"
+    <PopoverPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <PopoverPrimitive.Trigger asChild>{anchor}</PopoverPrimitive.Trigger>
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Content
+          align="start"
+          sideOffset={6}
+          onOpenAutoFocus={(e) => { e.preventDefault(); inputRef.current?.focus(); }}
+          className="z-50 w-[min(420px,90vw)] rounded-lg border border-border bg-popover shadow-lg data-[state=open]:animate-fade-in"
           onKeyDown={handleKeyDown}
         >
-          <DialogPrimitive.Title className="sr-only">Command menu</DialogPrimitive.Title>
           <div className="flex items-center gap-2 border-b border-border px-3.5 py-3">
             <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <input
@@ -150,8 +159,8 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
               </div>
             )}
           </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </PopoverPrimitive.Content>
+      </PopoverPrimitive.Portal>
+    </PopoverPrimitive.Root>
   );
 }
