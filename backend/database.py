@@ -29,7 +29,8 @@ def init_db(db_path: str) -> None:
                 posted_time TEXT,
                 first_seen_time TEXT NOT NULL,
                 last_seen_time TEXT NOT NULL,
-                notified_time TEXT
+                notified_time TEXT,
+                description TEXT NOT NULL DEFAULT ''
             )
             """
         )
@@ -51,6 +52,16 @@ def init_db(db_path: str) -> None:
             """
         )
         _migrate_legacy_schema(conn)
+        _migrate_missing_columns(conn)
+
+
+def _migrate_missing_columns(conn: sqlite3.Connection) -> None:
+    """Add columns introduced after a database was first created — the CI
+    workflow caches jobs.sqlite3 across runs, so `CREATE TABLE IF NOT EXISTS`
+    alone never reaches an already-existing jobs table."""
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(jobs)").fetchall()}
+    if "description" not in columns:
+        conn.execute("ALTER TABLE jobs ADD COLUMN description TEXT NOT NULL DEFAULT ''")
 
 
 def _migrate_legacy_schema(conn: sqlite3.Connection) -> None:
@@ -94,8 +105,8 @@ def record_discovery(db_path: str, job: Job) -> bool:
                 """
                 INSERT INTO jobs
                 (stable_id, source, title, company, location, url, posted_time,
-                 first_seen_time, last_seen_time)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 first_seen_time, last_seen_time, description)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     job.stable_id,
@@ -107,6 +118,7 @@ def record_discovery(db_path: str, job: Job) -> bool:
                     posted_time,
                     now,
                     now,
+                    job.description,
                 ),
             )
             return True
@@ -116,10 +128,11 @@ def record_discovery(db_path: str, job: Job) -> bool:
                 UPDATE jobs
                 SET last_seen_time = ?,
                     posted_time = COALESCE(posted_time, ?),
-                    location = CASE WHEN location = '' THEN ? ELSE location END
+                    location = CASE WHEN location = '' THEN ? ELSE location END,
+                    description = CASE WHEN description = '' THEN ? ELSE description END
                 WHERE stable_id = ?
                 """,
-                (now, posted_time, job.location, job.stable_id),
+                (now, posted_time, job.location, job.description, job.stable_id),
             )
             return False
 

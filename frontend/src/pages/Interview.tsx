@@ -112,12 +112,23 @@ export function Interview() {
   const resume = useResumeFile();
   const { fileText } = resume;
   const [jd, setJd] = useState('');
+  const [jdLocked, setJdLocked] = useState(false);
   const [mode, setMode] = useState<InterviewMode>('behavioral');
+
+  const pickJob = (job: Job) => {
+    setSelectedJob(job);
+    if (job.description) {
+      setJd(job.description);
+      setJdLocked(true);
+    } else {
+      setJdLocked(false);
+    }
+  };
 
   useEffect(() => {
     if (navState?.url && jobs.length) {
       const found = jobs.find((j) => j.url === navState.url);
-      if (found) setSelectedJob(found);
+      if (found) pickJob(found);
     }
     // Only react to a fresh navigation state, not every jobs refetch.
   }, [navState?.url, jobs.length]);
@@ -207,7 +218,7 @@ export function Interview() {
                 </a>
               </div>
             )}
-            <JobPicker onSelect={setSelectedJob}>
+            <JobPicker onSelect={pickJob}>
               <button className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
                 <ListFilter className="h-3 w-3" /> {selectedJob ? 'Change job' : 'Select from your jobs'}
               </button>
@@ -242,14 +253,29 @@ export function Interview() {
           <ResumeDropzone resume={resume} label="Resume (optional, sharpens the questions)" />
 
           <div className="space-y-1.5">
-            <Label>Job Description (optional)</Label>
+            <div className="flex items-center justify-between">
+              <Label>Job Description (optional)</Label>
+              {jdLocked && (
+                <button
+                  type="button"
+                  onClick={() => setJdLocked(false)}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
             <Textarea
               value={jd}
               onChange={(e) => setJd(e.target.value)}
+              disabled={jdLocked}
               placeholder="Paste a job description to ground the questions in a real role…"
               rows={6}
               className="resize-none text-sm leading-relaxed"
             />
+            {jdLocked && (
+              <p className="text-xs text-muted-foreground">Filled in from the selected job's listing — click Edit to change it.</p>
+            )}
           </div>
 
           {error && (

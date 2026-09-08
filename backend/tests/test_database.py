@@ -1,3 +1,5 @@
+import sqlite3
+
 from job_model import Job
 from database import (
     count_jobs_since,
@@ -31,6 +33,71 @@ def test_record_discovery_and_notification_dedupe(tmp_path):
     mark_notified(db_path, job)
 
     assert was_notified(db_path, job) is True
+
+
+def test_record_discovery_persists_and_backfills_description(tmp_path):
+    db_path = str(tmp_path / "jobs.sqlite3")
+    job = Job(
+        source="Greenhouse:grab",
+        title="Data Engineering Intern",
+        company="Grab",
+        location="Singapore",
+        url="https://example.com/job",
+        description="Build data pipelines at scale.",
+    )
+    init_db(db_path)
+    record_discovery(db_path, job)
+
+    with sqlite3.connect(db_path) as conn:
+        row = conn.execute(
+            "SELECT description FROM jobs WHERE stable_id = ?", (job.stable_id,)
+        ).fetchone()
+    assert row[0] == "Build data pipelines at scale."
+
+    # A re-sighting with a different description doesn't clobber what's stored.
+    reseen = Job(
+        source=job.source, title=job.title, company=job.company,
+        location=job.location, url=job.url, description="different text",
+    )
+    record_discovery(db_path, reseen)
+    with sqlite3.connect(db_path) as conn:
+        row = conn.execute(
+            "SELECT description FROM jobs WHERE stable_id = ?", (job.stable_id,)
+        ).fetchone()
+    assert row[0] == "Build data pipelines at scale."
+
+
+def test_init_db_adds_description_column_to_legacy_database(tmp_path):
+    db_path = str(tmp_path / "jobs.sqlite3")
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE jobs (
+                stable_id TEXT PRIMARY KEY,
+                source TEXT NOT NULL,
+                title TEXT NOT NULL,
+                company TEXT NOT NULL,
+                location TEXT NOT NULL,
+                url TEXT NOT NULL,
+                posted_time TEXT,
+                first_seen_time TEXT NOT NULL,
+                last_seen_time TEXT NOT NULL,
+                notified_time TEXT
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO jobs (stable_id, source, title, company, location, url, first_seen_time, last_seen_time) "
+            "VALUES ('id1', 'src', 'Intern', 'Co', 'Singapore', 'https://x', 'now', 'now')"
+        )
+
+    init_db(db_path)
+
+    with sqlite3.connect(db_path) as conn:
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(jobs)").fetchall()}
+        assert "description" in columns
+        row = conn.execute("SELECT description FROM jobs WHERE stable_id = 'id1'").fetchone()
+    assert row[0] == ""
 
 
 def test_metadata_round_trip(tmp_path):

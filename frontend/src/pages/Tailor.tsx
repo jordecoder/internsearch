@@ -130,16 +130,27 @@ export function Tailor() {
   const { jobs } = useJobsQuery();
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [jd, setJd]           = useState('');
+  const [jdLocked, setJdLocked] = useState(false);
   const resume = useResumeFile();
   const { file } = resume;
   const [loading, setLoading]   = useState(false);
   const [result, setResult]     = useState<TailorResult | null>(null);
   const [error, setError]       = useState('');
 
+  const pickJob = (job: Job) => {
+    setSelectedJob(job);
+    if (job.description) {
+      setJd(job.description);
+      setJdLocked(true);
+    } else {
+      setJdLocked(false);
+    }
+  };
+
   useEffect(() => {
     if (navState?.url && jobs.length) {
       const found = jobs.find((j) => j.url === navState.url);
-      if (found) setSelectedJob(found);
+      if (found) pickJob(found);
     }
     // Only react to a fresh navigation state, not every jobs refetch.
   }, [navState?.url, jobs.length]);
@@ -183,7 +194,7 @@ export function Tailor() {
               </a>
             </div>
           )}
-          <JobPicker onSelect={setSelectedJob}>
+          <JobPicker onSelect={pickJob}>
             <button className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
               <ListFilter className="h-3 w-3" /> {selectedJob ? 'Change job' : 'Select from your jobs'}
             </button>
@@ -202,16 +213,32 @@ export function Tailor() {
 
           {/* Job description */}
           <div className="space-y-1.5">
-            <Label>Job Description</Label>
+            <div className="flex items-center justify-between">
+              <Label>Job Description</Label>
+              {jdLocked && (
+                <button
+                  type="button"
+                  onClick={() => setJdLocked(false)}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
             <Textarea
               value={jd}
               onChange={(e) => setJd(e.target.value)}
+              disabled={jdLocked}
               placeholder="Paste the full job description here…"
               rows={10}
               className="resize-none text-sm leading-relaxed"
             />
-            {jd.trim().length > 0 && jd.trim().length < 50 && (
-              <p className="text-xs text-destructive">Paste a bit more of the job description</p>
+            {jdLocked ? (
+              <p className="text-xs text-muted-foreground">Filled in from the selected job's listing — click Edit to change it.</p>
+            ) : (
+              jd.trim().length > 0 && jd.trim().length < 50 && (
+                <p className="text-xs text-destructive">Paste a bit more of the job description</p>
+              )
             )}
           </div>
 

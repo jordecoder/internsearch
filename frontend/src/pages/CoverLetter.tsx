@@ -72,6 +72,7 @@ export function CoverLetter() {
   const { jobs } = useJobsQuery();
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [jd, setJd] = useState('');
+  const [jdLocked, setJdLocked] = useState(false);
   const [company, setCompany] = useState(navState?.company ?? '');
   const [question, setQuestion] = useState(DEFAULT_QUESTION);
   const resume = useResumeFile();
@@ -80,18 +81,24 @@ export function CoverLetter() {
   const [result, setResult] = useState<ApplicationMaterials | null>(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (navState?.url && jobs.length) {
-      const found = jobs.find((j) => j.url === navState.url);
-      if (found) setSelectedJob(found);
-    }
-    // Only react to a fresh navigation state, not every jobs refetch.
-  }, [navState?.url, jobs.length]);
-
   const pickJob = (job: Job) => {
     setSelectedJob(job);
     setCompany(job.company);
+    if (job.description) {
+      setJd(job.description);
+      setJdLocked(true);
+    } else {
+      setJdLocked(false);
+    }
   };
+
+  useEffect(() => {
+    if (navState?.url && jobs.length) {
+      const found = jobs.find((j) => j.url === navState.url);
+      if (found) pickJob(found);
+    }
+    // Only react to a fresh navigation state, not every jobs refetch.
+  }, [navState?.url, jobs.length]);
 
   const submit = async () => {
     if (!fileText || jd.trim().length < 50) return;
@@ -141,16 +148,32 @@ export function CoverLetter() {
           <ResumeDropzone resume={resume} />
 
           <div className="space-y-1.5">
-            <Label>Job Description</Label>
+            <div className="flex items-center justify-between">
+              <Label>Job Description</Label>
+              {jdLocked && (
+                <button
+                  type="button"
+                  onClick={() => setJdLocked(false)}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
             <Textarea
               value={jd}
               onChange={(e) => setJd(e.target.value)}
+              disabled={jdLocked}
               placeholder="Paste the full job description here…"
               rows={8}
               className="resize-none text-sm leading-relaxed"
             />
-            {jd.trim().length > 0 && jd.trim().length < 50 && (
-              <p className="text-xs text-destructive">Paste a bit more of the job description</p>
+            {jdLocked ? (
+              <p className="text-xs text-muted-foreground">Filled in from the selected job's listing — click Edit to change it.</p>
+            ) : (
+              jd.trim().length > 0 && jd.trim().length < 50 && (
+                <p className="text-xs text-destructive">Paste a bit more of the job description</p>
+              )
             )}
           </div>
 

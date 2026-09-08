@@ -69,10 +69,18 @@ export function JobDetailPanel({ job, onClose, savedStatus }: JobDetailPanelProp
             <MatchBreakdown score={job.score} />
           </div>
 
-          <div className="rounded-lg border border-dashed border-border px-3.5 py-3 text-xs text-muted-foreground leading-relaxed">
-            Full job description lives on the original posting — this dashboard tracks postings across sources but
-            doesn't store full descriptions. Open the posting for requirements and how to apply.
-          </div>
+          {job.description ? (
+            <div>
+              <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Description</p>
+              <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto rounded-lg border border-border bg-muted/30 px-3.5 py-3">
+                {job.description}
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-border px-3.5 py-3 text-xs text-muted-foreground leading-relaxed">
+              No description was captured for this posting. Open it directly for requirements and how to apply.
+            </div>
+          )}
         </div>
 
         <div className="border-t border-border p-4 space-y-2">

@@ -36,7 +36,8 @@ def _fetch_rows(db_path: str) -> list[dict]:
         rows = conn.execute(
             """
             SELECT stable_id, source, title, company, location, url,
-                   posted_time, first_seen_time, last_seen_time, notified_time
+                   posted_time, first_seen_time, last_seen_time, notified_time,
+                   description
             FROM jobs
             WHERE first_seen_time >= datetime('now', ?)
             ORDER BY first_seen_time DESC
@@ -63,7 +64,7 @@ def _to_job(row: dict) -> Job:
         location=row["location"] or "",
         url=row["url"] or "",
         posted_at=posted_at,
-        description="",
+        description=row.get("description") or "",
     )
 
 
@@ -130,6 +131,7 @@ def main() -> None:
                 "last_seen_time": row["last_seen_time"],
                 "notified": bool(row["notified_time"]),
                 "actionable": actionable,
+                "description": row.get("description") or "",
                 "score": {
                     "overall": score.overall,
                     "role": score.role_relevance,

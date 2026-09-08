@@ -23,6 +23,8 @@ export interface Job {
   actionable: boolean;
   notified: boolean;
   stable_id: string;
+  /** Scraped job description text — empty for sources that don't provide one, or jobs seen before this field existed. */
+  description: string;
 }
 
 export interface JobsData {
