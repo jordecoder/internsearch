@@ -4,8 +4,7 @@ import type {
 
 const API_URL_STORE = 'intern_scout_api_url';
 const TOKEN_STORE = 'intern_scout_token';
-// No default — the backend isn't deployed yet. Set the real URL on the Login page once it is.
-const DEFAULT_API_URL = '';
+const DEFAULT_API_URL = 'https://internsearch-api.onrender.com';
 
 export function getApiUrl(): string {
   return localStorage.getItem(API_URL_STORE) || DEFAULT_API_URL;
