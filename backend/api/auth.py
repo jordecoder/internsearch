@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ValidationError, field_validator
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -154,9 +154,38 @@ class TokenResponse(BaseModel):
     username: str
 
 
+async def _parse_json_body(request: Request, model: type[BaseModel]):
+    """Reads and validates the body via Request.json() instead of a plain
+    Pydantic body-parameter, which FastAPI only auto-parses for
+    Content-Type: application/json specifically. That header is what forces a
+    CORS preflight (OPTIONS) on every login/register call — some networks
+    mishandle preflight even when plain GET/POST works fine, which broke this
+    exact endpoint for at least one user despite CORS being configured
+    correctly. Request.json() parses JSON regardless of the declared
+    Content-Type, so the frontend can send these two calls as a CORS-safelisted
+    "simple request" (no preflight at all) by just not setting that header.
+    """
+    try:
+        data = await request.json()
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Request body must be valid JSON")
+    try:
+        return model(**data)
+    except ValidationError as exc:
+        # exc.errors() isn't JSON-safe as-is — a field_validator that raises a
+        # plain ValueError puts the raw exception object in each error's
+        # "ctx", which json.dumps can't serialize. Keep only the string
+        # fields (type/loc/msg is all the frontend reads anyway).
+        safe_errors = [
+            {"type": e.get("type"), "loc": list(e.get("loc", [])), "msg": e.get("msg")} for e in exc.errors()
+        ]
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=safe_errors)
+
+
 # ── routes ────────────────────────────────────────────────────────────────────
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(body: RegisterRequest) -> dict:
+async def register(request: Request) -> dict:
+    body: RegisterRequest = await _parse_json_body(request, RegisterRequest)
     if body.invite_code != _INVITE_CODE:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid invite code")
 
@@ -180,7 +209,8 @@ def register(body: RegisterRequest) -> dict:
 
 @router.post("/login")
 @limiter.limit("5/minute")
-def login(request: Request, body: LoginRequest) -> TokenResponse:
+async def login(request: Request) -> TokenResponse:
+    body: LoginRequest = await _parse_json_body(request, LoginRequest)
     with _db() as conn:
         row = _fetchone(
             conn,

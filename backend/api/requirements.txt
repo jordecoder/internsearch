@@ -3,6 +3,14 @@ uvicorn[standard]==0.30.6
 python-multipart==0.0.9
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+# passlib 1.7.4 (unmaintained since ~2020) crashes hashing ANY password under
+# bcrypt>=4.1 (passlib's internal backend self-test hits a ValueError, since
+# newer bcrypt enforces the 72-byte limit strictly where passlib assumed the
+# old lenient behavior). Left unpinned, pip installs the latest bcrypt and
+# registration crashes on every attempt that gets past the invite-code check —
+# this is genuinely how the site's registration was broken. Pin to the last
+# version before the breaking change.
+bcrypt==4.0.1
 slowapi==0.1.9
 google-generativeai==0.8.3
 pdfplumber==0.11.4

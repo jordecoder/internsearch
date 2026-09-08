@@ -121,6 +121,22 @@ async function requestForm<T>(path: string, form: FormData): Promise<T> {
   return r.json() as Promise<T>;
 }
 
+/**
+ * For requests that must avoid a CORS preflight entirely — login/register,
+ * before any token exists to add an Authorization header. `Content-Type:
+ * application/json` is what forces the preflight (it isn't a CORS-safelisted
+ * value); omitting the header lets the browser default a string body to
+ * `text/plain`, which is safelisted — no preflight OPTIONS round-trip at all.
+ * Some networks mishandle preflight even when plain POST works fine, which is
+ * what broke login/register for at least one user despite CORS being
+ * configured correctly. The backend parses the body via Request.json()
+ * regardless of the declared Content-Type, so this is transparent server-side.
+ */
+async function requestNoPreflight<T>(path: string, body: unknown): Promise<T> {
+  const r = await doFetch(path, { method: 'POST', body: JSON.stringify(body) }, {});
+  return r.json() as Promise<T>;
+}
+
 /* ── auth ─────────────────────────────────────────────────────────────────── */
 
 export interface TokenResponse {
@@ -130,11 +146,11 @@ export interface TokenResponse {
 }
 
 export function login(username: string, password: string): Promise<TokenResponse> {
-  return request('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+  return requestNoPreflight('/auth/login', { username, password });
 }
 
 export function register(username: string, password: string, invite_code: string): Promise<{ message: string }> {
-  return request('/auth/register', { method: 'POST', body: JSON.stringify({ username, password, invite_code }) });
+  return requestNoPreflight('/auth/register', { username, password, invite_code });
 }
 
 export function me(): Promise<{ username: string }> {
