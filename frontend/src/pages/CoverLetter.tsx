@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ArrowRight, Loader2, Link2 } from 'lucide-react';
+import { ArrowRight, Loader2, Link2, ListFilter, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,10 +9,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import * as api from '@/lib/api';
 import { useResumeFile } from '@/hooks/useResumeFile';
+import { useJobsQuery } from '@/hooks/useJobsQuery';
 import { ResumeDropzone } from '@/components/ResumeDropzone';
 import { RequireAuth } from '@/components/RequireAuth';
 import { CopyButton } from '@/components/CopyButton';
-import type { ApplicationMaterials } from '@/types/job';
+import { JobPicker } from '@/components/jobs/JobPicker';
+import type { ApplicationMaterials, Job } from '@/types/job';
 
 const DEFAULT_QUESTION = 'Why do you want to work here?';
 
@@ -67,6 +69,8 @@ function Results({ result }: { result: ApplicationMaterials }) {
 export function CoverLetter() {
   const location = useLocation();
   const navState = location.state as { company?: string; title?: string; url?: string } | null;
+  const { jobs } = useJobsQuery();
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [jd, setJd] = useState('');
   const [company, setCompany] = useState(navState?.company ?? '');
   const [question, setQuestion] = useState(DEFAULT_QUESTION);
@@ -75,6 +79,19 @@ export function CoverLetter() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ApplicationMaterials | null>(null);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (navState?.url && jobs.length) {
+      const found = jobs.find((j) => j.url === navState.url);
+      if (found) setSelectedJob(found);
+    }
+    // Only react to a fresh navigation state, not every jobs refetch.
+  }, [navState?.url, jobs.length]);
+
+  const pickJob = (job: Job) => {
+    setSelectedJob(job);
+    setCompany(job.company);
+  };
 
   const submit = async () => {
     if (!fileText || jd.trim().length < 50) return;
@@ -100,13 +117,23 @@ export function CoverLetter() {
         <p className="mt-1.5 text-sm text-muted-foreground">
           Draft a ready-to-send cover letter and answer "why this company" style essay questions.
         </p>
-        {navState?.title && (
-          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 border border-border rounded-md px-3 py-1.5 w-fit">
-            <Link2 className="h-3 w-3" />
-            Prefilled from <span className="font-medium text-foreground">{navState.title}</span> at{' '}
-            <span className="font-medium text-foreground">{navState.company}</span>
-          </div>
-        )}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {selectedJob && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 border border-border rounded-md px-3 py-1.5 w-fit">
+              <Link2 className="h-3 w-3" />
+              Prefilled from <span className="font-medium text-foreground">{selectedJob.title}</span> at{' '}
+              <span className="font-medium text-foreground">{selectedJob.company}</span>
+              <a href={selectedJob.url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-0.5">
+                Open posting <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
+          <JobPicker onSelect={pickJob}>
+            <button className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+              <ListFilter className="h-3 w-3" /> {selectedJob ? 'Change job' : 'Select from your jobs'}
+            </button>
+          </JobPicker>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-6 items-start">

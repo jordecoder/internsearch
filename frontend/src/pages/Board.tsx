@@ -1,17 +1,18 @@
 import { useState } from 'react';
-import { Plus, Trash2, ExternalLink, GripVertical } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, GripVertical, ListPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { StatCard } from '@/components/StatCard';
 import { MatchScore } from '@/components/jobs/MatchScore';
+import { JobPicker } from '@/components/jobs/JobPicker';
 import { RequireAuth } from '@/components/RequireAuth';
 import { cn, relativeTime } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useBoardQuery, useUpsertBoardEntry, useDeleteBoardEntry } from '@/hooks/useBoardQuery';
 import { useJobsQuery } from '@/hooks/useJobsQuery';
-import type { BoardEntry, BoardStatus } from '@/types/job';
+import type { BoardEntry, BoardStatus, Job } from '@/types/job';
 
 const COLUMNS: { id: BoardStatus; label: string }[] = [
   { id: 'found', label: 'Saved' },
@@ -103,45 +104,65 @@ function ApplicationCard({
   );
 }
 
-function AddJobForm({ onAdd }: { onAdd: (url: string, title: string, company: string) => void }) {
-  const [open, setOpen] = useState(false);
+function AddJobForm({
+  jobs,
+  excludeUrls,
+  onAddFromList,
+  onAddManual,
+}: {
+  jobs: Job[];
+  excludeUrls: Set<string>;
+  onAddFromList: (job: Job) => void;
+  onAddManual: (url: string, title: string, company: string) => void;
+}) {
+  const [manualOpen, setManualOpen] = useState(false);
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [company, setCompany] = useState('');
 
-  if (!open) {
+  if (manualOpen) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="w-full flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border-2 border-dashed border-border hover:border-primary/50 rounded-lg py-3 transition-colors"
-      >
-        <Plus className="h-4 w-4" /> Add a job to track
-      </button>
+      <Card>
+        <CardContent className="pt-4 space-y-2">
+          <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Job URL" className="text-sm" />
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="text-sm" />
+          <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" className="text-sm" />
+          <div className="flex gap-2 pt-1">
+            <Button
+              size="sm"
+              disabled={!url.trim()}
+              onClick={() => {
+                onAddManual(url.trim(), title.trim(), company.trim());
+                setUrl(''); setTitle(''); setCompany('');
+                setManualOpen(false);
+              }}
+            >
+              Add
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setManualOpen(false)}>Cancel</Button>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <Card>
-      <CardContent className="pt-4 space-y-2">
-        <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Job URL" className="text-sm" />
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="text-sm" />
-        <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" className="text-sm" />
-        <div className="flex gap-2 pt-1">
-          <Button
-            size="sm"
-            disabled={!url.trim()}
-            onClick={() => {
-              onAdd(url.trim(), title.trim(), company.trim());
-              setUrl(''); setTitle(''); setCompany('');
-              setOpen(false);
-            }}
-          >
-            Add
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-1.5">
+      <JobPicker onSelect={onAddFromList} excludeUrls={excludeUrls}>
+        <button
+          disabled={jobs.length === 0}
+          className="w-full flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border-2 border-dashed border-border hover:border-primary/50 rounded-lg py-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ListPlus className="h-4 w-4" /> Choose a job from your listings
+        </button>
+      </JobPicker>
+      <button
+        onClick={() => setManualOpen(true)}
+        className="w-full flex items-center justify-center gap-1 text-xs text-muted-foreground/70 hover:text-muted-foreground py-0.5"
+      >
+        <Plus className="h-3 w-3" /> or track a job not in your listings
+      </button>
+    </div>
   );
 }
 
@@ -231,7 +252,12 @@ function BoardContent() {
                   />
                 ))}
                 {col.id === 'found' && (
-                  <AddJobForm onAdd={(url, title, company) => saveEntry(url, 'found', '', title, company)} />
+                  <AddJobForm
+                    jobs={jobs}
+                    excludeUrls={new Set(entries.map(([url]) => url))}
+                    onAddFromList={(job) => saveEntry(job.url, 'found', '', job.title, job.company)}
+                    onAddManual={(url, title, company) => saveEntry(url, 'found', '', title, company)}
+                  />
                 )}
               </div>
             </div>

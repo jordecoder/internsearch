@@ -7,7 +7,8 @@ export async function extractText(file: File): Promise<string> {
 
   if (ext === 'pdf') {
     const pdfjs = await import('pdfjs-dist');
-    pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+    const { default: workerUrl } = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
+    pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
     const buf = await file.arrayBuffer();
     const pdf = await pdfjs.getDocument({ data: buf }).promise;
     const pages: string[] = [];

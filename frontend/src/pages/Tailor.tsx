@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ArrowRight, Loader2, Link2 } from 'lucide-react';
+import { ArrowRight, Loader2, Link2, ListFilter, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -9,10 +9,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import * as api from '@/lib/api';
 import { useResumeFile } from '@/hooks/useResumeFile';
+import { useJobsQuery } from '@/hooks/useJobsQuery';
 import { ResumeDropzone } from '@/components/ResumeDropzone';
 import { RequireAuth } from '@/components/RequireAuth';
 import { CopyButton } from '@/components/CopyButton';
-import type { TailorResult } from '@/types/job';
+import { JobPicker } from '@/components/jobs/JobPicker';
+import type { Job, TailorResult } from '@/types/job';
 
 /* ── Results ── */
 function Results({ result }: { result: TailorResult }) {
@@ -125,12 +127,22 @@ function Results({ result }: { result: TailorResult }) {
 export function Tailor() {
   const location = useLocation();
   const navState = location.state as { company?: string; title?: string; url?: string } | null;
+  const { jobs } = useJobsQuery();
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [jd, setJd]           = useState('');
   const resume = useResumeFile();
   const { file } = resume;
   const [loading, setLoading]   = useState(false);
   const [result, setResult]     = useState<TailorResult | null>(null);
   const [error, setError]       = useState('');
+
+  useEffect(() => {
+    if (navState?.url && jobs.length) {
+      const found = jobs.find((j) => j.url === navState.url);
+      if (found) setSelectedJob(found);
+    }
+    // Only react to a fresh navigation state, not every jobs refetch.
+  }, [navState?.url, jobs.length]);
 
   const submit = async () => {
     if (!file || jd.trim().length < 50) return;
@@ -160,13 +172,23 @@ export function Tailor() {
         <p className="mt-1.5 text-sm text-muted-foreground">
           Upload your resume, paste a job description, get a targeted match.
         </p>
-        {navState?.title && (
-          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 border border-border rounded-md px-3 py-1.5 w-fit">
-            <Link2 className="h-3 w-3" />
-            Tailoring for <span className="font-medium text-foreground">{navState.title}</span> at{' '}
-            <span className="font-medium text-foreground">{navState.company}</span> — paste its JD below
-          </div>
-        )}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {selectedJob && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 border border-border rounded-md px-3 py-1.5 w-fit">
+              <Link2 className="h-3 w-3" />
+              Tailoring for <span className="font-medium text-foreground">{selectedJob.title}</span> at{' '}
+              <span className="font-medium text-foreground">{selectedJob.company}</span>
+              <a href={selectedJob.url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-0.5">
+                Open posting <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
+          <JobPicker onSelect={setSelectedJob}>
+            <button className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+              <ListFilter className="h-3 w-3" /> {selectedJob ? 'Change job' : 'Select from your jobs'}
+            </button>
+          </JobPicker>
+        </div>
       </div>
 
       {/* Two-column layout */}

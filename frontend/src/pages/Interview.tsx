@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Loader2, Send, RotateCcw, Sparkles } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { ArrowRight, Loader2, Send, RotateCcw, Sparkles, Link2, ListFilter, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import * as api from '@/lib/api';
 import { useResumeFile } from '@/hooks/useResumeFile';
+import { useJobsQuery } from '@/hooks/useJobsQuery';
 import { ResumeDropzone } from '@/components/ResumeDropzone';
 import { RequireAuth } from '@/components/RequireAuth';
+import { JobPicker } from '@/components/jobs/JobPicker';
 import { cn } from '@/lib/utils';
-import type { ChatTurn, InterviewFeedback, InterviewMode } from '@/types/job';
+import type { ChatTurn, InterviewFeedback, InterviewMode, Job } from '@/types/job';
 
 const MODES: { id: InterviewMode; label: string; blurb: string }[] = [
   { id: 'behavioral', label: 'Behavioral', blurb: 'STAR-style questions about past experience, teamwork, motivation.' },
@@ -102,10 +105,22 @@ function FeedbackCard({ feedback }: { feedback: InterviewFeedback }) {
 }
 
 export function Interview() {
+  const location = useLocation();
+  const navState = location.state as { company?: string; title?: string; url?: string } | null;
+  const { jobs } = useJobsQuery();
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const resume = useResumeFile();
   const { fileText } = resume;
   const [jd, setJd] = useState('');
   const [mode, setMode] = useState<InterviewMode>('behavioral');
+
+  useEffect(() => {
+    if (navState?.url && jobs.length) {
+      const found = jobs.find((j) => j.url === navState.url);
+      if (found) setSelectedJob(found);
+    }
+    // Only react to a fresh navigation state, not every jobs refetch.
+  }, [navState?.url, jobs.length]);
   const [started, setStarted] = useState(false);
   const [history, setHistory] = useState<ChatTurn[]>([]);
   const [input, setInput] = useState('');
@@ -180,6 +195,25 @@ export function Interview() {
         <p className="mt-1.5 text-sm text-muted-foreground">
           Practice live against a job description, including group-discussion rounds.
         </p>
+        {!started && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {selectedJob && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 border border-border rounded-md px-3 py-1.5 w-fit">
+                <Link2 className="h-3 w-3" />
+                Practicing for <span className="font-medium text-foreground">{selectedJob.title}</span> at{' '}
+                <span className="font-medium text-foreground">{selectedJob.company}</span>
+                <a href={selectedJob.url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-0.5">
+                  Open posting <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            )}
+            <JobPicker onSelect={setSelectedJob}>
+              <button className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+                <ListFilter className="h-3 w-3" /> {selectedJob ? 'Change job' : 'Select from your jobs'}
+              </button>
+            </JobPicker>
+          </div>
+        )}
       </div>
 
       {!started ? (
