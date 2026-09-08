@@ -2,14 +2,12 @@
 
 Configuring the API key here (once, at import time) instead of in each module
 avoids import-order bugs where a module calls genai before configure() has run.
+(.env is already loaded by this point — see api/__init__.py.)
 """
 
 import os
 
 import google.generativeai as genai
-from dotenv import load_dotenv
-
-load_dotenv()
 
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 genai.configure(api_key=GEMINI_API_KEY)

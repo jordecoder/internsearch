@@ -1,19 +1,19 @@
 import os
 
 import sentry_sdk
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
+# api/__init__.py loads .env before this or any other api.* submodule runs —
+# see the comment there for why it has to happen at the package level rather
+# than here.
 from api.auth import router as auth_router, limiter
 from api.generate import router as generate_router
 from api.interview import router as interview_router
 from api.rag import router as rag_router
 from api.tracker import router as tracker_router
-
-load_dotenv()
 
 _SENTRY_DSN = os.getenv("SENTRY_DSN")
 if _SENTRY_DSN:
