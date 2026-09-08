@@ -4,6 +4,7 @@ import argparse
 import html
 import logging
 import time
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -12,6 +13,7 @@ import yaml
 
 from application_tracker import update_application_tracker
 from bot_commands import process_telegram_commands
+from career_scoring import get_or_score_career_fit
 from database import (
     get_metadata,
     init_db,
@@ -336,13 +338,24 @@ def maybe_send_near_match_digest(
     set_metadata(db_path, last_key, now.isoformat())
 
 
+def _career_rank(insights: OpportunityInsights, score: Score) -> tuple[int, int]:
+    """Rank primarily by career direction fit, then overall fit — a Data Analyst
+    role scoring 95% on requirements should still rank below a Data Platform
+    Engineer role scoring 70%, if the latter actually advances the target career.
+    Falls back to the plain relevance score when no career score was computed."""
+    if insights.career_direction_fit is not None:
+        return (-insights.career_direction_fit, -(insights.career_score or 0))
+    return (0, -score.overall)
+
+
 def _sort_actionable_digest_item(
     item: tuple[Any, Score, ResumeMatch, OpportunityInsights, bool],
-) -> tuple[int, int, str]:
+) -> tuple[int, int, int, int]:
     _, score, _, insights, is_new = item
     type_rank = 0 if insights.opportunity_type == "job_posting" else 1
     new_rank = 0 if is_new else 1
-    return (type_rank, new_rank, -score.overall)
+    career_fit_rank, overall_rank = _career_rank(insights, score)
+    return (type_rank, career_fit_rank, new_rank, overall_rank)
 
 
 def format_actionable_digest(
@@ -732,6 +745,7 @@ def run_once(config: dict[str, Any]) -> int:
     tracker_config = config.get("application_tracker", {})
     tracker_enabled = tracker_config.get("enabled", True)
     tracker_path = tracker_config.get("path", "applications.csv")
+    career_scoring_enabled = config.get("career_scoring", {}).get("enabled", True)
 
     for job in jobs:
         try:
@@ -757,8 +771,22 @@ def run_once(config: dict[str, Any]) -> int:
             continue
         for keyword in resume_match.missing_keywords:
             missing_keyword_counts[keyword] = missing_keyword_counts.get(keyword, 0) + 1
+
+        career = None
+        if career_scoring_enabled:
+            # Only ever scored once per job (cached by stable_id) — cheap deterministic
+            # filtering above already narrowed this to actionable candidates, so this
+            # doesn't run an LLM call against every posting on every 3-hourly run.
+            try:
+                career = get_or_score_career_fit(db_path, job, score, resume_profile, config)
+            except Exception:
+                LOGGER.exception(
+                    "career_scoring_failed",
+                    extra={"title": job.title, "company": job.company},
+                )
+
         try:
-            insights = build_opportunity_insights(job, score, resume_match, config)
+            insights = build_opportunity_insights(job, score, resume_match, config, career=career)
         except Exception:
             LOGGER.exception(
                 "insights_failed",
@@ -766,21 +794,29 @@ def run_once(config: dict[str, Any]) -> int:
             )
             continue
         resume_note = _format_resume_note(resume_match)
+        # When a REAL LLM career score is available, its final_score (career-direction-
+        # aware) replaces the plain keyword score.overall for every downstream alert/
+        # digest/ranking decision below — an analyst-shaped role that scores well on the
+        # cheap keyword formula shouldn't still fire "apply now" alerts. The deterministic
+        # fallback (no GEMINI_API_KEY, or the call failed) is NOT trustworthy enough to
+        # drive real alert decisions — it's for display/insights only in that case, so
+        # thresholds keep behaving exactly as before whenever career scoring is degraded.
+        effective_score = replace(score, overall=career.final_score) if career and career.source == "llm" else score
         actionable_items.append((job, score, resume_match, insights))
         if (
-            score.overall >= actionable_alert_min_overall
+            effective_score.overall >= actionable_alert_min_overall
             and score.location_relevance >= actionable_alert_min_location
             and (
                 not config.get("actionable_digest", {}).get("exact_job_postings_only", True)
                 or insights.opportunity_type == "job_posting"
             )
         ):
-            current_actionable_items.append((job, score, resume_match, insights, is_new))
+            current_actionable_items.append((job, effective_score, resume_match, insights, is_new))
             if tracker_enabled:
                 update_application_tracker(
                     tracker_path,
                     job,
-                    score,
+                    effective_score,
                     resume_match,
                     insights=insights,
                     notes=insights.recommended_action,
@@ -792,19 +828,19 @@ def run_once(config: dict[str, Any]) -> int:
         if not fresh:
             continue
 
-        strict_match = passes_threshold(score, config)
+        strict_match = passes_threshold(effective_score, config)
 
         should_send_actionable_alert = (
             actionable_alerts_enabled
             and is_new
             and not strict_match
             and insights.opportunity_type == "job_posting"
-            and score.overall >= actionable_alert_min_overall
+            and effective_score.overall >= actionable_alert_min_overall
             and score.location_relevance >= actionable_alert_min_location
         )
         if should_send_actionable_alert:
             try:
-                send_actionable_telegram(job, score, resume_note)
+                send_actionable_telegram(job, effective_score, resume_note, insights=insights)
                 mark_notified(db_path, job)
                 sent += 1
                 LOGGER.info(
@@ -819,16 +855,16 @@ def run_once(config: dict[str, Any]) -> int:
 
         if not strict_match:
             if (
-                score.overall >= near_min_overall
+                effective_score.overall >= near_min_overall
                 and score.location_relevance >= near_min_location
             ):
-                near_matches.append((job, score, resume_match, insights))
+                near_matches.append((job, effective_score, resume_match, insights))
             LOGGER.info(
                 "job_below_threshold",
                 extra={
                     "title": job.title,
                     "company": job.company,
-                    "score": score.overall,
+                    "score": effective_score.overall,
                     "timeline": score.timeline_relevance,
                     "location": score.location_relevance,
                 },
@@ -848,7 +884,7 @@ def run_once(config: dict[str, Any]) -> int:
 
         matched += 1
         try:
-            send_telegram(job, score, resume_note)
+            send_telegram(job, effective_score, resume_note, insights=insights)
             mark_notified(db_path, job)
             sent += 1
             LOGGER.info(
@@ -878,7 +914,7 @@ def run_once(config: dict[str, Any]) -> int:
         source_counts=source_counts,
     )
 
-    near_matches.sort(key=lambda item: item[1].overall, reverse=True)
+    near_matches.sort(key=lambda item: _career_rank(item[3], item[1]))
 
     try:
         maybe_send_phase_status(

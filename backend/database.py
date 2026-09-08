@@ -41,6 +41,15 @@ def init_db(db_path: str) -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS career_scores (
+                stable_id TEXT PRIMARY KEY,
+                payload TEXT NOT NULL,
+                computed_at TEXT NOT NULL
+            )
+            """
+        )
         _migrate_legacy_schema(conn)
 
 
@@ -129,6 +138,32 @@ def mark_notified(db_path: str, job: Job) -> None:
         conn.execute(
             "UPDATE jobs SET notified_time = ? WHERE stable_id = ?",
             (_utc_now_iso(), job.stable_id),
+        )
+
+
+def get_career_score(db_path: str, stable_id: str) -> str | None:
+    """Return the cached career-score JSON payload for a job, or None if never scored.
+
+    LLM career scoring runs at most once per job — this cache is what makes
+    that true across the pipeline's repeated 3-hourly runs.
+    """
+    with sqlite3.connect(db_path) as conn:
+        row = conn.execute(
+            "SELECT payload FROM career_scores WHERE stable_id = ?",
+            (stable_id,),
+        ).fetchone()
+    return row[0] if row else None
+
+
+def save_career_score(db_path: str, stable_id: str, payload_json: str) -> None:
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO career_scores (stable_id, payload, computed_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(stable_id) DO UPDATE SET payload = excluded.payload, computed_at = excluded.computed_at
+            """,
+            (stable_id, payload_json, _utc_now_iso()),
         )
 
 

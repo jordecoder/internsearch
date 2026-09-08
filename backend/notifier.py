@@ -8,6 +8,7 @@ import requests
 
 from display_utils import display_company, display_title
 from job_model import Job
+from opportunity_insights import OpportunityInsights
 from scoring import Score
 
 _SKIP_TIMELINE = {
@@ -49,6 +50,7 @@ def _build_message(
     resume_note: str,
     *,
     near_match: bool,
+    insights: OpportunityInsights | None = None,
 ) -> str:
     title = _escape(display_title(job.title))
     company = _escape(display_company(job.company))
@@ -76,15 +78,28 @@ def _build_message(
     if extras:
         lines.append(" · ".join(extras))
 
+    # Career-fit reasoning replaces the old generic resume-suggestion text —
+    # only appended when a real CareerScore was computed for this job.
+    if insights is not None and insights.career_score is not None:
+        lines.append(f"Track: {_escape(insights.primary_track)} | Fit: {_escape(insights.career_classification)}")
+        if insights.why_it_matches:
+            lines.append(_escape(insights.why_it_matches))
+        if insights.main_gap:
+            lines.append(f"Gap: {_escape(insights.main_gap)}")
+        if insights.career_recommendation:
+            lines.append(f"<b>{_escape(insights.career_recommendation)}</b>")
+
     return "\n".join(lines)
 
 
-def format_job_message(job: Job, score: Score, resume_note: str = "") -> str:
-    return _build_message(job, score, resume_note, near_match=False)
+def format_job_message(job: Job, score: Score, resume_note: str = "", *, insights: OpportunityInsights | None = None) -> str:
+    return _build_message(job, score, resume_note, near_match=False, insights=insights)
 
 
-def format_actionable_job_message(job: Job, score: Score, resume_note: str = "") -> str:
-    return _build_message(job, score, resume_note, near_match=True)
+def format_actionable_job_message(
+    job: Job, score: Score, resume_note: str = "", *, insights: OpportunityInsights | None = None
+) -> str:
+    return _build_message(job, score, resume_note, near_match=True, insights=insights)
 
 
 def send_telegram_message(

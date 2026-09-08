@@ -134,7 +134,7 @@ def test_run_once_sends_new_actionable_job_below_strict_score(tmp_path, monkeypa
     def fake_fetch_all_jobs(config, client):
         return [job], {"Greenhouse": 1}
 
-    def fake_send_actionable(job_arg, score_arg, resume_note):
+    def fake_send_actionable(job_arg, score_arg, resume_note, **_kwargs):
         sent_actionable.append((job_arg, score_arg, resume_note))
 
     monkeypatch.setattr(main, "fetch_all_jobs", fake_fetch_all_jobs)

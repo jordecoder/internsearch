@@ -3,11 +3,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from job_model import Job
 from resume_matcher import ResumeMatch
 from scoring import Score
+
+if TYPE_CHECKING:  # avoid a hard import cycle — career_scoring.py imports this module
+    from career_scoring import CareerScore
 
 
 @dataclass(frozen=True)
@@ -18,6 +21,15 @@ class OpportunityInsights:
     recommended_action: str
     resume_suggestion: str
     referral_priority: bool
+    # Populated only when a CareerScore was computed (career_scoring.py) — all
+    # default to "not scored" so every existing caller/test is unaffected.
+    career_score: int | None = None
+    career_direction_fit: int | None = None
+    career_classification: str = ""
+    primary_track: str = ""
+    why_it_matches: str = ""
+    main_gap: str = ""
+    career_recommendation: str = ""
 
 
 ROLE_FAMILY_TERMS = {
@@ -322,6 +334,8 @@ def build_opportunity_insights(
     score: Score,
     resume_match: ResumeMatch,
     config: dict[str, Any],
+    *,
+    career: "CareerScore | None" = None,
 ) -> OpportunityInsights:
     opportunity_type = classify_opportunity_type(job, config)
     role_family = classify_role_family(job, config)
@@ -343,6 +357,13 @@ def build_opportunity_insights(
         recommended_action=recommended_action,
         resume_suggestion=resume_suggestion,
         referral_priority=referral_priority,
+        career_score=career.final_score if career else None,
+        career_direction_fit=career.career_direction_fit if career else None,
+        career_classification=career.classification if career else "",
+        primary_track=career.primary_track if career else "",
+        why_it_matches=career.why_it_matches if career else "",
+        main_gap=career.main_gap if career else "",
+        career_recommendation=career.recommendation if career else "",
     )
 
 

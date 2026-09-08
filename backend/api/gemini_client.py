@@ -3,7 +3,6 @@
 Configuring the API key here (once, at import time) instead of in each module
 avoids import-order bugs where a module calls genai before configure() has run.
 """
-from __future__ import annotations
 
 import os
 

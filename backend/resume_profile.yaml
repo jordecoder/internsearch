@@ -73,3 +73,87 @@ target_resume_keywords:
   - kubernetes
   - vector database
   - semantic search
+
+# ── Career-fit profile ──────────────────────────────────────────────────────
+# Used by career_scoring.py to judge not just "am I qualified" but "does this
+# role move me toward my actual target career" — see career_scoring.py for how
+# this feeds the LLM rubric.
+
+# Priority order matters: earlier entries score higher on Career Direction Fit.
+target_career_paths:
+  - Data Engineer
+  - AI Engineer / Applied AI Engineer
+  - ML Engineer
+  - Data Platform / Data Infrastructure Engineer
+  - Backend Engineer working on data-intensive systems
+  - MLOps / ML Platform Engineer
+  - Software Engineer with strong backend, distributed systems, data, or AI exposure
+  - Quant Developer
+  - Data Scientist only when the role involves substantial ML/model development or engineering
+
+# Roles that should NOT score well on career direction, even if the candidate
+# is technically qualified for them.
+excluded_career_paths:
+  - Data Analyst
+  - BI Analyst
+  - Business Analyst
+  - Product Analyst
+  - Commercial Analytics Analyst
+  - Operations Analyst
+
+education:
+  - BSc (Hons) Computing Science
+  - Diploma in Big Data & Analytics
+
+professional_experience:
+  - Data Engineering Intern
+  - SQL-based ETL and reporting workflows
+  - Data cleaning, validation, and quality assurance
+  - Stakeholder requirement gathering
+  - Tableau and MicroStrategy
+  - Business intelligence and operational analytics
+
+ai_experience:
+  - Developed an Agentic RAG platform for an enterprise use case at the SIT-NVIDIA AI Centre
+  - GPT-4o
+  - LlamaIndex
+  - LanceDB
+  - semantic/vector retrieval
+  - query rewriting
+  - relevance filtering
+  - evidence synthesis
+  - automated report generation
+  - enterprise unstructured data
+
+career_projects:
+  - name: Intern Search
+    description: >
+      Automated multi-source data ingestion, normalization, persistent storage,
+      deduplication, scoring, KPI monitoring, scheduled processing, Telegram
+      alerts, daily/weekly reporting and automated optimization insights.
+  - name: Oraphim
+    description: >
+      Python/PostgreSQL/PostGIS geospatial ETL, spatial analytics and
+      vessel-detection data processing.
+
+technical_skills:
+  - Python
+  - SQL
+  - Java
+  - C
+  - Golang
+  - JavaScript
+  - PostgreSQL
+  - MySQL
+  - Oracle
+  - AWS Lambda
+  - Athena
+  - RDS
+  - Docker
+  - Linux
+  - Git/GitHub Actions
+  - TensorFlow
+  - Scikit-learn
+  - Pandas
+  - NumPy
+  - RAG/vector search/LLM applications
