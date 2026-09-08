@@ -34,6 +34,24 @@ class ApiError extends Error {
   }
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Retry delays (ms) for a cold Render free-tier instance waking up. A sleeping
+ * instance's very first request can fail outright — not just be slow — if
+ * Render's edge times out before the app finishes booting (this shows up in
+ * the browser as a CORS error even though it's really a connection failure;
+ * Chrome can't tell the difference once the connection itself dies). Render's
+ * docs put worst-case wake time around 50s, so this budget covers that.
+ */
+const WAKE_RETRY_DELAYS_MS = [3000, 6000, 10000, 15000];
+
+let onRetryListener: ((attempt: number, max: number) => void) | null = null;
+/** UI can subscribe to show "waking up the server…" during retries. */
+export function setRetryListener(fn: typeof onRetryListener): void {
+  onRetryListener = fn;
+}
+
 async function doFetch(path: string, opts: RequestInit, headers: Record<string, string>): Promise<Response> {
   const apiUrl = getApiUrl();
   if (!apiUrl) {
@@ -42,22 +60,36 @@ async function doFetch(path: string, opts: RequestInit, headers: Record<string, 
   const token = getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  let r: Response;
-  try {
-    r = await fetch(`${apiUrl}${path}`, { ...opts, headers });
-  } catch {
-    throw new ApiError('Could not reach the API. Check the API URL in Settings and that the backend is awake (Render free tier can take ~50s to wake up).', 0);
+  let r: Response | undefined;
+  const maxAttempts = WAKE_RETRY_DELAYS_MS.length + 1;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      r = await fetch(`${apiUrl}${path}`, { ...opts, headers });
+      break;
+    } catch {
+      if (attempt === maxAttempts) {
+        throw new ApiError(
+          'Could not reach the API after several tries. Check the API URL in Settings — if it looks right, the backend may be down rather than just asleep.',
+          0,
+        );
+      }
+      onRetryListener?.(attempt, maxAttempts);
+      await sleep(WAKE_RETRY_DELAYS_MS[attempt - 1]);
+    }
   }
+  // r is always assigned by the time the loop exits normally (break) — the
+  // final-attempt failure path above always throws instead of falling through.
+  const response = r as Response;
 
-  if (r.status === 401) {
+  if (response.status === 401) {
     clearToken();
     throw new ApiError('Session expired — please log in again.', 401);
   }
-  if (!r.ok) {
-    const body = await r.json().catch(() => ({}));
-    throw new ApiError(extractErrorMessage(body) ?? `Request failed (${r.status})`, r.status);
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new ApiError(extractErrorMessage(body) ?? `Request failed (${response.status})`, response.status);
   }
-  return r;
+  return response;
 }
 
 /**

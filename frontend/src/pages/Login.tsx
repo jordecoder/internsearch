@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import { getApiUrl, saveApiUrl, DEFAULT_API_URL } from '@/lib/api';
+import { getApiUrl, saveApiUrl, setRetryListener, DEFAULT_API_URL } from '@/lib/api';
 
 export function Login() {
   const { login, register } = useAuth();
@@ -16,13 +16,22 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [wakingUp, setWakingUp] = useState('');
   const [error, setError] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [apiUrl, setApiUrl] = useState(getApiUrl());
 
   const submit = async () => {
     setError('');
+    setWakingUp('');
     setLoading(true);
+    setRetryListener((attempt, max) => {
+      setWakingUp(
+        attempt === 1
+          ? "The backend looks asleep (Render's free tier does this after ~15 min idle) — waking it up…"
+          : `Still waking up… (try ${attempt}/${max})`,
+      );
+    });
     try {
       if (mode === 'login') await login(username, password);
       else await register(username, password, inviteCode);
@@ -31,6 +40,8 @@ export function Login() {
       setError((e as Error).message);
     } finally {
       setLoading(false);
+      setWakingUp('');
+      setRetryListener(null);
     }
   };
 
@@ -50,6 +61,12 @@ export function Login() {
           {error && (
             <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">
               {error}
+            </p>
+          )}
+
+          {wakingUp && (
+            <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900 rounded-md px-3 py-2 flex items-center gap-1.5">
+              <Loader2 className="h-3 w-3 animate-spin flex-shrink-0" /> {wakingUp}
             </p>
           )}
 
