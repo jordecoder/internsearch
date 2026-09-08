@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { ArrowRight, Loader2, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -122,6 +123,8 @@ function Results({ result }: { result: TailorResult }) {
 
 /* ── Main Tailor page ── */
 export function Tailor() {
+  const location = useLocation();
+  const navState = location.state as { company?: string; title?: string; url?: string } | null;
   const [jd, setJd]           = useState('');
   const resume = useResumeFile();
   const { file } = resume;
@@ -157,6 +160,13 @@ export function Tailor() {
         <p className="mt-1.5 text-sm text-muted-foreground">
           Upload your resume, paste a job description, get a targeted match.
         </p>
+        {navState?.title && (
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 border border-border rounded-md px-3 py-1.5 w-fit">
+            <Link2 className="h-3 w-3" />
+            Tailoring for <span className="font-medium text-foreground">{navState.title}</span> at{' '}
+            <span className="font-medium text-foreground">{navState.company}</span> — paste its JD below
+          </div>
+        )}
       </div>
 
       {/* Two-column layout */}

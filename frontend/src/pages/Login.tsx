@@ -35,7 +35,7 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-56px)] flex items-center justify-center px-5 py-16">
+    <div className="min-h-[70vh] flex items-center justify-center px-5 py-16">
       <Card className="w-full max-w-sm animate-fade-up">
         <CardHeader className="pb-3">
           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3">

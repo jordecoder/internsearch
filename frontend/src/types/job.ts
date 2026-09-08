@@ -4,9 +4,12 @@ export interface Score {
   skill: number;
   location: number;
   timeline: number;
+  degree: number;
   timeline_match: string;
-  location_relevance: number;
 }
+
+/** Semantic match-fit tier, derived from Score.overall — see lib/match.ts. */
+export type MatchTier = 'strong' | 'good' | 'moderate' | 'weak';
 
 export interface Job {
   title: string;

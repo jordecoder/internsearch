@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Loader2, Plus, Trash2, ExternalLink, GripVertical, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Trash2, ExternalLink, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { StatCard } from '@/components/StatCard';
+import { MatchScore } from '@/components/jobs/MatchScore';
+import { RequireAuth } from '@/components/RequireAuth';
+import { cn, relativeTime } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
-import * as api from '@/lib/api';
+import { useBoardQuery, useUpsertBoardEntry, useDeleteBoardEntry } from '@/hooks/useBoardQuery';
+import { useJobsQuery } from '@/hooks/useJobsQuery';
 import type { BoardEntry, BoardStatus } from '@/types/job';
 
 const COLUMNS: { id: BoardStatus; label: string }[] = [
-  { id: 'found', label: 'Found' },
+  { id: 'found', label: 'Saved' },
   { id: 'tailoring', label: 'Tailoring' },
   { id: 'applied', label: 'Applied' },
   { id: 'interviewing', label: 'Interview' },
@@ -19,19 +22,17 @@ const COLUMNS: { id: BoardStatus; label: string }[] = [
   { id: 'rejected', label: 'Rejected' },
 ];
 
-interface BoardMap {
-  [url: string]: BoardEntry;
-}
-
-function BoardCard({
+function ApplicationCard({
   url,
   entry,
+  matchScore,
   onSave,
   onDelete,
   onDragStart,
 }: {
   url: string;
   entry: BoardEntry;
+  matchScore?: number;
   onSave: (notes: string, title: string, company: string) => void;
   onDelete: () => void;
   onDragStart: (e: React.DragEvent) => void;
@@ -73,6 +74,7 @@ function BoardCard({
             </div>
           )}
         </div>
+        {matchScore !== undefined && <MatchScore score={matchScore} size="sm" />}
       </div>
 
       {editing ? (
@@ -82,17 +84,20 @@ function BoardCard({
       )}
 
       <div className="flex items-center justify-between pt-0.5">
+        <p className="text-[0.65rem] text-muted-foreground/70">{relativeTime(entry.updated_at)}</p>
         {editing ? (
           <div className="flex gap-2">
             <button onClick={save} className="text-[0.7rem] font-semibold text-primary hover:underline">Save</button>
             <button onClick={() => setEditing(false)} className="text-[0.7rem] text-muted-foreground hover:text-foreground">Cancel</button>
           </div>
         ) : (
-          <button onClick={() => setEditing(true)} className="text-[0.7rem] text-muted-foreground hover:text-foreground">Edit</button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setEditing(true)} className="text-[0.7rem] text-muted-foreground hover:text-foreground">Edit</button>
+            <button onClick={onDelete} className="text-muted-foreground hover:text-destructive">
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
         )}
-        <button onClick={onDelete} className="text-muted-foreground hover:text-destructive">
-          <Trash2 className="h-3 w-3" />
-        </button>
       </div>
     </div>
   );
@@ -108,7 +113,7 @@ function AddJobForm({ onAdd }: { onAdd: (url: string, title: string, company: st
     return (
       <button
         onClick={() => setOpen(true)}
-        className="w-full flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border-2 border-dashed border-border hover:border-primary/50 rounded-xl py-3 transition-colors"
+        className="w-full flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border-2 border-dashed border-border hover:border-primary/50 rounded-lg py-3 transition-colors"
       >
         <Plus className="h-4 w-4" /> Add a job to track
       </button>
@@ -140,147 +145,108 @@ function AddJobForm({ onAdd }: { onAdd: (url: string, title: string, company: st
   );
 }
 
-export function Board() {
-  const { username, loading: authLoading, logout } = useAuth();
-  const [board, setBoard] = useState<BoardMap>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+function BoardContent() {
+  const { username } = useAuth();
+  const { data: board, isLoading, error } = useBoardQuery(!!username);
+  const { jobs } = useJobsQuery();
+  const upsert = useUpsertBoardEntry();
+  const remove = useDeleteBoardEntry();
   const [dragUrl, setDragUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!username) {
-      setLoading(false);
-      return;
-    }
-    api
-      .getBoard()
-      .then((r) => setBoard(r.jobs))
-      .catch((e) => setError((e as Error).message))
-      .finally(() => setLoading(false));
-  }, [username]);
+  const scoreByUrl = new Map(jobs.map((j) => [j.url, j.score.overall]));
+  const entries = Object.entries(board ?? {}).filter(([, e]) => e.status !== 'skipped');
 
-  const grouped = useMemo(() => {
-    const g: Record<BoardStatus, [string, BoardEntry][]> = { found: [], tailoring: [], applied: [], interviewing: [], offer: [], rejected: [] };
-    for (const [url, entry] of Object.entries(board)) {
-      if (!(entry.status in g)) continue; // legacy 'skipped' status, no longer a board column
-      (g[entry.status as BoardStatus] ?? g.found).push([url, entry]);
-    }
-    for (const list of Object.values(g)) list.sort((a, b) => b[1].updated_at.localeCompare(a[1].updated_at));
-    return g;
-  }, [board]);
-
-  const saveEntry = async (url: string, status: BoardStatus, notes: string, title: string, company: string) => {
-    const prev = board;
-    setBoard((b) => ({ ...b, [url]: { ...b[url], status, notes, title, company, updated_at: new Date().toISOString() } }));
-    try {
-      const res = await api.upsertBoardEntry({ url, status, notes, title, company });
-      setBoard(res.jobs);
-    } catch (e) {
-      setBoard(prev);
-      setError((e as Error).message);
-    }
+  const grouped: Record<BoardStatus, [string, BoardEntry][]> = {
+    found: [], tailoring: [], applied: [], interviewing: [], offer: [], rejected: [],
   };
-
-  const deleteEntry = async (url: string) => {
-    const prev = board;
-    setBoard((b) => {
-      const next = { ...b };
-      delete next[url];
-      return next;
-    });
-    try {
-      const res = await api.deleteBoardEntry(url);
-      setBoard(res.jobs);
-    } catch (e) {
-      setBoard(prev);
-      setError((e as Error).message);
-    }
-  };
-
-  if (authLoading || (loading && username)) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-56px)]">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+  for (const [url, entry] of entries) {
+    (grouped[entry.status as BoardStatus] ?? grouped.found).push([url, entry]);
   }
+  for (const list of Object.values(grouped)) list.sort((a, b) => b[1].updated_at.localeCompare(a[1].updated_at));
 
-  if (!username) {
-    return (
-      <div className="min-h-[calc(100vh-56px)] flex items-center justify-center px-5">
-        <Card className="max-w-sm w-full text-center animate-fade-up">
-          <CardContent className="pt-6 space-y-3">
-            <p className="text-sm text-foreground font-medium">Log in to track your pipeline</p>
-            <p className="text-xs text-muted-foreground">
-              The board syncs across devices, so it needs an account.
-            </p>
-            <Button asChild className="w-full">
-              <Link to="/login">Log in / Register</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  const totalApplications = entries.filter(([, e]) => e.status !== 'found').length;
+  const interviews = grouped.interviewing.length;
+  const offers = grouped.offer.length;
+  const conversionRate = totalApplications > 0 ? Math.round((offers / totalApplications) * 100) : null;
+
+  const saveEntry = (url: string, status: BoardStatus, notes: string, title: string, company: string) => {
+    upsert.mutate({ url, status, notes, title, company });
+  };
+
+  if (isLoading) {
+    return <div className="max-w-[100rem] mx-auto px-5 py-8 text-sm text-muted-foreground">Loading your pipeline…</div>;
+  }
+  if (error) {
+    return <div className="max-w-[100rem] mx-auto px-5 py-8 text-sm text-destructive">Could not load your board. Try refreshing.</div>;
   }
 
   return (
-    <div className="max-w-[100rem] mx-auto px-5 py-8 pb-20">
-      <div className="mb-6 flex items-center justify-between animate-fade-up">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
-            Pipeline Board
-          </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">Drag cards between columns as your applications move.</p>
-        </div>
-        <button onClick={logout} className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-          <LogOut className="h-3 w-3" /> <span className="hidden sm:inline">Log out ({username})</span>
-        </button>
+    <div className="max-w-[100rem] mx-auto px-5 py-6 pb-20">
+      <div className="mb-5">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
+          Application Board
+        </h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">Drag cards between columns as your applications move.</p>
       </div>
 
-      {error && (
-        <p className="mb-4 text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">{error}</p>
+      {totalApplications > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
+          <StatCard label="Total applications" value={totalApplications} />
+          <StatCard label="Interviews" value={interviews} />
+          <StatCard label="Offers" value={offers} />
+          <StatCard label="Conversion" value={conversionRate !== null ? `${conversionRate}%` : '—'} sub="offers / applications" />
+        </div>
       )}
 
       <div className="relative">
-      <div className="flex gap-3 items-start overflow-x-auto pb-4 -mx-5 px-5 sm:mx-0 sm:px-0">
-        {COLUMNS.map((col) => (
-          <div
-            key={col.id}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (dragUrl && board[dragUrl] && board[dragUrl].status !== col.id) {
-                const entry = board[dragUrl];
-                saveEntry(dragUrl, col.id, entry.notes, entry.title ?? '', entry.company ?? '');
-              }
-              setDragUrl(null);
-            }}
-            className="space-y-2 w-[260px] flex-shrink-0"
-          >
-            <div className="flex items-center justify-between px-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{col.label}</p>
-              <span className="text-xs text-muted-foreground/60 tabular-nums">{grouped[col.id].length}</span>
+        <div className="flex gap-3 items-start overflow-x-auto pb-4 -mx-5 px-5 sm:mx-0 sm:px-0">
+          {COLUMNS.map((col) => (
+            <div
+              key={col.id}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragUrl && board?.[dragUrl] && board[dragUrl].status !== col.id) {
+                  const entry = board[dragUrl];
+                  saveEntry(dragUrl, col.id, entry.notes, entry.title ?? '', entry.company ?? '');
+                }
+                setDragUrl(null);
+              }}
+              className="space-y-2 w-[260px] flex-shrink-0"
+            >
+              <div className="flex items-center justify-between px-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{col.label}</p>
+                <span className="text-xs text-muted-foreground/60 tabular-nums">{grouped[col.id].length}</span>
+              </div>
+              <div className={cn('space-y-2 min-h-[80px] rounded-xl p-1.5 transition-colors', dragUrl && 'bg-muted/30')}>
+                {grouped[col.id].map(([url, entry]) => (
+                  <ApplicationCard
+                    key={url}
+                    url={url}
+                    entry={entry}
+                    matchScore={scoreByUrl.get(url)}
+                    onDragStart={() => setDragUrl(url)}
+                    onSave={(notes, title, company) => saveEntry(url, entry.status as BoardStatus, notes, title, company)}
+                    onDelete={() => remove.mutate(url)}
+                  />
+                ))}
+                {col.id === 'found' && (
+                  <AddJobForm onAdd={(url, title, company) => saveEntry(url, 'found', '', title, company)} />
+                )}
+              </div>
             </div>
-            <div className={cn('space-y-2 min-h-[80px] rounded-xl p-1.5 transition-colors', dragUrl && 'bg-muted/30')}>
-              {grouped[col.id].map(([url, entry]) => (
-                <BoardCard
-                  key={url}
-                  url={url}
-                  entry={entry}
-                  onDragStart={() => setDragUrl(url)}
-                  onSave={(notes, title, company) => saveEntry(url, entry.status as BoardStatus, notes, title, company)}
-                  onDelete={() => deleteEntry(url)}
-                />
-              ))}
-              {col.id === 'found' && (
-                <AddJobForm onAdd={(url, title, company) => saveEntry(url, 'found', '', title, company)} />
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="pointer-events-none absolute right-0 top-0 bottom-4 w-10 bg-gradient-to-l from-background to-transparent sm:hidden" />
+          ))}
+        </div>
+        <div className="pointer-events-none absolute right-0 top-0 bottom-4 w-10 bg-gradient-to-l from-background to-transparent sm:hidden" />
       </div>
     </div>
+  );
+}
+
+export function Board() {
+  return (
+    <RequireAuth prompt="track your pipeline">
+      <BoardContent />
+    </RequireAuth>
   );
 }

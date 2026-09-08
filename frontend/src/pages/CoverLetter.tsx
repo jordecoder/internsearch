@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { ArrowRight, Loader2, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -64,8 +65,10 @@ function Results({ result }: { result: ApplicationMaterials }) {
 }
 
 export function CoverLetter() {
+  const location = useLocation();
+  const navState = location.state as { company?: string; title?: string; url?: string } | null;
   const [jd, setJd] = useState('');
-  const [company, setCompany] = useState('');
+  const [company, setCompany] = useState(navState?.company ?? '');
   const [question, setQuestion] = useState(DEFAULT_QUESTION);
   const resume = useResumeFile();
   const { fileText } = resume;
@@ -97,6 +100,13 @@ export function CoverLetter() {
         <p className="mt-1.5 text-sm text-muted-foreground">
           Draft a ready-to-send cover letter and answer "why this company" style essay questions.
         </p>
+        {navState?.title && (
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 border border-border rounded-md px-3 py-1.5 w-fit">
+            <Link2 className="h-3 w-3" />
+            Prefilled from <span className="font-medium text-foreground">{navState.title}</span> at{' '}
+            <span className="font-medium text-foreground">{navState.company}</span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-6 items-start">

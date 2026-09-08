@@ -175,7 +175,7 @@ export function Interview() {
     <div className="max-w-3xl mx-auto px-5 py-8 pb-20">
       <div className="mb-6 animate-fade-up">
         <h1 className="text-3xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
-          Mock Interview
+          Interview Prep
         </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
           Practice live against a job description, including group-discussion rounds.

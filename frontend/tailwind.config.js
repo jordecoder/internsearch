@@ -56,6 +56,10 @@ export default {
           DEFAULT:    'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        popover: {
+          DEFAULT:    'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -79,6 +83,14 @@ export default {
           from: { opacity: '0' },
           to:   { opacity: '1' },
         },
+        'slide-in-right': {
+          from: { transform: 'translateX(100%)' },
+          to:   { transform: 'translateX(0)' },
+        },
+        'slide-in-left': {
+          from: { transform: 'translateX(-100%)' },
+          to:   { transform: 'translateX(0)' },
+        },
         'orb-1': {
           '0%,100%': { transform: 'translate(0,0) scale(1)' },
           '25%':     { transform: 'translate(55px,-35px) scale(1.06)' },
@@ -100,6 +112,8 @@ export default {
         shimmer:   'shimmer 1.6s ease-in-out infinite',
         'fade-up': 'fade-up 0.3s ease both',
         'fade-in': 'fade-in 0.2s ease both',
+        'slide-in-right': 'slide-in-right 0.22s cubic-bezier(0.16,1,0.3,1)',
+        'slide-in-left': 'slide-in-left 0.22s cubic-bezier(0.16,1,0.3,1)',
         'orb-1':   'orb-1 26s ease-in-out infinite',
         'orb-2':   'orb-2 32s ease-in-out infinite',
         'orb-3':   'orb-3 22s ease-in-out infinite',
