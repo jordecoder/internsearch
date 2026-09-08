@@ -249,9 +249,20 @@ def score_career_fit(job: Job, profile: dict[str, Any]) -> CareerScore | None:
         career_value = _clamp(data.get("career_value"), 0, 10)
         eligibility = _clamp(data.get("eligibility"), 0, 10)
         bonus_penalty = _clamp(data.get("bonus_penalty"), -30, 10)
-        base = career_direction_fit + technical_match + evidence_strength + engineering_depth + career_value + eligibility
-        final_score = _clamp(data.get("final_score", base + bonus_penalty), 0, 100, default=max(0, min(100, base + bonus_penalty)))
 
+        # final_score is ALWAYS derived from the sub-scores + bonus_penalty, never
+        # taken from whatever number Gemini separately wrote next to "final_score"
+        # in its response — free-form generation is prone to arithmetic that
+        # doesn't actually add up (e.g. sub-scores summing to 70 but a stated
+        # final_score of 85). Deriving it guarantees the breakdown always tallies
+        # with the headline number, by construction, every time.
+        base = career_direction_fit + technical_match + evidence_strength + engineering_depth + career_value + eligibility
+        final_score = max(0, min(100, base + bonus_penalty))
+
+        # Same reasoning for classification/recommendation: derive them from the
+        # now-consistent final_score rather than trusting Gemini's own label,
+        # which could otherwise disagree with the number (e.g. "Strong Target"
+        # attached to a 60).
         return CareerScore(
             final_score=final_score,
             career_direction_fit=career_direction_fit,
@@ -261,11 +272,11 @@ def score_career_fit(job: Job, profile: dict[str, Any]) -> CareerScore | None:
             career_value=career_value,
             eligibility=eligibility,
             bonus_penalty=bonus_penalty,
-            classification=_coerce_enum(data.get("classification"), CLASSIFICATIONS, _classification_from_score(final_score)),
+            classification=_classification_from_score(final_score),
             primary_track=_coerce_enum(data.get("primary_track"), TRACKS, "Other"),
             why_it_matches=str(data.get("why_it_matches", ""))[:800],
             main_gap=str(data.get("main_gap", ""))[:400],
-            recommendation=_coerce_enum(data.get("recommendation"), RECOMMENDATIONS, _recommendation_from_score(final_score)),
+            recommendation=_recommendation_from_score(final_score),
             source="llm",
         )
     except Exception:

@@ -11,11 +11,14 @@ from job_model import Job
 from opportunity_insights import OpportunityInsights
 from scoring import Score
 
-_SKIP_TIMELINE = {
+# Filler timeline text that carries no real signal — suppressed wherever a
+# timeline is displayed (single-job alerts and digests alike).
+SKIP_TIMELINE = {
     "newly discovered, timeline unspecified",
     "recent posting, timeline unspecified",
     "fresh posting, timeline unspecified",
 }
+_SKIP_TIMELINE = SKIP_TIMELINE  # legacy alias, kept for any external references
 
 
 def _escape(value: str) -> str:

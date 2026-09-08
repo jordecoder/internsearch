@@ -163,8 +163,82 @@ def test_near_match_digest_includes_job_links_and_scores():
     assert "missing: docker" in message
     assert "seek referral" in message
     assert "Role: Data Engineering" in message
-    assert "Deadline: No deadline found" in message
+    # "No deadline found" carries zero information — suppressed as noise rather
+    # than shown on almost every single item.
+    assert "Deadline:" not in message
     assert "https://example.com/job?a=1&amp;b=2" in message
+
+
+def test_near_match_digest_shows_deadline_when_a_real_one_was_extracted():
+    job = Job(
+        source="Greenhouse:grab",
+        title="Data Platform Intern",
+        company="Grab",
+        location="Singapore",
+        url="https://example.com/job",
+    )
+    score = Score(
+        role_relevance=80, skill_relevance=70, location_relevance=90,
+        timeline_relevance=40, degree_relevance=60, overall=65,
+        timeline_match="Timeline unclear",
+    )
+
+    message = format_near_match_digest(
+        [
+            (
+                job,
+                score,
+                ResumeMatch(["python"], [], 100, 1),
+                OpportunityInsights(
+                    opportunity_type="job_posting",
+                    role_family="Data Engineering",
+                    deadline="15 March 2027",
+                    recommended_action="Apply now.",
+                    resume_suggestion="",
+                    referral_priority=False,
+                ),
+            )
+        ],
+        now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
+    )
+
+    assert "Deadline: 15 March 2027" in message
+
+
+def test_near_match_digest_suppresses_filler_timeline_text():
+    job = Job(
+        source="Greenhouse:grab",
+        title="Data Platform Intern",
+        company="Grab",
+        location="Singapore",
+        url="https://example.com/job",
+    )
+    score = Score(
+        role_relevance=80, skill_relevance=70, location_relevance=90,
+        timeline_relevance=40, degree_relevance=60, overall=65,
+        timeline_match="Newly discovered, timeline unspecified",
+    )
+
+    message = format_near_match_digest(
+        [
+            (
+                job,
+                score,
+                ResumeMatch(["python"], [], 100, 1),
+                OpportunityInsights(
+                    opportunity_type="job_posting",
+                    role_family="Data Engineering",
+                    deadline="No deadline found",
+                    recommended_action="Apply now.",
+                    resume_suggestion="",
+                    referral_priority=False,
+                ),
+            )
+        ],
+        now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
+    )
+
+    assert "Timeline:" not in message
 
 
 def test_actionable_digest_includes_seen_before_candidates():
@@ -205,7 +279,7 @@ def test_actionable_digest_includes_seen_before_candidates():
         now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
     )
 
-    assert "Current actionable Singapore tech internships" in message
+    assert "New actionable Singapore tech internships" in message
     assert "Analytics Engineer Intern" in message
     assert "seen before" in message
     assert "Role: Data Science / Analytics" in message

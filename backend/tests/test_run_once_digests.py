@@ -3,30 +3,7 @@ from database import init_db, record_discovery
 import main
 
 
-def test_run_once_sends_actionable_digest_for_seen_before_candidate(tmp_path, monkeypatch):
-    db_path = str(tmp_path / "jobs.sqlite3")
-    job = Job(
-        source="Greenhouse:workato",
-        title="Analytics Engineer Intern",
-        company="Workato",
-        location="Singapore",
-        url="https://example.com/workato",
-        description="Analytics internship using Python SQL dashboards.",
-    )
-    init_db(db_path)
-    record_discovery(db_path, job)
-
-    sent_messages = []
-
-    def fake_fetch_all_jobs(config, client):
-        return [job], {"Greenhouse": 1}
-
-    def fake_send(message, *, disable_web_page_preview=False):
-        sent_messages.append(message)
-
-    monkeypatch.setattr(main, "fetch_all_jobs", fake_fetch_all_jobs)
-    monkeypatch.setattr(main, "send_telegram_message", fake_send)
-
+def _actionable_digest_config(db_path: str, **overrides) -> dict:
     config = {
         "database_path": db_path,
         "posted_within_hours": 24,
@@ -50,14 +27,78 @@ def test_run_once_sends_actionable_digest_for_seen_before_candidate(tmp_path, mo
         "manual_review_digest": {"enabled": False},
         "weekly_summary": {"enabled": False},
         "heartbeat": {"enabled": False},
+        "send_phase_status": {"enabled": False},
         "career_scoring": {"enabled": False},
         "application_tracker": {"enabled": False},
     }
+    config.update(overrides)
+    return config
 
-    main.run_once(config)
 
-    assert any("Current actionable Singapore tech internships" in msg for msg in sent_messages)
-    assert any("seen before" in msg for msg in sent_messages)
+def test_run_once_includes_new_candidate_in_actionable_digest(tmp_path, monkeypatch):
+    """A job discovered for the first time this run should appear in the digest."""
+    db_path = str(tmp_path / "jobs.sqlite3")
+    job = Job(
+        source="Greenhouse:workato",
+        title="Analytics Engineer Intern",
+        company="Workato",
+        location="Singapore",
+        url="https://example.com/workato",
+        description="Analytics internship using Python SQL dashboards.",
+    )
+    init_db(db_path)  # not pre-discovered — this run is its first sighting
+
+    sent_messages = []
+
+    def fake_fetch_all_jobs(config, client):
+        return [job], {"Greenhouse": 1}
+
+    def fake_send(message, *, disable_web_page_preview=False):
+        sent_messages.append(message)
+
+    monkeypatch.setattr(main, "fetch_all_jobs", fake_fetch_all_jobs)
+    monkeypatch.setattr(main, "send_telegram_message", fake_send)
+
+    main.run_once(_actionable_digest_config(db_path))
+
+    assert any("New actionable Singapore tech internships" in msg for msg in sent_messages)
+    assert any("Analytics Engineer Intern" in msg for msg in sent_messages)
+
+
+def test_run_once_does_not_resend_actionable_digest_for_already_known_candidate(tmp_path, monkeypatch):
+    """The redundant-notification bug: a job already discovered in a prior run
+    (record_discovery called once already, below) used to keep reappearing in
+    the actionable digest on every subsequent run for as long as it stayed
+    actionable — potentially for days. It shouldn't reappear at all once it's
+    no longer new."""
+    db_path = str(tmp_path / "jobs.sqlite3")
+    job = Job(
+        source="Greenhouse:workato",
+        title="Analytics Engineer Intern",
+        company="Workato",
+        location="Singapore",
+        url="https://example.com/workato",
+        description="Analytics internship using Python SQL dashboards.",
+    )
+    init_db(db_path)
+    record_discovery(db_path, job)  # already known before this run — not new
+
+    sent_messages = []
+
+    def fake_fetch_all_jobs(config, client):
+        return [job], {"Greenhouse": 1}
+
+    def fake_send(message, *, disable_web_page_preview=False):
+        sent_messages.append(message)
+
+    monkeypatch.setattr(main, "fetch_all_jobs", fake_fetch_all_jobs)
+    monkeypatch.setattr(main, "send_telegram_message", fake_send)
+
+    main.run_once(_actionable_digest_config(db_path))
+
+    # No items reached the digest, so maybe_send_actionable_digest returns early —
+    # no message sent at all for this run.
+    assert sent_messages == []
 
 
 def test_run_once_excludes_programme_page_from_actionable_digest(tmp_path, monkeypatch):

@@ -43,6 +43,11 @@ export function TopBar({ title, onOpenMobileSidebar, onOpenCommandMenu }: TopBar
         </kbd>
       </button>
 
+      {/* Absorbs any leftover space so the icon cluster below stays pinned to the
+          right edge instead of drifting toward the middle once the search box
+          (capped at max-w-sm) stops growing on wide screens. */}
+      <div className="flex-1" aria-hidden />
+
       <div className="flex items-center gap-1 flex-shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

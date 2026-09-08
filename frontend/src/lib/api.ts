@@ -54,10 +54,28 @@ async function doFetch(path: string, opts: RequestInit, headers: Record<string, 
     throw new ApiError('Session expired — please log in again.', 401);
   }
   if (!r.ok) {
-    const e = await r.json().catch(() => ({}));
-    throw new ApiError((e as { detail?: string }).detail ?? `Request failed (${r.status})`, r.status);
+    const body = await r.json().catch(() => ({}));
+    throw new ApiError(extractErrorMessage(body) ?? `Request failed (${r.status})`, r.status);
   }
   return r;
+}
+
+/**
+ * FastAPI error bodies come in two shapes: our own `HTTPException(detail="...")`
+ * gives a plain string, but Pydantic validation failures (422s) give
+ * `detail: [{type, loc, msg, ...}, ...]`. Passing that array straight into
+ * `new Error(...)` stringifies to "[object Object]" — this normalizes both.
+ */
+function extractErrorMessage(body: unknown): string | undefined {
+  const detail = (body as { detail?: unknown } | null)?.detail;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => (item && typeof item === 'object' && 'msg' in item ? String((item as { msg: unknown }).msg) : null))
+      .filter((m): m is string => !!m);
+    if (messages.length) return messages.join('; ');
+  }
+  return undefined;
 }
 
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {

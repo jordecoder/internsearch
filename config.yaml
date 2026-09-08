@@ -13,8 +13,14 @@ check_interval_minutes: 180
 career_scoring:
   enabled: true
 
+# "Scraping complete, about to check what's due" — fires every single pipeline
+# run (every 3h = ~8x/day), unconditionally, with generic internal telemetry
+# rather than anything about a specific job. heartbeat below already covers
+# the "is the pipeline alive and healthy" need at a saner daily cadence.
+# Disabled as the single most repetitive/low-value message type. Flip back to
+# true any time if you actually want the per-run pings.
 send_phase_status:
-  enabled: true
+  enabled: false
 
 heartbeat:
   enabled: true

@@ -136,10 +136,61 @@ def test_score_career_fit_clamps_out_of_range_values(monkeypatch):
     assert result is not None
     assert result.career_direction_fit == 30  # clamped to max
     assert result.technical_match == 0  # clamped to min
-    assert result.final_score == 100  # clamped to max
+    assert result.bonus_penalty == 10  # clamped to max (allowed range is -30..10)
+    # final_score must be DERIVED from the (clamped) sub-scores + bonus_penalty —
+    # 30 + 0 + 15 + 10 + 10 + 10 + 10 = 85 — never taken from the wildly wrong
+    # "final_score": 500 Gemini stated in the payload above. This is the tally
+    # invariant: the breakdown and the headline number must always agree.
+    assert result.final_score == 85
     assert result.classification in career_scoring.CLASSIFICATIONS
     assert result.primary_track in career_scoring.TRACKS
     assert result.recommendation in career_scoring.RECOMMENDATIONS
+
+
+def test_score_career_fit_final_score_always_equals_subscore_sum(monkeypatch):
+    """The tally invariant, generally: for any (valid-shaped) Gemini response,
+    final_score must equal the sum of the six clamped sub-scores plus
+    bonus_penalty, clamped to [0, 100] — regardless of what Gemini itself
+    claims the final_score or classification/recommendation should be."""
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-key")
+    payload = {
+        "career_direction_fit": 10,
+        "technical_match": 5,
+        "evidence_strength": 5,
+        "engineering_depth": 2,
+        "career_value": 2,
+        "eligibility": 2,
+        "bonus_penalty": -30,
+        "final_score": 99,  # deliberately inconsistent with the sub-scores above
+        "classification": "Strong Target",  # also deliberately inconsistent
+        "primary_track": "Data Engineering",
+        "why_it_matches": "x",
+        "main_gap": "y",
+        "recommendation": "APPLY IMMEDIATELY",  # also deliberately inconsistent
+    }
+
+    class FakeModel:
+        def __init__(self, *_a, **_kw):
+            pass
+
+        def generate_content(self, _prompt):
+            return FakeResponse(payload)
+
+    import google.generativeai as genai
+
+    monkeypatch.setattr(genai, "GenerativeModel", FakeModel)
+    monkeypatch.setattr(genai, "configure", lambda **_kw: None)
+
+    result = score_career_fit(_job(), PROFILE)
+    assert result is not None
+    expected = max(0, min(100, 10 + 5 + 5 + 2 + 2 + 2 - 30))
+    assert result.final_score == expected == 0
+    # classification/recommendation must match the DERIVED score's band, not
+    # Gemini's own (inconsistent) claims of "Strong Target" / "APPLY IMMEDIATELY".
+    assert result.classification == career_scoring._classification_from_score(expected)
+    assert result.classification == "Skip"
+    assert result.recommendation == career_scoring._recommendation_from_score(expected)
+    assert result.recommendation == "SKIP"
 
 
 def test_score_career_fit_returns_none_on_gemini_error(monkeypatch):

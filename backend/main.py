@@ -24,7 +24,7 @@ from database import (
 )
 from display_utils import display_company, display_source, display_text, display_title, posted_date
 from http_client import PoliteHttpClient
-from notifier import send_actionable_telegram, send_telegram, send_telegram_message
+from notifier import SKIP_TIMELINE, send_actionable_telegram, send_telegram, send_telegram_message
 from opportunity_insights import (
     OpportunityInsights,
     build_opportunity_insights,
@@ -294,10 +294,10 @@ def format_near_match_digest(
             [
                 f"{index}. <a href=\"{url}\">{title}</a>",
                 f"{company} | {location} | score {score.overall}/100",
-                f"Type: {html.escape(insights.opportunity_type)} | Role: {html.escape(insights.role_family)}",
+                f"Role: {html.escape(insights.role_family)}",
                 f"Posted: {html.escape(posted_date(job.posted_at))}",
-                f"Timeline: {html.escape(score.timeline_match)}",
-                f"Deadline: {html.escape(insights.deadline)}",
+                *_format_timeline_line(score.timeline_match),
+                *_format_deadline_line(insights.deadline),
                 _format_resume_note(resume_match),
                 html.escape(insights.recommended_action),
                 *_career_fit_lines(insights),
@@ -305,6 +305,23 @@ def format_near_match_digest(
             ]
         )
     return "\n".join(lines).strip()
+
+
+# "No deadline found" (no signal at all) is filler noise — only the "prioritize
+# while fresh" variant carries an actual hint, so that one's kept.
+_EMPTY_DEADLINE = "no deadline found"
+
+
+def _format_deadline_line(deadline: str) -> list[str]:
+    if not deadline or deadline.strip().lower() == _EMPTY_DEADLINE:
+        return []
+    return [f"Deadline: {html.escape(deadline)}"]
+
+
+def _format_timeline_line(timeline: str) -> list[str]:
+    if not timeline or timeline.strip().lower() in SKIP_TIMELINE:
+        return []
+    return [f"Timeline: {html.escape(timeline)}"]
 
 
 def _career_fit_lines(insights: OpportunityInsights) -> list[str]:
@@ -382,11 +399,9 @@ def format_actionable_digest(
 ) -> str:
     timestamp = format_singapore_time(now)
     lines = [
-        "🎯 <b>Current actionable Singapore tech internships</b>",
+        "🎯 <b>New actionable Singapore tech internships</b>",
         "",
         f"Generated: {timestamp}",
-        "",
-        "These are live candidates from this run, including jobs already seen before.",
         "",
     ]
     for index, (job, score, resume_match, insights, is_new) in enumerate(items, start=1):
@@ -399,9 +414,9 @@ def format_actionable_digest(
             [
                 f"{index}. <a href=\"{url}\">{title}</a>",
                 f"{company} | {location} | score {score.overall}/100 | {freshness}",
-                f"Type: {html.escape(insights.opportunity_type)} | Role: {html.escape(insights.role_family)}",
+                f"Role: {html.escape(insights.role_family)}",
                 f"Posted: {html.escape(posted_date(job.posted_at))}",
-                f"Deadline: {html.escape(insights.deadline)}",
+                *_format_deadline_line(insights.deadline),
                 _format_resume_note(resume_match),
                 html.escape(insights.recommended_action),
                 *_career_fit_lines(insights),
@@ -829,7 +844,14 @@ def run_once(config: dict[str, Any]) -> int:
                 or insights.opportunity_type == "job_posting"
             )
         ):
-            current_actionable_items.append((job, effective_score, resume_match, insights, is_new))
+            # Digests are "what's new" reports, not a mirror of the tracker — a job
+            # keeps meeting this threshold on every 3-hourly run for as long as it's
+            # actionable, and re-including it every cycle is exactly the redundant
+            # repeat-notification this list used to cause. Only ever add it once,
+            # the run it's first discovered; the tracker CSV below still reflects
+            # every actionable job's current state regardless of is_new.
+            if is_new:
+                current_actionable_items.append((job, effective_score, resume_match, insights, is_new))
             if tracker_enabled:
                 update_application_tracker(
                     tracker_path,
@@ -873,7 +895,8 @@ def run_once(config: dict[str, Any]) -> int:
 
         if not strict_match:
             if (
-                effective_score.overall >= near_min_overall
+                is_new  # same "what's new" rule as current_actionable_items above
+                and effective_score.overall >= near_min_overall
                 and score.location_relevance >= near_min_location
             ):
                 near_matches.append((job, effective_score, resume_match, insights))
