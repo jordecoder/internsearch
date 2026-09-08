@@ -10,6 +10,8 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from api.auth import router as auth_router, limiter
+from api.generate import router as generate_router
+from api.interview import router as interview_router
 from api.rag import router as rag_router
 from api.tracker import router as tracker_router
 
@@ -42,6 +44,8 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(rag_router, prefix="/api", tags=["rag"])
 app.include_router(tracker_router, prefix="/api", tags=["tracker"])
+app.include_router(generate_router, prefix="/api", tags=["generate"])
+app.include_router(interview_router, prefix="/api", tags=["interview"])
 
 
 @app.get("/health")

@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { KeyRound, ArrowRight, Loader2, Send, RotateCcw, Sparkles } from 'lucide-react';
+import { ArrowRight, Loader2, Send, RotateCcw, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { getKey, startInterview, continueInterview, getInterviewFeedback } from '@/lib/gemini';
+import * as api from '@/lib/api';
 import { useResumeFile } from '@/hooks/useResumeFile';
-import { useGeminiKey } from '@/hooks/useGeminiKey';
 import { ResumeDropzone } from '@/components/ResumeDropzone';
-import { GeminiKeySetup } from '@/components/GeminiKeySetup';
+import { RequireAuth } from '@/components/RequireAuth';
 import { cn } from '@/lib/utils';
 import type { ChatTurn, InterviewFeedback, InterviewMode } from '@/types/job';
 
@@ -103,7 +102,6 @@ function FeedbackCard({ feedback }: { feedback: InterviewFeedback }) {
 }
 
 export function Interview() {
-  const { hasKey, markSaved, changeKey } = useGeminiKey();
   const resume = useResumeFile();
   const { fileText } = resume;
   const [jd, setJd] = useState('');
@@ -121,22 +119,15 @@ export function Interview() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [history, feedback]);
 
-  const handleError = (e: unknown) => {
-    const msg = (e as Error).message;
-    if (msg === 'API_KEY_INVALID') changeKey();
-    else setError(msg);
-  };
-
   const start = async () => {
     setError('');
     setSending(true);
     try {
-      const key = getKey()!;
-      const turns = await startInterview(mode, fileText, jd, key);
+      const turns = await api.startInterview(mode, fileText, jd);
       setHistory(turns);
       setStarted(true);
     } catch (e) {
-      handleError(e);
+      setError((e as Error).message);
     } finally {
       setSending(false);
     }
@@ -149,11 +140,10 @@ export function Interview() {
     setError('');
     setSending(true);
     try {
-      const key = getKey()!;
-      const newTurns = await continueInterview(mode, fileText, jd, history, msg, key);
+      const newTurns = await api.continueInterview(mode, fileText, jd, history, msg);
       setHistory((h) => [...h, ...newTurns]);
     } catch (e) {
-      handleError(e);
+      setError((e as Error).message);
     } finally {
       setSending(false);
     }
@@ -163,11 +153,10 @@ export function Interview() {
     setError('');
     setFeedbackLoading(true);
     try {
-      const key = getKey()!;
-      const fb = await getInterviewFeedback(mode, fileText, jd, history, key);
+      const fb = await api.getInterviewFeedback(mode, jd, history);
       setFeedback(fb);
     } catch (e) {
-      handleError(e);
+      setError((e as Error).message);
     } finally {
       setFeedbackLoading(false);
     }
@@ -181,24 +170,16 @@ export function Interview() {
     setError('');
   };
 
-  if (!hasKey) return <GeminiKeySetup onSaved={markSaved} />;
-
   return (
+    <RequireAuth prompt="practice interviews">
     <div className="max-w-3xl mx-auto px-5 py-8 pb-20">
       <div className="mb-6 animate-fade-up">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
-              Mock Interview
-            </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Practice live against a job description, including group-discussion rounds.
-            </p>
-          </div>
-          <button onClick={changeKey} className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-            <KeyRound className="h-3 w-3" /> <span className="hidden sm:inline">Change key</span>
-          </button>
-        </div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
+          Mock Interview
+        </h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Practice live against a job description, including group-discussion rounds.
+        </p>
       </div>
 
       {!started ? (
@@ -324,5 +305,6 @@ export function Interview() {
         </div>
       )}
     </div>
+    </RequireAuth>
   );
 }

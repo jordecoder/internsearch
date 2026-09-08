@@ -1,16 +1,15 @@
 import { useRef, useState } from 'react';
-import { KeyRound, ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getKey, generateApplicationMaterials } from '@/lib/gemini';
+import * as api from '@/lib/api';
 import { useResumeFile } from '@/hooks/useResumeFile';
-import { useGeminiKey } from '@/hooks/useGeminiKey';
 import { ResumeDropzone } from '@/components/ResumeDropzone';
-import { GeminiKeySetup } from '@/components/GeminiKeySetup';
+import { RequireAuth } from '@/components/RequireAuth';
 import { CopyButton } from '@/components/CopyButton';
 import type { ApplicationMaterials } from '@/types/job';
 
@@ -65,7 +64,6 @@ function Results({ result }: { result: ApplicationMaterials }) {
 }
 
 export function CoverLetter() {
-  const { hasKey, markSaved, changeKey } = useGeminiKey();
   const [jd, setJd] = useState('');
   const [company, setCompany] = useState('');
   const [question, setQuestion] = useState(DEFAULT_QUESTION);
@@ -80,36 +78,25 @@ export function CoverLetter() {
     setError('');
     setLoading(true);
     try {
-      const key = getKey()!;
-      const res = await generateApplicationMaterials(fileText, jd, company.trim(), question.trim(), key);
+      const res = await api.generateMaterials(fileText, jd, company.trim(), question.trim());
       setResult(res);
     } catch (e) {
-      const msg = (e as Error).message;
-      if (msg === 'API_KEY_INVALID') changeKey();
-      else setError(msg);
+      setError((e as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
-  if (!hasKey) return <GeminiKeySetup onSaved={markSaved} />;
-
   return (
+    <RequireAuth prompt="draft cover letters">
     <div className="max-w-5xl mx-auto px-5 py-8 pb-20">
       <div className="mb-8 animate-fade-up">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
-              Cover Letter & Essays
-            </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Draft a ready-to-send cover letter and answer "why this company" style essay questions.
-            </p>
-          </div>
-          <button onClick={changeKey} className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-            <KeyRound className="h-3 w-3" /> <span className="hidden sm:inline">Change key</span>
-          </button>
-        </div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
+          Cover Letter & Essays
+        </h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Draft a ready-to-send cover letter and answer "why this company" style essay questions.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-6 items-start">
@@ -174,5 +161,6 @@ export function CoverLetter() {
         </div>
       </div>
     </div>
+    </RequireAuth>
   );
 }

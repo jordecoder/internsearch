@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import io
 import json
-import os
 import re
 import textwrap
 from typing import Annotated
@@ -15,14 +14,12 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Uplo
 from pydantic import BaseModel
 
 from api.auth import get_current_user, limiter
+from api.gemini_client import EMBED_MODEL, GEN_MODEL
 
 router = APIRouter()
 
-_GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
-genai.configure(api_key=_GEMINI_API_KEY)
-
-_EMBED_MODEL = "models/text-embedding-004"
-_GEN_MODEL = "gemini-2.0-flash"
+_EMBED_MODEL = EMBED_MODEL
+_GEN_MODEL = GEN_MODEL
 _MAX_FILE_BYTES = 5 * 1024 * 1024  # 5 MB
 
 

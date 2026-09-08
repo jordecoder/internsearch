@@ -1,16 +1,15 @@
 import { useRef, useState } from 'react';
-import { KeyRound, ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getKey, tailorResume } from '@/lib/gemini';
+import * as api from '@/lib/api';
 import { useResumeFile } from '@/hooks/useResumeFile';
-import { useGeminiKey } from '@/hooks/useGeminiKey';
 import { ResumeDropzone } from '@/components/ResumeDropzone';
-import { GeminiKeySetup } from '@/components/GeminiKeySetup';
+import { RequireAuth } from '@/components/RequireAuth';
 import { CopyButton } from '@/components/CopyButton';
 import type { TailorResult } from '@/types/job';
 
@@ -123,56 +122,41 @@ function Results({ result }: { result: TailorResult }) {
 
 /* ── Main Tailor page ── */
 export function Tailor() {
-  const { hasKey, markSaved, changeKey } = useGeminiKey();
   const [jd, setJd]           = useState('');
   const resume = useResumeFile();
-  const { fileText } = resume;
+  const { file } = resume;
   const [loading, setLoading]   = useState(false);
   const [result, setResult]     = useState<TailorResult | null>(null);
   const [error, setError]       = useState('');
 
   const submit = async () => {
-    if (!fileText || jd.trim().length < 50) return;
+    if (!file || jd.trim().length < 50) return;
     setError('');
     setLoading(true);
     try {
-      const key = getKey()!;
-      const res = await tailorResume(fileText, jd, key);
+      const res = await api.tailorResume(file, jd);
       setResult(res);
     } catch (e) {
-      const msg = (e as Error).message;
-      if (msg === 'API_KEY_INVALID') changeKey();
-      else setError(msg);
+      setError((e as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
-  if (!hasKey) return <GeminiKeySetup onSaved={markSaved} />;
-
   return (
+    <RequireAuth prompt="tailor your resume">
     <div className="max-w-5xl mx-auto px-5 py-8 pb-20">
       {/* Header */}
       <div className="mb-8 animate-fade-up">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1
-              className="text-3xl font-extrabold tracking-tight text-foreground"
-              style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}
-            >
-              Resume Tailor
-            </h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              Upload your resume, paste a job description, get a targeted match.
-            </p>
-          </div>
-          <button
-            onClick={changeKey}
-            className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-          >
-            <KeyRound className="h-3 w-3" /> <span className="hidden sm:inline">Change key</span>
-          </button>
-        </div>
+        <h1
+          className="text-3xl font-extrabold tracking-tight text-foreground"
+          style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}
+        >
+          Resume Tailor
+        </h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Upload your resume, paste a job description, get a targeted match.
+        </p>
       </div>
 
       {/* Two-column layout */}
@@ -209,7 +193,7 @@ export function Tailor() {
           {/* Submit */}
           <Button
             onClick={submit}
-            disabled={loading || !fileText || jd.trim().length < 50}
+            disabled={loading || !file || jd.trim().length < 50}
             className="w-full h-10"
           >
             {loading ? (
@@ -241,5 +225,6 @@ export function Tailor() {
         </div>
       </div>
     </div>
+    </RequireAuth>
   );
 }
