@@ -5,6 +5,10 @@ import { TopBar } from '@/components/layout/TopBar';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
+// '/login' deliberately has no entry: the login card already shows "Log in" as
+// its own heading, so a page title next to the hamburger button would just be
+// dead-looking duplicate text sitting beside the account button that does the
+// same thing.
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Jobs',
   '/saved': 'Saved',
@@ -13,7 +17,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/cover-letter': 'Cover Letter',
   '/interview': 'Interview Prep',
   '/settings': 'Settings',
-  '/login': 'Log in',
 };
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -38,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar
-            title={PAGE_TITLES[pathname] ?? 'Intern Scout'}
+            title={PAGE_TITLES[pathname] ?? ''}
             onOpenMobileSidebar={() => setMobileOpen(true)}
           />
           <main className="flex-1 overflow-y-auto">{children}</main>

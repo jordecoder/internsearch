@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Menu, Search, Bell, Moon, Sun, UserRound, LogOut, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +20,6 @@ export function TopBar({ title, onOpenMobileSidebar }: TopBarProps) {
   const { username, logout } = useAuth();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
@@ -106,11 +105,9 @@ export function TopBar({ title, onOpenMobileSidebar }: TopBarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          pathname !== '/login' && (
-            <Button size="sm" variant="outline" onClick={() => navigate('/login')} className="h-8 gap-1.5">
-              <UserRound className="h-3.5 w-3.5" /> Log in
-            </Button>
-          )
+          <Button size="sm" variant="outline" onClick={() => navigate('/login')} className="h-8 gap-1.5">
+            <UserRound className="h-3.5 w-3.5" /> Log in
+          </Button>
         )}
       </div>
     </header>
