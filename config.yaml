@@ -4,6 +4,15 @@ resume_profile_path: resume_profile.yaml
 posted_within_hours: 24
 check_interval_minutes: 180
 
+# LLM career-fit scoring (career_scoring.py) — scores each actionable job against
+# your actual target career paths (resume_profile.yaml), not just keyword overlap.
+# Needs GEMINI_API_KEY in the environment; each job is scored at most once (cached
+# by stable_id), so this doesn't call Gemini on every 3-hourly run. If the key is
+# missing or a call fails, a deterministic fallback is used for *display only* —
+# it never changes which alerts fire (see main.py's `effective_score` logic).
+career_scoring:
+  enabled: true
+
 send_phase_status:
   enabled: true
 

@@ -99,6 +99,11 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # career_scoring.py — without this, career-fit scoring silently falls
+          # back to a rough deterministic approximation instead of scoring with
+          # Gemini (see career_scoring.py's docstring). Add GEMINI_API_KEY as a
+          # repo secret (Settings -> Secrets and variables -> Actions) to enable it.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python main.py --once
 
       - name: Export jobs to dashboard JSON

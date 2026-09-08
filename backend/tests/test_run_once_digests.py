@@ -50,6 +50,7 @@ def test_run_once_sends_actionable_digest_for_seen_before_candidate(tmp_path, mo
         "manual_review_digest": {"enabled": False},
         "weekly_summary": {"enabled": False},
         "heartbeat": {"enabled": False},
+        "career_scoring": {"enabled": False},
         "application_tracker": {"enabled": False},
     }
 
@@ -110,6 +111,7 @@ def test_run_once_excludes_programme_page_from_actionable_digest(tmp_path, monke
         "manual_review_digest": {"enabled": False},
         "weekly_summary": {"enabled": False},
         "heartbeat": {"enabled": False},
+        "career_scoring": {"enabled": False},
         "application_tracker": {"enabled": False},
     }
 
@@ -163,6 +165,7 @@ def test_run_once_sends_new_actionable_job_below_strict_score(tmp_path, monkeypa
         "manual_review_digest": {"enabled": False},
         "weekly_summary": {"enabled": False},
         "heartbeat": {"enabled": False},
+        "career_scoring": {"enabled": False},
         "application_tracker": {"enabled": False},
     }
 

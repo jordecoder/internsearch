@@ -5,3 +5,8 @@ requests==2.32.3
 python-dateutil==2.9.0.post0
 tzdata==2025.2
 pytest==8.3.4
+
+# career_scoring.py — imported lazily, so the pipeline still runs fine without
+# this installed (it just always falls back to the deterministic approximation
+# instead of scoring with Gemini). Install it for real career-fit scoring.
+google-generativeai==0.8.3

@@ -300,11 +300,28 @@ def format_near_match_digest(
                 f"Deadline: {html.escape(insights.deadline)}",
                 _format_resume_note(resume_match),
                 html.escape(insights.recommended_action),
-                html.escape(insights.resume_suggestion),
+                *_career_fit_lines(insights),
                 "",
             ]
         )
     return "\n".join(lines).strip()
+
+
+def _career_fit_lines(insights: OpportunityInsights) -> list[str]:
+    """Personalized career-fit reasoning — only present when career_scoring.py
+    actually scored this job. Replaces the old generic resume_suggestion text
+    ("Tailor resume toward Data Science / Analytics...") with something that
+    says why THIS job specifically does or doesn't fit."""
+    if insights.career_score is None:
+        return [html.escape(insights.resume_suggestion)] if insights.resume_suggestion else []
+    lines = [f"Track: {html.escape(insights.primary_track)} | Career fit: {html.escape(insights.career_classification)}"]
+    if insights.why_it_matches:
+        lines.append(html.escape(insights.why_it_matches))
+    if insights.main_gap:
+        lines.append(f"Main gap: {html.escape(insights.main_gap)}")
+    if insights.career_recommendation:
+        lines.append(f"<b>{html.escape(insights.career_recommendation)}</b>")
+    return lines
 
 
 def maybe_send_near_match_digest(
@@ -387,6 +404,7 @@ def format_actionable_digest(
                 f"Deadline: {html.escape(insights.deadline)}",
                 _format_resume_note(resume_match),
                 html.escape(insights.recommended_action),
+                *_career_fit_lines(insights),
                 "",
             ]
         )

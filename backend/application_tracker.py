@@ -32,6 +32,13 @@ FIELDNAMES = [
     "missing_keywords",
     "next_action",
     "resume_suggestion",
+    "career_fit_score",
+    "career_direction_fit",
+    "career_classification",
+    "primary_track",
+    "why_it_matches",
+    "main_gap",
+    "career_recommendation",
     "notes",
 ]
 
@@ -92,6 +99,13 @@ def update_application_tracker(
         "missing_keywords": ", ".join(resume_match.missing_keywords[:8]),
         "next_action": insights.recommended_action if insights else "",
         "resume_suggestion": insights.resume_suggestion if insights else "",
+        "career_fit_score": str(insights.career_score) if insights and insights.career_score is not None else "",
+        "career_direction_fit": str(insights.career_direction_fit) if insights and insights.career_direction_fit is not None else "",
+        "career_classification": insights.career_classification if insights else "",
+        "primary_track": insights.primary_track if insights else "",
+        "why_it_matches": insights.why_it_matches if insights else "",
+        "main_gap": insights.main_gap if insights else "",
+        "career_recommendation": insights.career_recommendation if insights else "",
         "notes": notes,
     }
 

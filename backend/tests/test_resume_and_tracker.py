@@ -1,3 +1,5 @@
+import csv
+
 from job_model import Job
 from opportunity_insights import OpportunityInsights
 from application_tracker import update_application_tracker
@@ -119,3 +121,62 @@ def test_application_tracker_writes_internship_workflow_fields(tmp_path):
     assert "Cybersecurity" in content
     assert "referral_status" in content
     assert "needed" in content
+
+
+def test_application_tracker_writes_career_fit_fields_when_present(tmp_path):
+    path = tmp_path / "applications.csv"
+    job = Job(
+        source="Greenhouse:acme",
+        title="Data Platform Engineer Intern",
+        company="Acme",
+        location="Singapore",
+        url="https://example.com/platform-intern",
+    )
+    score = Score(80, 75, 90, 85, 60, 92, "Summer 2027")
+    match = match_resume_to_job(job, {"strength_keywords": ["python"]}, ["python"])
+    insights = OpportunityInsights(
+        opportunity_type="job_posting",
+        role_family="Data Engineering",
+        deadline="No deadline found",
+        recommended_action="Apply now; this is a strong match.",
+        resume_suggestion="",
+        referral_priority=False,
+        career_score=92,
+        career_direction_fit=28,
+        career_classification="Strong Target",
+        primary_track="Data Engineering",
+        why_it_matches="Directly builds data infrastructure matching your target career path.",
+        main_gap="No Kafka experience shown.",
+        career_recommendation="APPLY IMMEDIATELY",
+    )
+
+    update_application_tracker(str(path), job, score, match, insights=insights)
+
+    content = path.read_text(encoding="utf-8")
+
+    assert "career_fit_score" in content
+    assert "career_direction_fit" in content
+    assert "Strong Target" in content
+    assert "Data Engineering" in content
+    assert "No Kafka experience shown." in content
+    assert "APPLY IMMEDIATELY" in content
+
+
+def test_application_tracker_career_fit_fields_blank_when_not_scored(tmp_path):
+    """Old rows / jobs that never got career-scored shouldn't error or show garbage."""
+    path = tmp_path / "applications.csv"
+    job = Job(
+        source="Greenhouse:acme",
+        title="Software Engineer Intern",
+        company="Acme",
+        location="Singapore",
+        url="https://example.com/swe-intern",
+    )
+    score = Score(70, 65, 90, 80, 55, 71, "Summer 2027")
+    match = match_resume_to_job(job, {"strength_keywords": ["python"]}, ["python"])
+
+    update_application_tracker(str(path), job, score, match)  # no insights at all
+
+    rows = list(csv.DictReader(path.open("r", encoding="utf-8", newline="")))
+    assert rows[0]["career_fit_score"] == ""
+    assert rows[0]["career_classification"] == ""
