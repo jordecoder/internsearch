@@ -47,8 +47,7 @@ def fetch_ashby_boards(
 
         for item in data.get("jobs", []):
             description_parts = [
-                item.get("descriptionPlain") or "",
-                item.get("descriptionHtml") or "",
+                item.get("descriptionPlain") or item.get("descriptionHtml") or "",
                 item.get("department") or "",
                 item.get("team") or "",
                 item.get("employmentType") or "",

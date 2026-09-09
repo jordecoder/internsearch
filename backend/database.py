@@ -1,14 +1,37 @@
 from __future__ import annotations
 
+import re
 import sqlite3
 from datetime import datetime, timezone
+from html import unescape
 from pathlib import Path
 
 from job_model import Job
 
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+_WHITESPACE_RE = re.compile(r"[ \t]+")
+_BLANK_LINES_RE = re.compile(r"\n\s*\n+")
+
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _clean_description(text: str) -> str:
+    """Several sources hand back raw HTML in their description field (e.g.
+    Greenhouse's `content`, MyCareersFuture's rich-text fields) — strip tags
+    and decode entities so this is safe to show and autofill as plain text.
+    Plain-text descriptions pass through unchanged (no '<' means no tags to
+    strip)."""
+    if not text or "<" not in text:
+        return text
+    text = re.sub(r"</(p|div|li|h[1-6])>", "\n", text, flags=re.IGNORECASE)
+    text = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
+    text = _HTML_TAG_RE.sub("", text)
+    text = unescape(text)
+    text = _WHITESPACE_RE.sub(" ", text)
+    text = _BLANK_LINES_RE.sub("\n\n", text)
+    return text.strip()
 
 
 def init_db(db_path: str) -> None:
@@ -98,6 +121,7 @@ def record_discovery(db_path: str, job: Job) -> bool:
     """Persist a fetched job and return True if this is the first sighting."""
     now = _utc_now_iso()
     posted_time = job.posted_at.isoformat() if job.posted_at else None
+    description = _clean_description(job.description)
 
     with sqlite3.connect(db_path) as conn:
         try:
@@ -118,7 +142,7 @@ def record_discovery(db_path: str, job: Job) -> bool:
                     posted_time,
                     now,
                     now,
-                    job.description,
+                    description,
                 ),
             )
             return True
@@ -132,7 +156,7 @@ def record_discovery(db_path: str, job: Job) -> bool:
                     description = CASE WHEN description = '' THEN ? ELSE description END
                 WHERE stable_id = ?
                 """,
-                (now, posted_time, job.location, job.description, job.stable_id),
+                (now, posted_time, job.location, description, job.stable_id),
             )
             return False
 

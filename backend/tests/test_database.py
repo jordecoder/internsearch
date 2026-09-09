@@ -67,6 +67,30 @@ def test_record_discovery_persists_and_backfills_description(tmp_path):
     assert row[0] == "Build data pipelines at scale."
 
 
+def test_record_discovery_strips_html_from_description(tmp_path):
+    db_path = str(tmp_path / "jobs.sqlite3")
+    job = Job(
+        source="Greenhouse:stripe",
+        title="Software Engineer, Intern",
+        company="Stripe",
+        location="Singapore",
+        url="https://example.com/job",
+        description="<h2><strong>Who we are</strong></h2><p>Stripe is a technology company.</p><ul><li>Python</li><li>SQL</li></ul>",
+    )
+    init_db(db_path)
+    record_discovery(db_path, job)
+
+    with sqlite3.connect(db_path) as conn:
+        row = conn.execute(
+            "SELECT description FROM jobs WHERE stable_id = ?", (job.stable_id,)
+        ).fetchone()
+    stored = row[0]
+    assert "<" not in stored
+    assert "Who we are" in stored
+    assert "Stripe is a technology company." in stored
+    assert "Python" in stored and "SQL" in stored
+
+
 def test_init_db_adds_description_column_to_legacy_database(tmp_path):
     db_path = str(tmp_path / "jobs.sqlite3")
     with sqlite3.connect(db_path) as conn:
