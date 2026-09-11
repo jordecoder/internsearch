@@ -59,15 +59,13 @@ class JobConsumer:
 
         cfg = _build_config()
         self._consumer = Consumer(cfg)
-        # Separate producer for the dead-letter queue
+        # Separate producer for the dead-letter queue. Reuse _build_config() so
+        # the DLQ connection honors KAFKA_SASL_MECHANISM instead of assuming PLAIN.
         from confluent_kafka import Producer
-        self._dlq = Producer({"bootstrap.servers": os.environ["KAFKA_BOOTSTRAP_SERVERS"],
-                               **({
-                                   "security.protocol": "SASL_SSL",
-                                   "sasl.mechanisms": "PLAIN",
-                                   "sasl.username": os.getenv("KAFKA_API_KEY"),
-                                   "sasl.password": os.getenv("KAFKA_API_SECRET"),
-                               } if os.getenv("KAFKA_API_KEY") else {})})
+        dlq_cfg = {k: v for k, v in _build_config().items()
+                   if k not in ("group.id", "auto.offset.reset", "enable.auto.commit",
+                                "max.poll.interval.ms")}
+        self._dlq = Producer(dlq_cfg)
 
         self._consumer.subscribe([TOPIC])
         LOGGER.info("kafka_consumer_ready topic=%s group=%s db=%s", TOPIC, GROUP_ID, self._db_path)
