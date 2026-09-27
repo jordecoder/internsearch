@@ -30,6 +30,7 @@ class OpportunityInsights:
     why_it_matches: str = ""
     main_gap: str = ""
     career_recommendation: str = ""
+    visa_sponsorship_note: str = ""
 
 
 ROLE_FAMILY_TERMS = {
@@ -163,6 +164,45 @@ DEFAULT_GENERIC_TITLE_TERMS = [
     "student programs",
     "early careers",
 ]
+
+
+# Overseas internships (US/UK/China/Korea/Japan) usually require work
+# authorization interns rarely already have, and most postings don't mention
+# sponsorship either way — this is a display hint, not a filter.
+VISA_SPONSORSHIP_POSITIVE_TERMS = [
+    "visa sponsorship available",
+    "we sponsor visas",
+    "sponsorship available",
+    "will sponsor",
+    "open to sponsoring",
+    "sponsor work visas",
+    "sponsor employment visas",
+    "sponsors visas",
+]
+
+VISA_SPONSORSHIP_NEGATIVE_TERMS = [
+    "no visa sponsorship",
+    "not sponsor",
+    "without sponsorship",
+    "unable to sponsor",
+    "does not sponsor",
+    "not provide sponsorship",
+    "not offer sponsorship",
+    "not eligible for visa sponsorship",
+    "must be authorized to work",
+    "must have valid work authorization",
+    "authorized to work without sponsorship",
+    "no sponsorship is available",
+]
+
+
+def detect_visa_sponsorship(job: Job) -> str:
+    text = _text(job)
+    if _contains_any(text, VISA_SPONSORSHIP_NEGATIVE_TERMS):
+        return "No visa sponsorship — requires existing work authorization"
+    if _contains_any(text, VISA_SPONSORSHIP_POSITIVE_TERMS):
+        return "Visa sponsorship available"
+    return ""
 
 
 def _text(job: Job) -> str:
@@ -342,6 +382,7 @@ def build_opportunity_insights(
     deadline = extract_deadline(job)
     referral_priority = _is_referral_priority(job, config)
     resume_suggestion = build_resume_suggestion(role_family, resume_match)
+    visa_sponsorship_note = detect_visa_sponsorship(job)
     recommended_action = build_recommended_action(
         job,
         score,
@@ -364,6 +405,7 @@ def build_opportunity_insights(
         why_it_matches=career.why_it_matches if career else "",
         main_gap=career.main_gap if career else "",
         career_recommendation=career.recommendation if career else "",
+        visa_sponsorship_note=visa_sponsorship_note,
     )
 
 

@@ -301,6 +301,7 @@ def format_near_match_digest(
                 _format_resume_note(resume_match),
                 html.escape(insights.recommended_action),
                 *_career_fit_lines(insights),
+                *_format_visa_line(insights),
                 "",
             ]
         )
@@ -339,6 +340,12 @@ def _career_fit_lines(insights: OpportunityInsights) -> list[str]:
     if insights.career_recommendation:
         lines.append(f"<b>{html.escape(insights.career_recommendation)}</b>")
     return lines
+
+
+def _format_visa_line(insights: OpportunityInsights) -> list[str]:
+    if not insights.visa_sponsorship_note:
+        return []
+    return [html.escape(insights.visa_sponsorship_note)]
 
 
 def maybe_send_near_match_digest(
@@ -399,7 +406,7 @@ def format_actionable_digest(
 ) -> str:
     timestamp = format_singapore_time(now)
     lines = [
-        "🎯 <b>New actionable Singapore tech internships</b>",
+        "🎯 <b>New actionable tech internships</b>",
         "",
         f"Generated: {timestamp}",
         "",
@@ -420,6 +427,7 @@ def format_actionable_digest(
                 _format_resume_note(resume_match),
                 html.escape(insights.recommended_action),
                 *_career_fit_lines(insights),
+                *_format_visa_line(insights),
                 "",
             ]
         )
@@ -561,7 +569,7 @@ def format_weekly_summary(
         "📈 <b>Weekly internship search summary</b>\n\n"
         f"Generated: {timestamp}\n"
         f"Fetched postings reviewed: {fetched_postings}\n"
-        f"Actionable Singapore tech internships: {actionable_candidates}\n"
+        f"Actionable tech internships: {actionable_candidates}\n"
         f"Strict alerts sent: {alerts_sent}\n\n"
         f"<b>Top actionable companies</b>\n{company_lines}\n\n"
         f"<b>Common resume keyword gaps</b>\n{gap_lines}"

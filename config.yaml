@@ -253,8 +253,34 @@ manual_review_digest:
 
 candidate_filters:
   min_location: 70
+  # Singapore plus overseas hubs a Singapore student can realistically target:
+  # US, UK, China, South Korea, Japan (country names + common tech-hub cities).
   required_locations:
     - singapore
+    - united states
+    - usa
+    - u.s.
+    - new york
+    - san francisco
+    - bay area
+    - seattle
+    - austin
+    - boston
+    - united kingdom
+    - uk
+    - london
+    - china
+    - beijing
+    - shanghai
+    - shenzhen
+    - hangzhou
+    - hong kong
+    - south korea
+    - korea
+    - seoul
+    - japan
+    - tokyo
+    - osaka
   internship_terms:
     - intern
     - internship
@@ -1195,6 +1221,74 @@ sources:
       - keywords: "analytics engineer intern"
         location: Singapore
         max_results: 25
+        time_filter: r86400
+
+      # Overseas hubs a Singapore student can target — trimmed to the top 3
+      # roles per country (vs. the 6 used for Singapore) to keep LinkedIn's
+      # guest-API request volume manageable and reduce block risk.
+      - keywords: "software engineer intern"
+        location: United States
+        max_results: 50
+        time_filter: r86400
+      - keywords: "data engineer intern"
+        location: United States
+        max_results: 40
+        time_filter: r86400
+      - keywords: "machine learning intern"
+        location: United States
+        max_results: 40
+        time_filter: r86400
+
+      - keywords: "software engineer intern"
+        location: United Kingdom
+        max_results: 50
+        time_filter: r86400
+      - keywords: "data engineer intern"
+        location: United Kingdom
+        max_results: 40
+        time_filter: r86400
+      - keywords: "machine learning intern"
+        location: United Kingdom
+        max_results: 40
+        time_filter: r86400
+
+      - keywords: "software engineer intern"
+        location: China
+        max_results: 50
+        time_filter: r86400
+      - keywords: "data engineer intern"
+        location: China
+        max_results: 40
+        time_filter: r86400
+      - keywords: "machine learning intern"
+        location: China
+        max_results: 40
+        time_filter: r86400
+
+      - keywords: "software engineer intern"
+        location: South Korea
+        max_results: 50
+        time_filter: r86400
+      - keywords: "data engineer intern"
+        location: South Korea
+        max_results: 40
+        time_filter: r86400
+      - keywords: "machine learning intern"
+        location: South Korea
+        max_results: 40
+        time_filter: r86400
+
+      - keywords: "software engineer intern"
+        location: Japan
+        max_results: 50
+        time_filter: r86400
+      - keywords: "data engineer intern"
+        location: Japan
+        max_results: 40
+        time_filter: r86400
+      - keywords: "machine learning intern"
+        location: Japan
+        max_results: 40
         time_filter: r86400
 
   mycareersfuture:

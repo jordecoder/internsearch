@@ -92,6 +92,9 @@ def _build_message(
         if insights.career_recommendation:
             lines.append(f"<b>{_escape(insights.career_recommendation)}</b>")
 
+    if insights is not None and insights.visa_sponsorship_note:
+        lines.append(_escape(insights.visa_sponsorship_note))
+
     return "\n".join(lines)
 
 
@@ -131,12 +134,16 @@ def send_telegram_message(
     response.raise_for_status()
 
 
-def send_telegram(job: Job, score: Score, resume_note: str = "") -> None:
-    send_telegram_message(format_job_message(job, score, resume_note))
+def send_telegram(
+    job: Job, score: Score, resume_note: str = "", *, insights: OpportunityInsights | None = None
+) -> None:
+    send_telegram_message(format_job_message(job, score, resume_note, insights=insights))
 
 
-def send_actionable_telegram(job: Job, score: Score, resume_note: str = "") -> None:
-    send_telegram_message(format_actionable_job_message(job, score, resume_note))
+def send_actionable_telegram(
+    job: Job, score: Score, resume_note: str = "", *, insights: OpportunityInsights | None = None
+) -> None:
+    send_telegram_message(format_actionable_job_message(job, score, resume_note, insights=insights))
 
 
 def register_bot_commands() -> None:

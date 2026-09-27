@@ -61,7 +61,7 @@ def test_run_once_includes_new_candidate_in_actionable_digest(tmp_path, monkeypa
 
     main.run_once(_actionable_digest_config(db_path))
 
-    assert any("New actionable Singapore tech internships" in msg for msg in sent_messages)
+    assert any("New actionable tech internships" in msg for msg in sent_messages)
     assert any("Analytics Engineer Intern" in msg for msg in sent_messages)
 
 

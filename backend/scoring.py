@@ -51,9 +51,11 @@ def score_job(job: Job, config: dict[str, Any], *, now: datetime | None = None) 
     degree_terms = config.get("degree_keywords", [])
     priority_companies = [c.lower() for c in config.get("priority_companies", [])]
 
+    target_locations = config.get("candidate_filters", {}).get("required_locations", ["singapore"])
+
     role_score = _score_role(text, role_terms)
     skill_score = _score_skills(text, skill_terms, job, priority_companies)
-    location_score = _score_location(text, job.location)
+    location_score = _score_location(text, job.location, target_locations)
     timeline_score, timeline_match = _score_timeline(text, job, now)
     degree_score = _score_degree(text, degree_terms)
 
@@ -171,18 +173,19 @@ def _score_skills(
     return _bounded(base)
 
 
-def _score_location(text: str, location: str = "") -> int:
+def _score_location(text: str, location: str = "", target_locations: list[str] | None = None) -> int:
+    targets = [t.lower() for t in (target_locations or ["singapore"])]
     if location:
         loc = location.lower()
-        if "singapore" in loc:
+        if any(target in loc for target in targets):
             if "remote" in loc or "remote" in text:
                 return 100
             if "hybrid" in loc or "hybrid" in text:
                 return 95
             return 90
-        return 20  # location field explicitly set to non-Singapore
+        return 20  # location field explicitly set outside all target locations
     # No dedicated location field — use full text as weaker signal
-    if "singapore" in text:
+    if any(target in text for target in targets):
         if "remote" in text:
             return 100
         if "hybrid" in text:
