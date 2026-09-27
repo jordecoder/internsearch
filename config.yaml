@@ -258,10 +258,9 @@ candidate_filters:
   # Korea/Japan set, this also covers hubs that matter for Singapore's hiring
   # context specifically: Hong Kong (regional finance — most banks already in
   # priority_companies run HK internship programmes), Australia (common NUS/
-  # NTU/SMU exchange + internship destination), India (Bangalore/Hyderabad —
-  # major engineering hubs for the same priority companies), Taiwan (chip
-  # industry, ties to the semiconductor firms already in priority_companies),
-  # and Ireland (EU HQ for Google/Meta/Stripe, all priority companies).
+  # NTU/SMU exchange + internship destination), Taiwan (chip industry, ties
+  # to the semiconductor firms already in priority_companies), and Ireland
+  # (EU HQ for Google/Meta/Stripe, all priority companies).
   required_locations:
     - singapore
     - united states
@@ -291,14 +290,6 @@ candidate_filters:
     - australia
     - sydney
     - melbourne
-    - india
-    - bangalore
-    - bengaluru
-    - hyderabad
-    - mumbai
-    - pune
-    - gurgaon
-    - gurugram
     - taiwan
     - taipei
     - hsinchu
@@ -1339,19 +1330,6 @@ sources:
         time_filter: r86400
       - keywords: "machine learning intern"
         location: Australia
-        max_results: 40
-        time_filter: r86400
-
-      - keywords: "software engineer intern"
-        location: India
-        max_results: 50
-        time_filter: r86400
-      - keywords: "data engineer intern"
-        location: India
-        max_results: 40
-        time_filter: r86400
-      - keywords: "machine learning intern"
-        location: India
         max_results: 40
         time_filter: r86400
 
