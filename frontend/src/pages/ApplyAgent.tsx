@@ -150,15 +150,38 @@ export function ApplyAgent() {
   const [loading, setLoading] = useState(false);
   const [pack, setPack] = useState<ApplyPack | null>(null);
   const [error, setError] = useState('');
+  const [jdFetching, setJdFetching] = useState(false);
+  const [jdNote, setJdNote] = useState('');
+  // Picking a second job while the first one's description is still loading
+  // must not let the slower, stale response overwrite the newer pick.
+  const pickSeq = useRef(0);
 
-  const pickJob = (job: Job) => {
+  const pickJob = async (job: Job) => {
+    const seq = ++pickSeq.current;
     setSelectedJob(job);
     setCompany(job.company);
+    setJdNote('');
     if (job.description) {
       setJd(job.description);
       setJdLocked(true);
-    } else {
-      setJdLocked(false);
+      setJdFetching(false);
+      return;
+    }
+    // Most scraped jobs (all of LinkedIn) have no saved description — fetch it
+    // from the posting rather than leaving the previous job's text in place.
+    setJd('');
+    setJdLocked(false);
+    setJdFetching(true);
+    try {
+      const { description } = await api.fetchJobDescription(job.url);
+      if (seq !== pickSeq.current) return;
+      setJd(description);
+      setJdLocked(true);
+    } catch {
+      if (seq !== pickSeq.current) return;
+      setJdNote("Couldn't load this posting's description — paste it from the posting.");
+    } finally {
+      if (seq === pickSeq.current) setJdFetching(false);
     }
   };
 
@@ -240,12 +263,18 @@ export function ApplyAgent() {
             <Textarea
               value={jd}
               onChange={(e) => setJd(e.target.value)}
-              disabled={jdLocked}
-              placeholder="Paste the full job description here…"
+              disabled={jdLocked || jdFetching}
+              placeholder={jdFetching ? 'Fetching the description from the posting…' : 'Paste the full job description here…'}
               rows={10}
               className="resize-none text-sm leading-relaxed"
             />
-            {jdLocked ? (
+            {jdFetching ? (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" /> Fetching the description from the posting…
+              </p>
+            ) : jdNote ? (
+              <p className="text-xs text-destructive">{jdNote}</p>
+            ) : jdLocked ? (
               <p className="text-xs text-muted-foreground">
                 Filled in from the selected job's listing — Claude also reads the full posting if this looks cut off.
               </p>

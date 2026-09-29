@@ -7,6 +7,7 @@ anthropic==1.9.0
 pdfplumber==0.11.4
 python-docx==1.1.2
 requests==2.32.3
+beautifulsoup4==4.12.3
 python-dotenv==1.0.1
 sentry-sdk[fastapi]==2.18.0
 

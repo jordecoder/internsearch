@@ -12,6 +12,7 @@ from slowapi.errors import RateLimitExceeded
 from api.agent import router as agent_router
 from api.auth import router as auth_router, limiter
 from api.interview import router as interview_router
+from api.job_description import router as job_description_router
 from api.tracker import router as tracker_router
 
 _SENTRY_DSN = os.getenv("SENTRY_DSN")
@@ -42,6 +43,7 @@ app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(agent_router, prefix="/api", tags=["agent"])
 app.include_router(tracker_router, prefix="/api", tags=["tracker"])
 app.include_router(interview_router, prefix="/api", tags=["interview"])
+app.include_router(job_description_router, prefix="/api", tags=["jobs"])
 
 
 @app.get("/health")

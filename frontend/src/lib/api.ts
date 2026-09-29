@@ -81,7 +81,9 @@ async function doFetch(path: string, opts: RequestInit, headers: Record<string, 
   // final-attempt failure path above always throws instead of falling through.
   const response = r as Response;
 
-  if (response.status === 401) {
+  // A 401 from /auth/login is a wrong password, not an expired session — let
+  // it fall through so the server's "Incorrect password" message is shown.
+  if (response.status === 401 && path !== '/auth/login') {
     clearToken();
     throw new ApiError('Session expired — please log in again.', 401);
   }
@@ -177,6 +179,13 @@ export function upsertBoardEntry(entry: {
 
 export function deleteBoardEntry(url: string): Promise<BoardResponse> {
   return request('/api/board/delete', { method: 'POST', body: JSON.stringify({ url }) });
+}
+
+/* ── job descriptions ─────────────────────────────────────────────────────── */
+
+/** Fetch a posting's description for jobs the scraper saved without one (e.g. LinkedIn). */
+export function fetchJobDescription(url: string): Promise<{ description: string }> {
+  return request(`/api/job-description?url=${encodeURIComponent(url)}`);
 }
 
 /* ── apply agent ──────────────────────────────────────────────────────────── */
