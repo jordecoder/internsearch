@@ -279,7 +279,7 @@ def test_actionable_digest_includes_seen_before_candidates():
         now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
     )
 
-    assert "New actionable Singapore tech internships" in message
+    assert "New actionable tech internships" in message
     assert "Analytics Engineer Intern" in message
     assert "seen before" in message
     assert "Role: Data Science / Analytics" in message
@@ -297,7 +297,7 @@ def test_weekly_summary_includes_totals_and_gaps():
 
     assert "Weekly internship search summary" in message
     assert "Fetched postings reviewed: 4129" in message
-    assert "Actionable Singapore tech internships: 4" in message
+    assert "Actionable tech internships: 4" in message
     assert "Strict alerts sent: 3" in message
     assert "Grab: 5" in message
     assert "docker: 4" in message
