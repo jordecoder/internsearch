@@ -47,7 +47,7 @@ def _db():
     if _DATABASE_URL:
         import psycopg2
         import psycopg2.extras
-        conn = psycopg2.connect(_DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+        conn = psycopg2.connect(_DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor, connect_timeout=10)
         try:
             yield conn
             conn.commit()
