@@ -54,7 +54,7 @@ def _print_report(summary: dict, out_dir: Path) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="python -m agent.apply_agent",
-        description="Fill out a job application form with Playwright + Gemini. Never submits it.",
+        description="Fill out a job application form with Playwright + Claude. Never submits it.",
     )
     parser.add_argument("url", help="Application form URL to open")
     parser.add_argument("--profile", default="agent/candidate_profile.yaml")
@@ -62,7 +62,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--cover-letter-file", default=None, help="Pre-generated cover letter text to reuse")
     parser.add_argument("--essay-file", default=None, help='Pre-generated "why this company" essay answer to reuse')
     parser.add_argument("--headed", action="store_true", help="Show the browser and wait for you before closing it")
-    parser.add_argument("--no-gemini", action="store_true", help="Skip the LLM fallback for free-text fields")
+    parser.add_argument("--no-llm", action="store_true", help="Skip the Claude fallback for free-text fields")
     parser.add_argument("--out-dir", default=None, help="Where to save the screenshot + summary.json")
     args = parser.parse_args(argv)
 
@@ -101,7 +101,7 @@ def main(argv: list[str] | None = None) -> int:
             job_description=jd_text,
             cover_letter_text=cover_letter_text,
             essay_answer_text=essay_text,
-            gemini_enabled=not args.no_gemini,
+            llm_enabled=not args.no_llm,
         )
 
         summary = execute_fill_plan(browser, actions, unfilled, out_dir, url=args.url)

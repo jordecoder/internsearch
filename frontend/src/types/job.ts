@@ -32,7 +32,7 @@ export interface JobsData {
   exported_at: string | null;
 }
 
-export interface TailorResult {
+export interface ApplyPack {
   role_title: string;
   required_skills: string[];
   matched_skills: string[];
@@ -42,12 +42,11 @@ export interface TailorResult {
   prioritised_bullets: string[];
   suggested_additions: string[];
   keyword_tips: string;
-}
-
-export interface ApplicationMaterials {
   cover_letter: string;
   essay_answer: string;
-  key_points_used: string[];
+  interview_focus: string[];
+  /** True when the job was moved to "tailoring" on the pipeline board. */
+  board_updated: boolean;
 }
 
 export type InterviewMode = 'behavioral' | 'technical' | 'group_discussion';

@@ -4,9 +4,8 @@ Two passes:
 1. Deterministic regex/keyword rules for common fields (name, email, phone,
    links, school, work authorization, resume/cover-letter upload, canned
    `answers` from the profile). Fast, free, and predictable.
-2. A Gemini function-calling fallback (same pattern as backend/api/rag.py)
-   for whatever free-text fields are left — it can only ever produce
-   `fill_text` actions, never anything that touches a button.
+2. A Claude fallback for whatever free-text fields are left — it can only
+   ever produce `fill_text` actions, never anything that touches a button.
 
 Either pass, plus an independent filter here and another inside
 agent.browser.FormBrowser, refuses to ever target a submit-like control.
@@ -15,8 +14,9 @@ agent.browser.FormBrowser, refuses to ever target a submit-like control.
 from __future__ import annotations
 
 import json
-import os
 import re
+
+from pydantic import BaseModel
 
 from agent.schema import ActionType, FieldKind, FillAction, FormField, PageButton, is_submit_like
 
@@ -180,44 +180,28 @@ def _match_deterministic(
     return None
 
 
-_ANSWER_TOOL = None  # built lazily so importing this module never requires google-generativeai to be configured
+class _FieldAnswer(BaseModel):
+    index: int
+    skip: bool
+    answer: str
 
 
-def _answer_tool():
-    global _ANSWER_TOOL
-    if _ANSWER_TOOL is None:
-        import google.generativeai as genai
-
-        _ANSWER_TOOL = genai.protos.Tool(
-            function_declarations=[
-                genai.protos.FunctionDeclaration(
-                    name="answer_form_fields",
-                    description="Provide honest, specific answers for the given application-form fields.",
-                    parameters=genai.protos.Schema(
-                        type=genai.protos.Type.OBJECT,
-                        properties={
-                            "answers": genai.protos.Schema(
-                                type=genai.protos.Type.ARRAY,
-                                items=genai.protos.Schema(
-                                    type=genai.protos.Type.OBJECT,
-                                    properties={
-                                        "index": genai.protos.Schema(type=genai.protos.Type.INTEGER),
-                                        "answer": genai.protos.Schema(type=genai.protos.Type.STRING),
-                                        "skip": genai.protos.Schema(type=genai.protos.Type.BOOLEAN),
-                                    },
-                                    required=["index", "skip"],
-                                ),
-                            ),
-                        },
-                        required=["answers"],
-                    ),
-                )
-            ]
-        )
-    return _ANSWER_TOOL
+class _FieldAnswers(BaseModel):
+    answers: list[_FieldAnswer]
 
 
-def _gemini_fill_free_text(
+_ANSWER_SYSTEM = (
+    "You are helping a real candidate fill out an internship application form honestly.\n"
+    "Only use facts present in the candidate profile, job description, or the provided "
+    "cover letter / essay text. Never invent experience, dates, employers, or facts.\n"
+    "If a field cannot be answered truthfully and specifically from what you're given, "
+    "set skip=true for it (with an empty answer) instead of guessing.\n"
+    "Reuse the provided cover letter / essay text where a field is clearly asking the same "
+    "thing (e.g. 'why do you want to work here'), trimmed to any max_length given."
+)
+
+
+def _llm_fill_free_text(
     fields: list[FormField],
     profile: dict,
     job_description: str,
@@ -226,23 +210,14 @@ def _gemini_fill_free_text(
 ) -> tuple[list[FillAction], list[FormField]]:
     if not fields:
         return [], []
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
+    try:
+        from api import claude_client
+    except ImportError:  # anthropic not installed
+        return [], fields
+    if not claude_client.is_configured():
         return [], fields
 
-    import google.generativeai as genai
-
-    genai.configure(api_key=api_key)
     field_briefs = [{"index": i, "label": f.label, "max_length": f.max_length} for i, f in enumerate(fields)]
-    system = (
-        "You are helping a real candidate fill out an internship application form honestly.\n"
-        "Only use facts present in the candidate profile, job description, or the provided "
-        "cover letter / essay text. Never invent experience, dates, employers, or facts.\n"
-        "If a field cannot be answered truthfully and specifically from what you're given, "
-        "set skip=true for it instead of guessing.\n"
-        "Reuse the provided cover letter / essay text where a field is clearly asking the same "
-        "thing (e.g. 'why do you want to work here'), trimmed to any max_length given."
-    )
     prompt = (
         f"CANDIDATE PROFILE:\n{json.dumps(profile, default=str)}\n\n"
         f"JOB DESCRIPTION:\n{job_description[:4000]}\n\n"
@@ -250,31 +225,17 @@ def _gemini_fill_free_text(
         f"PRE-WRITTEN ESSAY ANSWER:\n{essay_answer_text[:2000]}\n\n"
         f"FORM FIELDS TO ANSWER:\n{json.dumps(field_briefs)}"
     )
-
-    model = genai.GenerativeModel(model_name="gemini-2.0-flash", tools=[_answer_tool()], system_instruction=system)
-    chat = model.start_chat()
-    response = chat.send_message(prompt)
-
-    answers_by_index: dict[int, dict] = {}
-    for part in response.parts:
-        call = getattr(part, "function_call", None)
-        if call and call.name == "answer_form_fields":
-            for a in dict(call.args).get("answers", []):
-                a = dict(a)
-                try:
-                    idx = int(a.get("index", -1))
-                except (TypeError, ValueError):
-                    continue
-                answers_by_index[idx] = a
+    result = claude_client.structured(system=_ANSWER_SYSTEM, prompt=prompt, output=_FieldAnswers, effort="medium")
+    answers_by_index = {a.index: a for a in result.answers}
 
     actions: list[FillAction] = []
     leftover: list[FormField] = []
     for i, f in enumerate(fields):
         a = answers_by_index.get(i)
-        if not a or a.get("skip") or not a.get("answer"):
+        if not a or a.skip or not a.answer:
             leftover.append(f)
             continue
-        value = str(a["answer"])
+        value = a.answer
         if f.max_length:
             value = value[: f.max_length]
         actions.append(FillAction(f.selector, f.label, ActionType.FILL_TEXT, value))
@@ -288,7 +249,7 @@ def build_fill_plan(
     job_description: str = "",
     cover_letter_text: str = "",
     essay_answer_text: str = "",
-    gemini_enabled: bool = True,
+    llm_enabled: bool = True,
 ) -> tuple[list[FillAction], list[FormField]]:
     """Returns (actions, fields_left_for_a_human). Never returns an action
     targeting a submit-like control — filtered here independently of the
@@ -306,14 +267,14 @@ def build_fill_plan(
         else:
             unmatched.append(f)
 
-    if gemini_enabled:
+    if llm_enabled:
         free_text = [f for f in unmatched if f.kind in (FieldKind.TEXT, FieldKind.EMAIL, FieldKind.TEL, FieldKind.TEXTAREA)]
         other = [f for f in unmatched if f not in free_text]
-        gemini_actions, gemini_leftover = _gemini_fill_free_text(
+        llm_actions, llm_leftover = _llm_fill_free_text(
             free_text, profile, job_description, cover_letter_text, essay_answer_text
         )
-        actions.extend(a for a in gemini_actions if a.selector not in submit_selectors)
-        still_unmatched = other + gemini_leftover
+        actions.extend(a for a in llm_actions if a.selector not in submit_selectors)
+        still_unmatched = other + llm_leftover
     else:
         still_unmatched = unmatched
 

@@ -1,5 +1,5 @@
 import type {
-  ApplicationMaterials, BoardEntry, BoardStatus, ChatTurn, InterviewFeedback, InterviewMode, TailorResult,
+  ApplyPack, BoardEntry, BoardStatus, ChatTurn, InterviewFeedback, InterviewMode,
 } from '@/types/job';
 
 const API_URL_STORE = 'intern_scout_api_url';
@@ -122,13 +122,13 @@ async function requestForm<T>(path: string, form: FormData): Promise<T> {
 }
 
 /**
- * For requests that must avoid a CORS preflight entirely — login/register,
- * before any token exists to add an Authorization header. `Content-Type:
+ * For requests that must avoid a CORS preflight entirely — login, before any
+ * token exists to add an Authorization header. `Content-Type:
  * application/json` is what forces the preflight (it isn't a CORS-safelisted
  * value); omitting the header lets the browser default a string body to
  * `text/plain`, which is safelisted — no preflight OPTIONS round-trip at all.
  * Some networks mishandle preflight even when plain POST works fine, which is
- * what broke login/register for at least one user despite CORS being
+ * what broke login for at least one user despite CORS being
  * configured correctly. The backend parses the body via Request.json()
  * regardless of the declared Content-Type, so this is transparent server-side.
  */
@@ -145,12 +145,9 @@ export interface TokenResponse {
   username: string;
 }
 
-export function login(username: string, password: string): Promise<TokenResponse> {
-  return requestNoPreflight('/auth/login', { username, password });
-}
-
-export function register(username: string, password: string, invite_code: string): Promise<{ message: string }> {
-  return requestNoPreflight('/auth/register', { username, password, invite_code });
+/** The site has a single owner — the password is the only credential. */
+export function login(password: string): Promise<TokenResponse> {
+  return requestNoPreflight('/auth/login', { password });
 }
 
 export function me(): Promise<{ username: string }> {
@@ -182,32 +179,20 @@ export function deleteBoardEntry(url: string): Promise<BoardResponse> {
   return request('/api/board/delete', { method: 'POST', body: JSON.stringify({ url }) });
 }
 
-/* ── resume tailor ────────────────────────────────────────────────────────── */
+/* ── apply agent ──────────────────────────────────────────────────────────── */
 
-export function tailorResume(resumeFile: File, jobDescription: string): Promise<TailorResult> {
+export function runApplyAgent(
+  resumeFile: File,
+  job: { jobDescription: string; companyName: string; jobTitle: string; jobUrl: string; essayQuestion: string },
+): Promise<ApplyPack> {
   const form = new FormData();
   form.append('resume', resumeFile);
-  form.append('job_description', jobDescription);
-  return requestForm('/api/tailor', form);
-}
-
-/* ── cover letter + essay ─────────────────────────────────────────────────── */
-
-export function generateMaterials(
-  resumeText: string,
-  jobDescription: string,
-  companyName: string,
-  essayQuestion: string,
-): Promise<ApplicationMaterials> {
-  return request('/api/generate/materials', {
-    method: 'POST',
-    body: JSON.stringify({
-      resume_text: resumeText,
-      job_description: jobDescription,
-      company_name: companyName,
-      essay_question: essayQuestion,
-    }),
-  });
+  form.append('job_description', job.jobDescription);
+  form.append('company_name', job.companyName);
+  form.append('job_title', job.jobTitle);
+  form.append('job_url', job.jobUrl);
+  form.append('essay_question', job.essayQuestion);
+  return requestForm('/api/agent/apply', form);
 }
 
 /* ── mock interview ───────────────────────────────────────────────────────── */

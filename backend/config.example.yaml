@@ -11,7 +11,7 @@ check_interval_minutes: 180
 
 # LLM career-fit scoring (career_scoring.py) — scores each actionable job against
 # your actual target career paths (resume_profile.yaml), not just keyword overlap.
-# Needs GEMINI_API_KEY in the environment; each job is scored at most once (cached
+# Needs ANTHROPIC_API_KEY in the environment; each job is scored at most once (cached
 # by stable_id). Falls back to a deterministic display-only approximation if the
 # key is missing or a call fails — never changes which alerts fire in that case.
 career_scoring:

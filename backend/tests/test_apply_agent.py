@@ -7,7 +7,7 @@ import pytest
 
 from agent.browser import FormBrowser
 from agent.filler import execute_fill_plan
-from agent.mapper import _gemini_fill_free_text, build_fill_plan
+from agent.mapper import _llm_fill_free_text, build_fill_plan
 from agent.schema import ActionType, FieldKind, FormField
 
 FIXTURE = Path(__file__).parent / "fixtures" / "mock_application_form.html"
@@ -49,7 +49,7 @@ def test_agent_fills_mock_form_without_submitting(tmp_path, resume_file):
             job_description="",
             cover_letter_text="",
             essay_answer_text=ESSAY_TEXT,
-            gemini_enabled=False,  # no network calls in this test
+            llm_enabled=False,  # no network calls in this test
         )
 
         summary = execute_fill_plan(browser, actions, unfilled, out_dir, url=FIXTURE.as_uri())
@@ -73,7 +73,7 @@ def test_agent_fills_mock_form_without_submitting(tmp_path, resume_file):
         )
         assert uploaded_name == resume_file.name
 
-        # ── the field with no deterministic match and Gemini disabled is left for a human ──
+        # ── the field with no deterministic match and the LLM disabled is left for a human ──
         assert browser.page.input_value("#project") == ""
         unfilled_labels = [f["label"] for f in summary["unfilled_fields_needing_attention"]]
         assert any("project" in label.lower() for label in unfilled_labels)
@@ -111,7 +111,7 @@ def test_no_action_ever_targets_a_submit_like_control(tmp_path, resume_file):
         assert submit_selectors, "fixture should contain a Submit Application button"
 
         actions, _ = build_fill_plan(
-            fields, buttons, profile, essay_answer_text=ESSAY_TEXT, gemini_enabled=False
+            fields, buttons, profile, essay_answer_text=ESSAY_TEXT, llm_enabled=False
         )
         assert not any(a.selector in submit_selectors for a in actions)
         assert not any(a.action == ActionType.CLICK_TO_EXPAND for a in actions), (
@@ -128,55 +128,21 @@ def test_fill_action_rejects_invalid_action_type():
         FillAction(selector="#x", field_label="x", action="click_submit_button")
 
 
-class _FakePart:
-    def __init__(self, function_call):
-        self.function_call = function_call
+def _use_fake_claude(monkeypatch, payload: dict) -> None:
+    """Replace claude_client.structured with a fake — no real API key or network call."""
+    from api import claude_client
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setattr(claude_client, "structured", lambda *, output, **_kw: output.model_validate(payload))
 
 
-class _FakeCall:
-    def __init__(self, name, args):
-        self.name = name
-        self.args = args
-
-
-class _FakeResponse:
-    def __init__(self, parts):
-        self.parts = parts
-
-
-class _FakeChat:
-    def __init__(self, response):
-        self._response = response
-
-    def send_message(self, _prompt):
-        return self._response
-
-
-class _FakeModel:
-    def __init__(self, response, **_kwargs):
-        self._response = response
-
-    def start_chat(self):
-        return _FakeChat(self._response)
-
-
-def test_gemini_fallback_answers_free_text_field_without_network(monkeypatch):
-    """Mocks google.generativeai entirely — no real API key or network call."""
-    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
-
+def test_llm_fallback_answers_free_text_field_without_network(monkeypatch):
     fake_answer = "I shipped a resume-tailoring RAG pipeline using Python and vector search."
-    response = _FakeResponse(
-        parts=[_FakePart(_FakeCall("answer_form_fields", {"answers": [{"index": 0, "answer": fake_answer, "skip": False}]}))]
-    )
-
-    import google.generativeai as genai
-
-    monkeypatch.setattr(genai, "configure", lambda **_kwargs: None)
-    monkeypatch.setattr(genai, "GenerativeModel", lambda **kwargs: _FakeModel(response, **kwargs))
+    _use_fake_claude(monkeypatch, {"answers": [{"index": 0, "answer": fake_answer, "skip": False}]})
 
     project_field = FormField(selector="#project", label="Tell us about a project you're proud of", kind=FieldKind.TEXTAREA, max_length=500)
 
-    actions, leftover = _gemini_fill_free_text(
+    actions, leftover = _llm_fill_free_text(
         [project_field],
         PROFILE,
         job_description="Software engineering internship.",
@@ -191,19 +157,17 @@ def test_gemini_fallback_answers_free_text_field_without_network(monkeypatch):
     assert actions[0].selector == "#project"
 
 
-def test_gemini_fallback_skips_when_model_says_skip(monkeypatch):
-    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
-    response = _FakeResponse(
-        parts=[_FakePart(_FakeCall("answer_form_fields", {"answers": [{"index": 0, "skip": True}]}))]
-    )
-
-    import google.generativeai as genai
-
-    monkeypatch.setattr(genai, "configure", lambda **_kwargs: None)
-    monkeypatch.setattr(genai, "GenerativeModel", lambda **kwargs: _FakeModel(response, **kwargs))
+def test_llm_fallback_skips_when_model_says_skip(monkeypatch):
+    _use_fake_claude(monkeypatch, {"answers": [{"index": 0, "answer": "", "skip": True}]})
 
     field = FormField(selector="#mystery", label="Describe a time you failed a security clearance", kind=FieldKind.TEXTAREA)
-    actions, leftover = _gemini_fill_free_text([field], PROFILE, "", "", "")
+    actions, leftover = _llm_fill_free_text([field], PROFILE, "", "", "")
 
     assert actions == []
     assert leftover == [field]
+
+
+def test_llm_fallback_leaves_fields_for_a_human_without_api_key(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    field = FormField(selector="#project", label="Tell us about a project", kind=FieldKind.TEXTAREA)
+    assert _llm_fill_free_text([field], PROFILE, "", "", "") == ([], [field])

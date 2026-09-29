@@ -27,7 +27,7 @@ export function Settings() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm">Account</CardTitle>
-          <CardDescription>Board, Resume Tailor, Cover Letter, and Interview Prep all use this account.</CardDescription>
+          <CardDescription>The board, Apply Agent, and Interview Prep need you to be logged in.</CardDescription>
         </CardHeader>
         <CardContent>
           {username ? (
@@ -49,7 +49,7 @@ export function Settings() {
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">You're not logged in.</p>
               <Button asChild size="sm">
-                <Link to="/login">Log in / Register</Link>
+                <Link to="/login">Log in</Link>
               </Button>
             </div>
           )}
@@ -101,8 +101,8 @@ export function Settings() {
         </CardHeader>
         <CardContent>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Resume Tailor, Cover Letter, and Interview Prep run on the shared backend's own Gemini key —
-            no API key needed from you. Just log in above.
+            The Apply Agent and Interview Prep run on Claude through the backend's own API key —
+            no key needed in the browser. Just log in above.
           </p>
         </CardContent>
       </Card>

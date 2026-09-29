@@ -1,20 +1,19 @@
 """Server-side mock interview chat (behavioral / technical / group discussion).
 
 Stateless by design: the frontend keeps the transcript and resends it each
-turn (same approach the old client-side version used against a user's own
-Gemini key) — the backend just needs the resume/JD/mode/history to produce the
-next turn(s), running against the backend's own GEMINI_API_KEY.
+turn — the backend just needs the resume/JD/mode/history to produce the next
+turn(s) from Claude.
 """
 
-import json
-from typing import Annotated, Literal
+from typing import Annotated, Literal, TypeVar
 
-import google.generativeai as genai
+import anthropic
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
 
 from api.auth import get_current_user, limiter
-from api.gemini_client import GEN_MODEL
+from api.claude_client import ClaudeError, structured
 
 router = APIRouter()
 
@@ -94,19 +93,27 @@ def _mode_briefing(mode: InterviewMode) -> str:
     )
 
 
-def _call_gemini_json(prompt: str, temperature: float) -> dict:
-    model = genai.GenerativeModel(
-        model_name=GEN_MODEL,
-        generation_config=genai.GenerationConfig(temperature=temperature, response_mime_type="application/json"),
-    )
+class _SpokenTurn(BaseModel):
+    speaker: str
+    text: str
+
+
+class _TurnsOut(BaseModel):
+    turns: list[_SpokenTurn]
+
+
+_SYSTEM = "You run realistic mock interviews and give candid coaching for internship candidates."
+
+T = TypeVar("T", bound=BaseModel)
+
+
+async def _ask_claude(prompt: str, output: type[T], effort: str) -> T:
     try:
-        response = model.generate_content(prompt)
-    except Exception as exc:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Gemini request failed: {exc}")
-    try:
-        return json.loads(response.text)
-    except (ValueError, json.JSONDecodeError):
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Gemini returned an unparseable response.")
+        return await run_in_threadpool(structured, system=_SYSTEM, prompt=prompt, output=output, effort=effort, max_tokens=8000)
+    except ClaudeError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc))
+    except anthropic.APIError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Claude request failed: {exc.message}")
 
 
 @router.post("/interview/turn", response_model=InterviewTurnResponse)
@@ -147,17 +154,10 @@ TRANSCRIPT SO FAR:
 
 {instruction}
 
-Respond with ONLY a valid JSON object (no markdown, no code fences):
-{{
-  "turns": [
-    {{"speaker": "string — name of whoever is speaking (e.g. Interviewer, Moderator, or a participant's name)", "text": "string — what they say"}}
-  ]
-}}
-Keep each turn's text realistically short (1-5 sentences), the way people actually talk."""
+Return the next turn(s), each with the speaker's name (e.g. Interviewer, Moderator, or a participant's name) and what they say. Keep each turn realistically short (1-5 sentences), the way people actually talk."""
 
-    data = _call_gemini_json(prompt, temperature=0.7)
-    turns = [ChatTurn(role="model", text=t.get("text", ""), speaker=t.get("speaker")) for t in data.get("turns", [])]
-    return InterviewTurnResponse(turns=turns)
+    out = await _ask_claude(prompt, _TurnsOut, effort="low")
+    return InterviewTurnResponse(turns=[ChatTurn(role="model", text=t.text, speaker=t.speaker) for t in out.turns])
 
 
 @router.post("/interview/feedback", response_model=InterviewFeedbackResponse)
@@ -186,18 +186,6 @@ FULL TRANSCRIPT:
 {role_note}
 Be honest and specific — cite something concrete from the transcript in each point, not generic advice.
 
-Respond with ONLY a valid JSON object (no markdown, no code fences):
-{{
-  "overall_impression": "string — 2-3 sentence overall assessment",
-  "strengths": ["string — specific things the candidate did well, citing the transcript"],
-  "improvements": ["string — specific, actionable things to improve, citing the transcript"],
-  "sample_better_answer": "string — a rewritten, stronger version of the candidate's weakest answer from the transcript"
-}}"""
+Give a 2-3 sentence overall impression, the specific strengths and improvements (each citing the transcript), and a rewritten, stronger version of the candidate's weakest answer as sample_better_answer."""
 
-    data = _call_gemini_json(prompt, temperature=0.4)
-    return InterviewFeedbackResponse(
-        overall_impression=data.get("overall_impression", ""),
-        strengths=data.get("strengths", []),
-        improvements=data.get("improvements", []),
-        sample_better_answer=data.get("sample_better_answer", ""),
-    )
+    return await _ask_claude(prompt, InterviewFeedbackResponse, effort="medium")

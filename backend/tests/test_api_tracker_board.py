@@ -9,7 +9,7 @@ import json
 import os
 
 os.environ.setdefault("JWT_SECRET", "test-secret")
-os.environ.setdefault("INVITE_CODE", "test-invite")
+os.environ.setdefault("OWNER_PASSWORD", "test-owner-password")
 os.environ.setdefault("GITHUB_TOKEN", "test-github-token")
 
 import pytest
@@ -31,7 +31,7 @@ app = FastAPI()
 app.include_router(tracker.router, prefix="/api")
 client = TestClient(app)
 
-AUTH_HEADERS = {"Authorization": f"Bearer {_create_token('jordan')}"}
+AUTH_HEADERS = {"Authorization": f"Bearer {_create_token()}"}
 
 
 class FakeGitHubStore:
@@ -133,3 +133,19 @@ def test_delete_board_entry():
 def test_board_requires_auth():
     r = client.get("/api/board")
     assert r.status_code == 401
+
+
+def test_advance_board_entry_creates_and_moves_forward(fake_github):
+    url = "https://example.com/job/advance"
+    assert tracker.advance_board_entry(url, "tailoring", "Data Intern", "Acme") is True
+    entry = fake_github.content["jobs"][url]
+    assert (entry["status"], entry["title"], entry["company"]) == ("tailoring", "Data Intern", "Acme")
+
+
+def test_advance_board_entry_never_moves_backward(fake_github):
+    url = "https://example.com/job/applied-already"
+    client.post("/api/board", json={"url": url, "status": "applied", "notes": "sent Monday"}, headers=AUTH_HEADERS)
+    assert tracker.advance_board_entry(url, "tailoring") is False
+    entry = fake_github.content["jobs"][url]
+    assert entry["status"] == "applied"
+    assert entry["notes"] == "sent Monday"

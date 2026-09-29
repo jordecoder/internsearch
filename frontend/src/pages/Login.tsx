@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserRound, ArrowRight, Loader2, Settings2 } from 'lucide-react';
+import { Lock, ArrowRight, Loader2, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,12 +9,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { getApiUrl, saveApiUrl, setRetryListener, DEFAULT_API_URL } from '@/lib/api';
 
 export function Login() {
-  const { login, register } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [wakingUp, setWakingUp] = useState('');
   const [error, setError] = useState('');
@@ -22,6 +19,7 @@ export function Login() {
   const [apiUrl, setApiUrl] = useState(getApiUrl());
 
   const submit = async () => {
+    if (!password) return;
     setError('');
     setWakingUp('');
     setLoading(true);
@@ -33,8 +31,7 @@ export function Login() {
       );
     });
     try {
-      if (mode === 'login') await login(username, password);
-      else await register(username, password, inviteCode);
+      await login(password);
       navigate('/board');
     } catch (e) {
       setError((e as Error).message);
@@ -50,11 +47,11 @@ export function Login() {
       <Card className="w-full max-w-sm animate-fade-up">
         <CardHeader className="pb-3">
           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-            <UserRound className="h-4.5 w-4.5 text-primary" />
+            <Lock className="h-4.5 w-4.5 text-primary" />
           </div>
-          <CardTitle className="text-base">{mode === 'login' ? 'Log in' : 'Create account'}</CardTitle>
+          <CardTitle className="text-base">Log in</CardTitle>
           <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-            Sign in to sync your pipeline board across devices.
+            This site is private. Enter the owner password to use the board, Apply Agent, and Interview Prep.
           </p>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -71,44 +68,20 @@ export function Login() {
           )}
 
           <div className="space-y-1.5">
-            <Label>Username</Label>
-            <Input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" />
-          </div>
-
-          <div className="space-y-1.5">
             <Label>Password</Label>
             <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && submit()}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              autoComplete="current-password"
+              autoFocus
             />
           </div>
 
-          {mode === 'register' && (
-            <div className="space-y-1.5">
-              <Label>Invite Code</Label>
-              <Input value={inviteCode} onChange={(e) => setInviteCode(e.target.value)} />
-            </div>
-          )}
-
-          <Button onClick={submit} disabled={loading || !username || !password} className="w-full">
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                {mode === 'login' ? 'Log in' : 'Create account'} <ArrowRight className="h-4 w-4" />
-              </>
-            )}
+          <Button onClick={submit} disabled={loading || !password} className="w-full">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Log in <ArrowRight className="h-4 w-4" /></>}
           </Button>
-
-          <button
-            onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}
-            className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {mode === 'login' ? "Don't have an account? Register" : 'Already have an account? Log in'}
-          </button>
 
           <div className="pt-2 border-t border-border">
             <button
