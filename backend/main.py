@@ -839,7 +839,7 @@ def run_once(config: dict[str, Any]) -> int:
         # aware) replaces the plain keyword score.overall for every downstream alert/
         # digest/ranking decision below — an analyst-shaped role that scores well on the
         # cheap keyword formula shouldn't still fire "apply now" alerts. The deterministic
-        # fallback (no GEMINI_API_KEY, or the call failed) is NOT trustworthy enough to
+        # fallback (no ANTHROPIC_API_KEY, or the call failed) is NOT trustworthy enough to
         # drive real alert decisions — it's for display/insights only in that case, so
         # thresholds keep behaving exactly as before whenever career scoring is degraded.
         effective_score = replace(score, overall=career.final_score) if career and career.source == "llm" else score

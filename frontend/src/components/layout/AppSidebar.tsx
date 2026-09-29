@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Briefcase, Bookmark, Kanban, FileEdit, Mail, MessagesSquare, Settings,
+  Briefcase, Bookmark, Kanban, Sparkles, MessagesSquare, Settings,
   ChevronsLeft, ChevronsRight, Compass,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -28,8 +28,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: 'AI Tools',
     items: [
-      { to: '/tailor', label: 'Resume Tailor', icon: FileEdit },
-      { to: '/cover-letter', label: 'Cover Letter', icon: Mail },
+      { to: '/apply', label: 'Apply Agent', icon: Sparkles },
       { to: '/interview', label: 'Interview Prep', icon: MessagesSquare },
     ],
   },

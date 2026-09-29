@@ -22,10 +22,10 @@ export function RequireAuth({ children, prompt = 'track your pipeline' }: { chil
           <CardContent className="pt-6 space-y-3">
             <p className="text-sm text-foreground font-medium">Log in to {prompt}</p>
             <p className="text-xs text-muted-foreground">
-              This runs on the shared backend, so it needs an account — no API key required.
+              This site is private — only its owner can use it.
             </p>
             <Button asChild className="w-full">
-              <Link to="/login">Log in / Register</Link>
+              <Link to="/login">Log in</Link>
             </Button>
           </CardContent>
         </Card>

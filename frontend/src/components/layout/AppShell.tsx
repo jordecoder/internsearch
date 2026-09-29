@@ -13,8 +13,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/': 'Jobs',
   '/saved': 'Saved',
   '/board': 'Application Board',
-  '/tailor': 'Resume Tailor',
-  '/cover-letter': 'Cover Letter',
+  '/apply': 'Apply Agent',
   '/interview': 'Interview Prep',
   '/settings': 'Settings',
 };

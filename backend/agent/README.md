@@ -13,7 +13,7 @@ incapable of it:
   `select_option`, `check`, `upload_file`, and `click_to_expand`
   (`agent/schema.py::ActionType`). There is no generic "click this button"
   action anywhere in the vocabulary — not for the deterministic mapper, not
-  for the Gemini fallback, not for the executor. A submit button is simply
+  for the Claude fallback, not for the executor. A submit button is simply
   not a kind of thing this system can act on.
 - Every button and link on the page is scanned for submit-like names
   ("Submit", "Apply Now", "Send Application", `type=submit`, …) and those
@@ -23,11 +23,11 @@ incapable of it:
   (an assertion that would abort the whole run if it were ever somehow
   reached). See `backend/tests/test_apply_agent.py` — it asserts the mock
   form's submit-click counter is still zero after a full run.
-- The Gemini fallback (used only for free-text fields the deterministic rules
+- The Claude fallback (used only for free-text fields the deterministic rules
   don't recognize) is told to answer honestly from your profile/JD/cover
   letter and to say `skip: true` rather than invent anything — but even if it
   went rogue, its output can only ever become a `fill_text` action, because
-  that's the only thing `_gemini_fill_free_text` knows how to construct.
+  that's the only thing `_llm_fill_free_text` knows how to construct.
 
 What it does at the end of a run: fills every field it can, takes a
 full-page screenshot, writes a `summary.json` (what got filled, what didn't,
@@ -53,8 +53,8 @@ copy backend\agent\candidate_profile.example.yaml backend\agent\candidate_profil
 # then edit candidate_profile.yaml with your real details — it's gitignored
 ```
 
-`GEMINI_API_KEY` is read from `.env` (same variable the rest of this repo
-already uses for `backend/api/rag.py`). Without it, the agent still fills
+`ANTHROPIC_API_KEY` is read from `.env` (same variable the rest of this repo
+uses for Claude). Without it, the agent still fills
 everything the deterministic rules recognize; it just leaves free-text
 fields it can't map for you to fill in by hand instead of guessing.
 
@@ -78,7 +78,7 @@ python -m agent.apply_agent "https://boards.greenhouse.io/example/jobs/12345" `
   `agent/review/<timestamp>/`.
 - `--jd-file` / `--cover-letter-file` / `--essay-file` are plain text files —
   reuse whatever the resume tailor / cover letter generator produced.
-- `--no-gemini` skips the LLM fallback entirely (fully deterministic, zero
+- `--no-llm` skips the Claude fallback entirely (fully deterministic, zero
   network calls) — useful for a quick offline check of what the rule-based
   mapper alone can cover.
 

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import {
-  Briefcase, Bookmark, Kanban, FileEdit, Mail, MessagesSquare, Settings, Search, ArrowRight,
+  Briefcase, Bookmark, Kanban, Sparkles, MessagesSquare, Settings, Search, ArrowRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useJobsQuery } from '@/hooks/useJobsQuery';
@@ -18,8 +18,7 @@ const PAGES = [
   { to: '/', label: 'Jobs', icon: Briefcase },
   { to: '/saved', label: 'Saved', icon: Bookmark },
   { to: '/board', label: 'Application Board', icon: Kanban },
-  { to: '/tailor', label: 'Resume Tailor', icon: FileEdit },
-  { to: '/cover-letter', label: 'Cover Letter', icon: Mail },
+  { to: '/apply', label: 'Apply Agent', icon: Sparkles },
   { to: '/interview', label: 'Interview Prep', icon: MessagesSquare },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];

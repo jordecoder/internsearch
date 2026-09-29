@@ -4,7 +4,7 @@ The `ActionType` enum is the safety boundary described in backend/agent/README.m
 it is the complete set of things the agent is physically capable of doing to a
 page. There is deliberately no generic "click" action and nothing that can
 submit a form — those verbs simply don't exist in this vocabulary, so no prompt,
-bug, or bad Gemini response can produce a `FillAction` that submits anything.
+bug, or bad LLM response can produce a `FillAction` that submits anything.
 """
 
 from __future__ import annotations
@@ -78,7 +78,7 @@ class FillAction:
     value: str = ""
 
     def __post_init__(self) -> None:
-        # Coerce/validate even if constructed from an external (e.g. Gemini
+        # Coerce/validate even if constructed from an external (e.g. Claude
         # tool-call) string — an invalid value raises here, before it can
         # reach the browser layer.
         object.__setattr__(self, "action", ActionType(self.action))

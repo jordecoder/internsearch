@@ -9,23 +9,19 @@ services:
     plan: free
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.9                # Pin: newer Pythons lack wheels for the numpy/psycopg2/pydantic-core pins
+        value: 3.11.9                # Pin: newer Pythons lack wheels for some pinned packages
       - key: JWT_SECRET
-        sync: false                  # Set once manually — do NOT use generateValue or friends get logged out on every redeploy
-      - key: GEMINI_API_KEY
+        sync: false                  # Set once manually — do NOT use generateValue or you get logged out on every redeploy
+      - key: OWNER_PASSWORD
+        sync: false                  # The site's only login — set manually in Render dashboard
+      - key: ANTHROPIC_API_KEY
         sync: false                  # Set manually in Render dashboard
-      - key: INVITE_CODE
-        sync: false                  # Set manually — share this with friends
       - key: GITHUB_TOKEN
         sync: false                  # GitHub PAT with repo write access
       - key: GITHUB_REPO
         value: jordecoder/internsearch
       - key: ALLOWED_ORIGIN
         value: https://jordecoder.github.io
-      - key: USERS_DB_PATH
-        value: /tmp/internsearch_users.db   # ignored when DATABASE_URL is set
-      - key: DATABASE_URL
-        sync: false                  # Neon free-tier Postgres connection string (recommended)
       - key: SENTRY_DSN
         sync: false                  # Optional — create a free project at sentry.io
 
@@ -41,7 +37,7 @@ services:
     plan: free
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.9                # Pin: newer Pythons lack wheels for the numpy/psycopg2/pydantic-core pins
+        value: 3.11.9                # Pin: newer Pythons lack wheels for some pinned packages
       # ── Kafka (Confluent Cloud) ──
       - key: KAFKA_BOOTSTRAP_SERVERS
         sync: false   # Upstash: your-cluster.upstash.io:9092 | Confluent: pkc-xxxx...confluent.cloud:9092

@@ -111,6 +111,45 @@ def _read_board() -> tuple[dict[str, BoardEntry], str | None]:
     return {url: _normalize_entry(url, raw) for url, raw in raw_jobs.items()}, sha
 
 
+_BOARD_ORDER = ["found", "tailoring", "applied", "interviewing", "offer", "rejected"]
+
+
+def advance_board_entry(url: str, new_status: ApplyStatus, title: str = "", company: str = "") -> bool:
+    """Move a job's board entry forward to new_status — never backward (a job
+    already at "applied" stays there). Returns True if the board was written."""
+    for attempt in range(3):
+        applied, sha = _read_applied()
+        raw_jobs: dict = applied.get("jobs", {})
+        existing = _normalize_entry(url, raw_jobs[url]) if url in raw_jobs else BoardEntry(url=url)
+        if url in raw_jobs and existing.status in _BOARD_ORDER and (
+            _BOARD_ORDER.index(existing.status) >= _BOARD_ORDER.index(new_status)
+        ):
+            return False
+
+        now = datetime.now(timezone.utc).isoformat()
+        entry = BoardEntry(
+            status=new_status,
+            notes=existing.notes,
+            title=title or existing.title,
+            company=company or existing.company,
+            url=url,
+            updated_at=now,
+        )
+        raw_jobs[url] = entry.model_dump()
+        try:
+            _write_applied(
+                {"jobs": raw_jobs, "updated_at": now},
+                sha,
+                message=f"chore: board update {new_status} [{url[:60]}] [skip ci]",
+            )
+            return True
+        except HTTPException as exc:
+            if exc.status_code == status.HTTP_409_CONFLICT and attempt < 2:
+                continue
+            raise
+    return False
+
+
 # ── endpoints ─────────────────────────────────────────────────────────────────
 
 @router.get("/applied", response_model=AppliedResponse)
@@ -131,7 +170,7 @@ def mark_applied(
 ) -> AppliedResponse:
     url = str(body.url)
 
-    # Retry up to 3 times on SHA conflict (concurrent writes from multiple friends)
+    # Retry up to 3 times on SHA conflict (concurrent writes, e.g. two open tabs)
     for attempt in range(3):
         applied, sha = _read_applied()
         jobs: dict = applied.get("jobs", {})

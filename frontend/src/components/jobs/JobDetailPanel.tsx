@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ExternalLink, FileEdit, Mail, CheckCircle2, Bookmark, BookmarkCheck } from 'lucide-react';
+import { ExternalLink, Sparkles, CheckCircle2, Bookmark, BookmarkCheck } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { MatchScore } from '@/components/jobs/MatchScore';
@@ -84,24 +84,14 @@ export function JobDetailPanel({ job, onClose, savedStatus }: JobDetailPanelProp
         </div>
 
         <div className="border-t border-border p-4 space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => requireAuth(() => navigate('/tailor', { state: navState }))}
-              className="gap-1.5"
-            >
-              <FileEdit className="h-3.5 w-3.5" /> Tailor resume
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => requireAuth(() => navigate('/cover-letter', { state: navState }))}
-              className="gap-1.5"
-            >
-              <Mail className="h-3.5 w-3.5" /> Cover letter
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => requireAuth(() => navigate('/apply', { state: navState }))}
+            className="w-full gap-1.5"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> Prepare application with Claude
+          </Button>
           <div className="grid grid-cols-2 gap-2">
             <Button
               variant={savedStatus === 'applied' ? 'secondary' : 'default'}

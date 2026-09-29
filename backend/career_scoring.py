@@ -11,7 +11,7 @@ Scientist" role doing LLM system-building is a stronger fit than a "Software
 Engineer" role that's really dashboard maintenance). It's an LLM call, so it
 runs at most ONCE per job (cached by stable_id — see database.py's
 career_scores table) rather than on every pipeline run, and it degrades to
-`fallback_career_score()` — never an exception — whenever Gemini isn't
+`fallback_career_score()` — never an exception — whenever Claude isn't
 configured or the call fails, so an unattended pipeline run never breaks on
 this.
 """
@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import re
 import textwrap
 from dataclasses import dataclass
@@ -27,14 +26,14 @@ from typing import Any
 
 from dataclasses import asdict
 
+from pydantic import BaseModel
+
 from database import get_career_score, save_career_score
 from job_model import Job
 from opportunity_insights import classify_role_family
 from scoring import Score
 
 LOGGER = logging.getLogger(__name__)
-
-_GEN_MODEL = "gemini-2.0-flash"
 
 CLASSIFICATIONS = ("Strong Target", "Target", "Reach", "Fallback", "Skip")
 RECOMMENDATIONS = ("APPLY IMMEDIATELY", "APPLY", "APPLY IF INTERESTED", "FALLBACK ONLY", "SKIP")
@@ -184,8 +183,7 @@ _PROMPT_TEMPLATE = textwrap.dedent("""
     should be able to score below 50 even if every stated requirement is
     technically met.
 
-    Respond with ONLY a valid JSON object (no markdown, no code fences) with
-    exactly these fields:
+    Return exactly these fields:
     {{
       "career_direction_fit": 0,
       "technical_match": 0,
@@ -219,24 +217,41 @@ def _coerce_enum(value: Any, allowed: tuple[str, ...], default: str) -> str:
     return default
 
 
+class _LLMScore(BaseModel):
+    career_direction_fit: int
+    technical_match: int
+    evidence_strength: int
+    engineering_depth: int
+    career_value: int
+    eligibility: int
+    bonus_penalty: int
+    final_score: int
+    classification: str
+    primary_track: str
+    why_it_matches: str
+    main_gap: str
+    recommendation: str
+
+
 def score_career_fit(job: Job, profile: dict[str, Any]) -> CareerScore | None:
-    """Call Gemini to score career fit. Returns None on any failure — callers
+    """Call Claude to score career fit. Returns None on any failure — callers
     should fall back to fallback_career_score() rather than crash the pipeline."""
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
+    try:
+        from api import claude_client
+    except ImportError:  # anthropic not installed
+        return None
+    if not claude_client.is_configured():
         return None
 
     try:
-        import google.generativeai as genai
-
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(
-            model_name=_GEN_MODEL,
-            generation_config=genai.GenerationConfig(temperature=0.3, response_mime_type="application/json"),
-        )
         prompt = _PROMPT_TEMPLATE.format(profile=_profile_block(profile), job=_job_block(job))
-        response = model.generate_content(prompt)
-        data = json.loads(response.text)
+        data = claude_client.structured(
+            system="You score internship postings against a candidate's career goals.",
+            prompt=prompt,
+            output=_LLMScore,
+            effort="medium",
+            max_tokens=8000,
+        ).model_dump()
     except Exception:
         LOGGER.exception("career_scoring_llm_call_failed", extra={"title": job.title, "company": job.company})
         return None
@@ -251,7 +266,7 @@ def score_career_fit(job: Job, profile: dict[str, Any]) -> CareerScore | None:
         bonus_penalty = _clamp(data.get("bonus_penalty"), -30, 10)
 
         # final_score is ALWAYS derived from the sub-scores + bonus_penalty, never
-        # taken from whatever number Gemini separately wrote next to "final_score"
+        # taken from whatever number Claude separately wrote next to "final_score"
         # in its response — free-form generation is prone to arithmetic that
         # doesn't actually add up (e.g. sub-scores summing to 70 but a stated
         # final_score of 85). Deriving it guarantees the breakdown always tallies
@@ -260,7 +275,7 @@ def score_career_fit(job: Job, profile: dict[str, Any]) -> CareerScore | None:
         final_score = max(0, min(100, base + bonus_penalty))
 
         # Same reasoning for classification/recommendation: derive them from the
-        # now-consistent final_score rather than trusting Gemini's own label,
+        # now-consistent final_score rather than trusting Claude's own label,
         # which could otherwise disagree with the number (e.g. "Strong Target"
         # attached to a 60).
         return CareerScore(
@@ -347,7 +362,7 @@ _ROLE_FAMILY_TO_TRACK = {
 
 
 def fallback_career_score(job: Job, score: Score, config: dict[str, Any] | None = None) -> CareerScore:
-    """Deterministic stand-in used when Gemini isn't configured or the call
+    """Deterministic stand-in used when Claude isn't configured or the call
     fails. Cheaper and dumber than the real thing, but still actively
     deprioritizes analyst-shaped roles instead of scoring them on keywords
     alone — the whole point of this feature — so the pipeline degrades
@@ -381,8 +396,8 @@ def fallback_career_score(job: Job, score: Score, config: dict[str, Any] | None 
         bonus_penalty=bonus_penalty,
         classification=_classification_from_score(final_score),
         primary_track=track,
-        why_it_matches="Deterministic fallback score (Gemini unavailable) — approximate only.",
-        main_gap="Run with GEMINI_API_KEY configured for a real career-fit assessment.",
+        why_it_matches="Deterministic fallback score (Claude unavailable) — approximate only.",
+        main_gap="Run with ANTHROPIC_API_KEY configured for a real career-fit assessment.",
         recommendation=_recommendation_from_score(final_score),
         source="fallback",
     )

@@ -1,15 +1,19 @@
+"""Single-owner auth: the site has exactly one user, identified by
+OWNER_PASSWORD. There are no accounts, no registration, and no users database
+— logging in with the right password mints a JWT for the fixed OWNER subject,
+and every protected endpoint rejects any token whose subject isn't OWNER
+(which also invalidates tokens minted for the old multi-user accounts).
+"""
+import hashlib
+import hmac
 import os
-import sqlite3
-from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
-from pydantic import BaseModel, ValidationError, field_validator
+from pydantic import BaseModel, ValidationError
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -17,98 +21,38 @@ from slowapi.util import get_remote_address
 _JWT_SECRET = os.environ["JWT_SECRET"]
 _JWT_ALGORITHM = "HS256"
 _TOKEN_EXPIRE_HOURS = 8
-_INVITE_CODE = os.environ["INVITE_CODE"]
-_DATABASE_URL = os.getenv("DATABASE_URL")          # Neon/Postgres when set
-_DB_PATH = os.getenv("USERS_DB_PATH", "/tmp/internsearch_users.db")  # SQLite fallback
+_OWNER_PASSWORD = os.environ["OWNER_PASSWORD"]
+OWNER = "owner"
 
 # ── setup ─────────────────────────────────────────────────────────────────────
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
-_pwd = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 _bearer = HTTPBearer(auto_error=False)
-
-_CREATE_TABLE = """
-    CREATE TABLE IF NOT EXISTS users (
-        id {pk},
-        username TEXT UNIQUE NOT NULL,
-        hashed_password TEXT NOT NULL,
-        created_at TEXT NOT NULL
-    )
-"""
-
-
-# ── database abstraction ──────────────────────────────────────────────────────
-# Supports both Postgres (via DATABASE_URL / Neon free tier) and SQLite
-# (local dev). Postgres is recommended in production — it persists across
-# Render redeploys, unlike /tmp/internsearch_users.db.
-
-@contextmanager
-def _db():
-    if _DATABASE_URL:
-        import psycopg2
-        import psycopg2.extras
-        conn = psycopg2.connect(_DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor, connect_timeout=10)
-        try:
-            yield conn
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            conn.close()
-    else:
-        Path(_DB_PATH).parent.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(_DB_PATH)
-        conn.row_factory = sqlite3.Row
-        try:
-            yield conn
-            conn.commit()
-        finally:
-            conn.close()
-
-
-def _exec(conn: Any, sql: str, params: tuple = ()) -> Any:
-    if _DATABASE_URL:
-        cur = conn.cursor()
-        cur.execute(sql.replace("?", "%s"), params)
-        return cur
-    return conn.execute(sql, params)
-
-
-def _fetchone(conn: Any, sql: str, params: tuple = ()) -> dict | None:
-    if _DATABASE_URL:
-        cur = conn.cursor()
-        cur.execute(sql.replace("?", "%s"), params)
-        row = cur.fetchone()
-        return dict(row) if row else None
-    row = conn.execute(sql, params).fetchone()
-    return dict(row) if row else None
-
-
-def _init_db() -> None:
-    pk = "SERIAL PRIMARY KEY" if _DATABASE_URL else "INTEGER PRIMARY KEY AUTOINCREMENT"
-    with _db() as conn:
-        _exec(conn, _CREATE_TABLE.format(pk=pk))
-
-
-_init_db()
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
-def _create_token(username: str) -> str:
+def _password_matches(candidate: str) -> bool:
+    # Compare fixed-length digests so the comparison is constant-time
+    # regardless of the candidate's length.
+    return hmac.compare_digest(
+        hashlib.sha256(candidate.encode()).digest(),
+        hashlib.sha256(_OWNER_PASSWORD.encode()).digest(),
+    )
+
+
+def _create_token() -> str:
     expire = datetime.now(timezone.utc) + timedelta(hours=_TOKEN_EXPIRE_HOURS)
-    return jwt.encode({"sub": username, "exp": expire}, _JWT_SECRET, algorithm=_JWT_ALGORITHM)
+    return jwt.encode({"sub": OWNER, "exp": expire}, _JWT_SECRET, algorithm=_JWT_ALGORITHM)
 
 
 def _verify_token(token: str) -> str:
     try:
         payload = jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALGORITHM])
-        username: str | None = payload.get("sub")
-        if not username:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-        return username
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+    if payload.get("sub") != OWNER:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    return OWNER
 
 
 def get_current_user(
@@ -120,31 +64,7 @@ def get_current_user(
 
 
 # ── schemas ───────────────────────────────────────────────────────────────────
-class RegisterRequest(BaseModel):
-    username: str
-    password: str
-    invite_code: str
-
-    @field_validator("username")
-    @classmethod
-    def username_clean(cls, v: str) -> str:
-        v = v.strip().lower()
-        if not v or len(v) < 3 or len(v) > 32:
-            raise ValueError("Username must be 3–32 characters")
-        if not v.replace("_", "").replace("-", "").isalnum():
-            raise ValueError("Username may only contain letters, numbers, hyphens, underscores")
-        return v
-
-    @field_validator("password")
-    @classmethod
-    def password_strength(cls, v: str) -> str:
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")
-        return v
-
-
 class LoginRequest(BaseModel):
-    username: str
     password: str
 
 
@@ -158,12 +78,12 @@ async def _parse_json_body(request: Request, model: type[BaseModel]):
     """Reads and validates the body via Request.json() instead of a plain
     Pydantic body-parameter, which FastAPI only auto-parses for
     Content-Type: application/json specifically. That header is what forces a
-    CORS preflight (OPTIONS) on every login/register call — some networks
-    mishandle preflight even when plain GET/POST works fine, which broke this
-    exact endpoint for at least one user despite CORS being configured
-    correctly. Request.json() parses JSON regardless of the declared
-    Content-Type, so the frontend can send these two calls as a CORS-safelisted
-    "simple request" (no preflight at all) by just not setting that header.
+    CORS preflight (OPTIONS) on the login call — some networks mishandle
+    preflight even when plain GET/POST works fine, which broke this exact
+    endpoint for at least one user despite CORS being configured correctly.
+    Request.json() parses JSON regardless of the declared Content-Type, so the
+    frontend can send login as a CORS-safelisted "simple request" (no
+    preflight at all) by just not setting that header.
     """
     try:
         data = await request.json()
@@ -172,10 +92,8 @@ async def _parse_json_body(request: Request, model: type[BaseModel]):
     try:
         return model(**data)
     except ValidationError as exc:
-        # exc.errors() isn't JSON-safe as-is — a field_validator that raises a
-        # plain ValueError puts the raw exception object in each error's
-        # "ctx", which json.dumps can't serialize. Keep only the string
-        # fields (type/loc/msg is all the frontend reads anyway).
+        # exc.errors() isn't JSON-safe as-is (a validator's raw exception can
+        # land in "ctx"). Keep only the string fields the frontend reads.
         safe_errors = [
             {"type": e.get("type"), "loc": list(e.get("loc", [])), "msg": e.get("msg")} for e in exc.errors()
         ]
@@ -183,54 +101,13 @@ async def _parse_json_body(request: Request, model: type[BaseModel]):
 
 
 # ── routes ────────────────────────────────────────────────────────────────────
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-async def register(request: Request) -> dict:
-    body: RegisterRequest = await _parse_json_body(request, RegisterRequest)
-    if body.invite_code != _INVITE_CODE:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid invite code")
-
-    hashed = _pwd.hash(body.password)
-    now = datetime.now(timezone.utc).isoformat()
-    try:
-        with _db() as conn:
-            _exec(
-                conn,
-                "INSERT INTO users (username, hashed_password, created_at) VALUES (?, ?, ?)",
-                (body.username, hashed, now),
-            )
-    except Exception as exc:
-        msg = str(exc).lower()
-        if "unique" in msg or "duplicate" in msg:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already taken")
-        raise
-
-    return {"message": "Account created. You can now log in."}
-
-
 @router.post("/login")
 @limiter.limit("5/minute")
 async def login(request: Request) -> TokenResponse:
     body: LoginRequest = await _parse_json_body(request, LoginRequest)
-    with _db() as conn:
-        row = _fetchone(
-            conn,
-            "SELECT username, hashed_password FROM users WHERE username = ?",
-            (body.username.strip().lower(),),
-        )
-
-    # Constant-time compare even on miss — prevents username enumeration
-    dummy_hash = "$2b$12$" + "x" * 53
-    stored_hash = row["hashed_password"] if row else dummy_hash
-    valid = _pwd.verify(body.password, stored_hash)
-
-    if not row or not valid:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-        )
-
-    token = _create_token(row["username"])
-    return TokenResponse(access_token=token, username=row["username"])
+    if not _password_matches(body.password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
+    return TokenResponse(access_token=_create_token(), username=OWNER)
 
 
 @router.get("/me")

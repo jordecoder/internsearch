@@ -7,8 +7,7 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (username: string, password: string) => Promise<void>;
-  register: (username: string, password: string, inviteCode: string) => Promise<void>;
+  login: (password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -28,15 +27,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => setState({ username: null, loading: false }));
   }, []);
 
-  const login = async (username: string, password: string) => {
-    const res = await api.login(username, password);
+  const login = async (password: string) => {
+    const res = await api.login(password);
     api.saveToken(res.access_token);
     setState({ username: res.username, loading: false });
-  };
-
-  const register = async (username: string, password: string, inviteCode: string) => {
-    await api.register(username, password, inviteCode);
-    await login(username, password);
   };
 
   const logout = () => {
@@ -44,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ username: null, loading: false });
   };
 
-  return <AuthContext.Provider value={{ ...state, login, register, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ ...state, login, logout }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {
