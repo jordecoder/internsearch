@@ -18,9 +18,10 @@ career_scoring:
   enabled: true
 
 # Sends a short Telegram progress message after scraping/scoring finishes and
-# before digest/status messages are evaluated.
+# before digest/status messages are evaluated. Off because it fires on every
+# hourly run; heartbeat below covers pipeline health once a day.
 send_phase_status:
-  enabled: true
+  enabled: false
 
 # Sends one Telegram "still running" summary at most once per interval.
 heartbeat:

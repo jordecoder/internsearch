@@ -182,7 +182,7 @@ def get_career_score(db_path: str, stable_id: str) -> str | None:
     """Return the cached career-score JSON payload for a job, or None if never scored.
 
     LLM career scoring runs at most once per job — this cache is what makes
-    that true across the pipeline's repeated 3-hourly runs.
+    that true across the pipeline's repeated hourly runs.
     """
     with sqlite3.connect(db_path) as conn:
         row = conn.execute(

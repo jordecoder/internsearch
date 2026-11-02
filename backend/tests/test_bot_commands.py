@@ -11,8 +11,8 @@ def test_help_and_faq_commands_return_expected_text(tmp_path):
     init_db(db_path)
 
     assert "Internship monitor commands" in handle_command(db_path, "/help")
-    assert "Every 3 hours" in handle_command(db_path, "/faq")
-    assert "02:00" in handle_command(db_path, "/schedule")
+    assert "Every hour" in handle_command(db_path, "/faq")
+    assert "hourly at :17" in handle_command(db_path, "/schedule")
 
 
 def test_status_command_uses_saved_metadata(tmp_path):

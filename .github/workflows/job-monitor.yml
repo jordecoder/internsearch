@@ -12,8 +12,11 @@ concurrency:
 
 on:
   schedule:
-    # Every 3 hours in Singapore time, including 20:00 SGT for daily manual links.
-    - cron: "0 0,3,6,9,12,15,18,21 * * *"
+    # Hourly, off the top of the hour: GitHub delays or skips scheduled runs
+    # when busy, and :00 is its busiest minute. Each run also refreshes the
+    # dashboard, and the daily manual links go out on the first run after
+    # 20:00 SGT.
+    - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
       send_test_message:

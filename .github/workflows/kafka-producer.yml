@@ -10,9 +10,11 @@ concurrency:
   group: kafka-producer
   cancel-in-progress: false
 
+# Manual runs only. The schedule is off because the Redpanda cluster is gone
+# (every run since mid-October delivered 0 messages), and each run still marks
+# the jobs it fetches as seen in the job monitor's database, so the monitor
+# never alerts on them. Re-add a schedule once a working cluster is set up.
 on:
-  schedule:
-    - cron: "*/30 * * * *"
   workflow_dispatch:
     inputs:
       dry_run:

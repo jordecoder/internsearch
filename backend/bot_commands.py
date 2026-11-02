@@ -31,13 +31,13 @@ HELP_MESSAGE = """<b>Internship monitor commands</b>
 FAQ_MESSAGE = """<b>Internship monitor FAQ</b>
 
 <b>How often does it scrape?</b>
-Every 3 hours on a Singapore-time cadence.
+Every hour, at 17 minutes past. GitHub Actions sometimes delays or skips scheduled runs, so gaps of a few hours can happen.
 
 <b>Why did I not receive job alerts?</b>
 The bot only sends scraped jobs that pass Singapore, internship, role, and score filters. No message usually means no current exact job posting passed.
 
 <b>Are JobStreet/FastJobs scraped?</b>
-No. Dynamic job boards are kept as manual links and sent once daily at 20:00 SGT.
+No. The manual links sent once daily at 20:00 SGT are direct career pages for big tech, semiconductor, government, bank, and investment firm employers.
 
 <b>Are commands instant?</b>
 Yes, if the live bot worker is running. On GitHub Actions alone, commands are processed only when the workflow runs.
@@ -46,8 +46,8 @@ Yes, if the live bot worker is running. On GitHub Actions alone, commands are pr
 
 SCHEDULE_MESSAGE = """<b>Schedule</b>
 
-Scrape runs at:
-02:00, 05:00, 08:00, 11:00, 14:00, 17:00, 20:00, 23:00 SGT
+Scrape runs hourly at :17 past the hour.
+GitHub Actions sometimes delays or skips scheduled runs.
 
 Manual-review links send only once daily at/after 20:00 SGT.
 """

@@ -189,7 +189,7 @@ python main.py
 
 ## GitHub Actions
 
-Scheduled pipeline runs every 3 hours via `.github/workflows/job-monitor.yml`. SQLite state is persisted across runs using `actions/cache`. Required secrets:
+Scheduled pipeline runs hourly via `.github/workflows/job-monitor.yml`, which also refreshes the dashboard data. SQLite state is persisted across runs using `actions/cache`. Required secrets:
 
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_CHAT_ID`

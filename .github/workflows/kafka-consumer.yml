@@ -10,9 +10,8 @@ concurrency:
   group: kafka-consumer
   cancel-in-progress: false
 
+# Manual runs only while the producer's schedule is off (see kafka-producer.yml).
 on:
-  schedule:
-    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 jobs:

@@ -827,7 +827,7 @@ def run_once(config: dict[str, Any]) -> int:
         if career_scoring_enabled:
             # Only ever scored once per job (cached by stable_id) — cheap deterministic
             # filtering above already narrowed this to actionable candidates, so this
-            # doesn't run an LLM call against every posting on every 3-hourly run.
+            # doesn't run an LLM call against every posting on every hourly run.
             try:
                 career = get_or_score_career_fit(db_path, job, score, resume_profile, config)
             except Exception:
@@ -863,7 +863,7 @@ def run_once(config: dict[str, Any]) -> int:
             )
         ):
             # Digests are "what's new" reports, not a mirror of the tracker — a job
-            # keeps meeting this threshold on every 3-hourly run for as long as it's
+            # keeps meeting this threshold on every hourly run for as long as it's
             # actionable, and re-including it every cycle is exactly the redundant
             # repeat-notification this list used to cause. Only ever add it once,
             # the run it's first discovered; the tracker CSV below still reflects
