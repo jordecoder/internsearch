@@ -6,6 +6,7 @@ from time_utils import format_singapore_time
 
 
 ACRONYMS = {
+    "a*star",
     "ai",
     "api",
     "apac",
@@ -23,6 +24,7 @@ ACRONYMS = {
     "genai",
     "gic",
     "hr",
+    "hsbc",
     "htx",
     "ibm",
     "imc",
@@ -31,6 +33,7 @@ ACRONYMS = {
     "it",
     "llm",
     "m-daq",
+    "mas",
     "ml",
     "ncs",
     "nlp",
@@ -58,6 +61,7 @@ COMPANY_DISPLAY = {
     "atlassian": "Atlassian",
     "bytedance": "ByteDance",
     "canva": "Canva",
+    "careers@gov": "Careers@Gov",
     "carousell": "Carousell",
     "cloudflare": "Cloudflare",
     "cadence": "Cadence",

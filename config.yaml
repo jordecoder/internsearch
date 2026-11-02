@@ -164,92 +164,147 @@ manual_review_digest:
   enabled: true
   interval_hours: 24
   daily_at_sgt: "20:00"
-  max_items: 20
+  max_items: 50
+  # Direct company and agency career pages for Singapore internships, shown
+  # under a heading per `group` in the daily digest.
   links:
-    - label: Indeed Singapore - data engineer intern
-      url: https://sg.indeed.com/jobs?q=data+engineer+intern&l=Singapore
-      note: Indeed often blocks automation, so check this manually.
-    - label: Indeed Singapore - machine learning intern
-      url: https://sg.indeed.com/jobs?q=machine+learning+intern&l=Singapore
-      note: Manual check for AI/ML internships.
-    - label: Indeed Singapore - software engineer intern
-      url: https://sg.indeed.com/jobs?q=software+engineer+intern&l=Singapore
-      note: Manual check for SWE internships.
-    - label: JobStreet Singapore - data engineer intern
-      url: https://sg.jobstreet.com/data-engineer-intern-jobs/in-Singapore
-      note: SEEK/JobStreet pages are dynamic; check manually.
-    - label: JobStreet Singapore - software engineer intern
-      url: https://sg.jobstreet.com/software-engineer-intern-jobs/in-Singapore
-      note: Manual check for broad Singapore SWE internships.
-    - label: JobsDB Singapore - technology intern
-      url: https://sg.jobsdb.com/technology-intern-jobs/in-Singapore
-      note: SEEK/JobsDB pages are dynamic; check manually.
-    - label: FastJobs Singapore - IT intern
-      url: https://www.fastjobs.sg/singapore-jobs/en/it-computers-internship-jobs
-      note: Dynamic job board; check manually for smaller companies.
-    - label: eFinancialCareers Singapore - technology intern
-      url: https://www.efinancialcareers.sg/jobs-Technology-Internship-Singapore
-      note: Useful for bank, fintech, and quant technology internships.
-    - label: GradSingapore - technology internships
-      url: https://gradsingapore.com/search-jobs?keywords=technology%20intern
-      note: Graduate/internship board; review manually.
-    - label: TalentTribe Singapore - tech internships
-      url: https://talenttribe.asia/jobs
-      note: Review manually for local internship postings.
-    - label: MyCareersFuture - data engineer intern
-      url: https://www.mycareersfuture.gov.sg/search?search=data%20engineer%20intern&sortBy=new_posting_date&page=0
-      note: Dynamic page; review manually.
-    - label: MyCareersFuture - AI intern
-      url: https://www.mycareersfuture.gov.sg/search?search=ai%20intern&sortBy=new_posting_date&page=0
-      note: Dynamic page; review manually.
-    - label: Google Careers - Singapore internships
-      url: https://www.google.com/about/careers/applications/jobs/results/?location=Singapore&q=intern
-      note: Dynamic page; review manually.
-    - label: Google Careers - data engineering Singapore
-      url: https://www.google.com/about/careers/applications/jobs/results/?location=Singapore&q=data%20engineering
-      note: Dynamic page; review manually.
-    - label: LinkedIn Jobs - Singapore tech internships
-      url: https://www.linkedin.com/jobs/search/?keywords=software%20engineer%20intern&location=Singapore
-      note: Login-gated and dynamic; use saved alerts manually.
-    - label: Careers@Gov - tech internships
-      url: https://www.careers.gov.sg/
-      note: Check GovTech, DSTA, HTX, IMDA, DSO, and other public-sector postings.
-    - label: DSTA internships
-      url: https://www.dsta.gov.sg/join-us/student/internships
-      note: Programme page; verify current intake and deadline.
-    - label: CSIT internships
-      url: https://www.csit.gov.sg/join-us/internships
-      note: Programme page; verify current intake and deadline.
-    - label: AI Singapore opportunities
-      url: https://aisingapore.org/careers/
-      note: Check for AI, ML, data, and research engineering internships.
-    - label: SGInnovate careers
-      url: https://www.sginnovate.com/careers
-      note: Check ecosystem and deep-tech roles.
-    - label: NodeFlair Singapore internships
-      url: https://nodeflair.com/jobs?query=intern&location=Singapore
-      note: Dynamic job board; useful for tech-specific roles.
-    - label: Glints Singapore tech internships
-      url: https://glints.com/sg/opportunities/jobs/explore?keyword=software%20engineer%20intern
-      note: Dynamic job board; review manually.
-    - label: Prosple Singapore technology internships
-      url: https://sg.prosple.com/search-jobs?keywords=technology%20intern
-      note: Graduate/internship board; review manually.
-    - label: Shopee Singapore internships
+    - group: Big tech
+      label: Google
+      url: https://www.google.com/about/careers/applications/jobs/results/?location=Singapore&target_level=INTERN_AND_APPRENTICE
+    - group: Big tech
+      label: Meta
+      url: https://www.metacareers.com/jobs?roles[0]=Internship&offices[0]=Singapore
+      note: If the filters reset, pick Singapore and Internship.
+    - group: Big tech
+      label: Microsoft
+      url: https://apply.careers.microsoft.com/careers?query=intern&location=Singapore
+    - group: Big tech
+      label: Amazon / AWS
+      url: https://www.amazon.jobs/en/search?base_query=intern&loc_query=Singapore&country=SGP
+    - group: Big tech
+      label: Apple
+      url: https://jobs.apple.com/en-sg/search?location=singapore-SGP&team=internships-STDNT-INTRN
+    - group: Big tech
+      label: TikTok
+      url: https://lifeattiktok.com/search?keyword=intern
+      note: Set location to Singapore.
+    - group: Big tech
+      label: ByteDance
+      url: https://joinbytedance.com/search?keyword=intern
+      note: Set location to Singapore.
+    - group: Big tech
+      label: Shopee
       url: https://careers.shopee.sg/jobs?keyword=intern
-      note: Direct Shopee career search for Singapore internship openings.
-    - label: Monee / SeaMoney Singapore internships
+    - group: Big tech
+      label: Sea - Garena, Monee
       url: https://www.sea.com/careers
-      note: Sea fintech arm; check for Monee, SeaMoney, ShopeePay, SPayLater, SeaBank, and MariBank roles.
-    - label: NUS TalentConnect
-      url: https://nus-csm.symplicity.com/
-      note: Login-gated university portal; check manually.
-    - label: NTU InPlace
-      url: https://inplace.ntu.edu.sg/
-      note: Login-gated university portal; check manually.
-    - label: SMU OnTRAC
-      url: https://ontrac.smu.edu.sg/
-      note: Login-gated university portal; check manually.
+    - group: Big tech
+      label: Grab
+      url: https://www.grab.careers/en/jobs/?search=intern&country=Singapore
+    - group: Big tech
+      label: Stripe
+      url: https://stripe.com/careers/search?query=intern&office_locations=Asia+Pacific--Singapore
+    - group: Semiconductors
+      label: NVIDIA
+      url: https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite?q=intern%20singapore
+    - group: Semiconductors
+      label: AMD
+      url: https://careers.amd.com/careers-home/jobs?keywords=intern&location=Singapore
+    - group: Semiconductors
+      label: Qualcomm
+      url: https://careers.qualcomm.com/careers?query=intern&location=Singapore
+    - group: Semiconductors
+      label: Micron
+      url: https://careers.micron.com/careers?query=intern&location=Singapore
+    - group: Semiconductors
+      label: Infineon
+      url: https://jobs.infineon.com/careers?query=intern&location=Singapore
+    - group: Semiconductors
+      label: GlobalFoundries
+      url: https://globalfoundries.wd1.myworkdayjobs.com/External?q=intern%20singapore
+    - group: Semiconductors
+      label: Applied Materials
+      url: https://amat.wd1.myworkdayjobs.com/External?q=intern%20singapore
+    - group: Semiconductors
+      label: Marvell
+      url: https://marvell.wd1.myworkdayjobs.com/MarvellCareers?q=intern%20singapore
+    - group: Semiconductors
+      label: KLA
+      url: https://kla.wd1.myworkdayjobs.com/Search?q=intern%20singapore
+    - group: Government
+      label: Careers@Gov
+      url: https://jobs.careers.gov.sg/
+      note: Central portal for every agency; filter by internship.
+    - group: Government
+      label: GovTech
+      url: https://www.tech.gov.sg/careers/students-and-graduates/
+    - group: Government
+      label: Open Government Products
+      url: https://www.open.gov.sg/careers/
+    - group: Government
+      label: DSTA
+      url: https://www.dsta.gov.sg/join-us/student/internships
+    - group: Government
+      label: CSIT
+      url: https://www.csit.gov.sg/join-us/internships
+    - group: Government
+      label: DSO National Laboratories
+      url: https://join.dso.org.sg/
+    - group: Government
+      label: HTX
+      url: https://www.htx.gov.sg/join-us
+    - group: Government
+      label: IMDA
+      url: https://www.imda.gov.sg/about-imda/careers
+    - group: Government
+      label: A*STAR
+      url: https://careers.a-star.edu.sg/
+    - group: Government
+      label: MAS
+      url: https://www.mas.gov.sg/careers
+    - group: Government
+      label: Synapxe
+      url: https://www.synapxe.sg/careers
+    - group: Government
+      label: AI Singapore
+      url: https://aisingapore.org/home/careers/
+      note: AI engineering roles and the AI Apprenticeship Programme.
+    - group: Banks
+      label: DBS
+      url: https://www.dbs.com/careers/internships/default.page
+    - group: Banks
+      label: OCBC
+      url: https://www.ocbc.com/group/careers/
+    - group: Banks
+      label: UOB
+      url: https://www.uobgroup.com/careers/index.page
+    - group: Banks
+      label: JPMorgan Chase
+      url: https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs?keyword=intern&location=Singapore
+    - group: Banks
+      label: Goldman Sachs
+      url: https://higher.gs.com/campus
+    - group: Banks
+      label: Morgan Stanley
+      url: https://www.morganstanley.com/people-opportunities/students-graduates
+    - group: Banks
+      label: Citi
+      url: https://jobs.citi.com/students-and-graduates/
+    - group: Banks
+      label: Standard Chartered
+      url: https://www.sc.com/en/global-careers/early-careers/
+    - group: Banks
+      label: HSBC
+      url: https://www.hsbc.com/careers/students-and-graduates
+    - group: Banks
+      label: UBS
+      url: https://www.ubs.com/global/en/careers/students.html
+    - group: Investment firms
+      label: GIC
+      url: https://gic.careers/students-graduates/
+    - group: Investment firms
+      label: Temasek
+      url: https://www.temasek.com.sg/en/careers
 
 candidate_filters:
   min_location: 70
@@ -911,7 +966,7 @@ sources:
         default_location: Singapore
       - name: GIC
         company: GIC
-        url: https://www.gic.com.sg/careers/
+        url: https://careers.gic.com.sg/
         default_location: Singapore
       - name: Temasek
         company: Temasek

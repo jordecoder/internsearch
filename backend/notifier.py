@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import os
+import re
 from datetime import datetime, timezone
 
 import requests
@@ -19,6 +20,10 @@ SKIP_TIMELINE = {
     "fresh posting, timeline unspecified",
 }
 _SKIP_TIMELINE = SKIP_TIMELINE  # legacy alias, kept for any external references
+
+# Telegram rejects messages over 4096 characters (counted after HTML tags are
+# parsed out); the margin leaves room for emoji, which count double.
+TELEGRAM_TEXT_LIMIT = 4000
 
 
 def _escape(value: str) -> str:
@@ -132,6 +137,27 @@ def send_telegram_message(
 
     response = requests.post(api_url, json=payload, timeout=20)
     response.raise_for_status()
+
+
+def split_telegram_message(message: str, limit: int = TELEGRAM_TEXT_LIMIT) -> list[str]:
+    """Split a long HTML message at blank lines so each chunk fits Telegram's
+    limit. Blank lines separate whole items, so no tag is cut in half."""
+    chunks: list[str] = []
+    current = ""
+    for block in message.split("\n\n"):
+        candidate = f"{current}\n\n{block}" if current else block
+        if current and _visible_length(candidate) > limit:
+            chunks.append(current)
+            current = block
+        else:
+            current = candidate
+    if current:
+        chunks.append(current)
+    return chunks
+
+
+def _visible_length(message: str) -> int:
+    return len(html.unescape(re.sub(r"<[^>]+>", "", message)))
 
 
 def send_telegram(

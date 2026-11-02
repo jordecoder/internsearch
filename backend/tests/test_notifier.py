@@ -1,7 +1,8 @@
+import re
 from datetime import datetime, timezone
 
 from job_model import Job
-from notifier import format_actionable_job_message, format_job_message
+from notifier import format_actionable_job_message, format_job_message, split_telegram_message
 from scoring import Score
 
 
@@ -98,3 +99,23 @@ def test_no_resume_note_when_no_gaps():
 
     assert "missing" not in message
     assert "Summer 2027" in message
+
+
+def test_split_telegram_message_keeps_items_whole_and_under_limit():
+    items = [
+        f'{i}. <a href="https://example.com/careers/{i}">Company {i}</a>\nA note that pads the item out.'
+        for i in range(1, 201)
+    ]
+    message = "Header\n\n" + "\n\n".join(items)
+
+    chunks = split_telegram_message(message, limit=1000)
+
+    assert len(chunks) > 1
+    assert "\n\n".join(chunks) == message
+    for chunk in chunks:
+        assert len(re.sub(r"<[^>]+>", "", chunk)) <= 1000
+        assert chunk.count("<a ") == chunk.count("</a>")
+
+
+def test_split_telegram_message_leaves_short_message_whole():
+    assert split_telegram_message("Header\n\n1. Item") == ["Header\n\n1. Item"]

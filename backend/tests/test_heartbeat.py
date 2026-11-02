@@ -321,6 +321,22 @@ def test_manual_review_digest_includes_links_and_notes():
     assert "blocks automation" in message
 
 
+def test_manual_review_digest_adds_a_heading_per_group():
+    message = format_manual_review_digest(
+        [
+            {"group": "Big tech", "label": "Google", "url": "https://careers.google.com"},
+            {"group": "Big tech", "label": "Meta", "url": "https://www.metacareers.com"},
+            {"group": "Banks", "label": "HSBC", "url": "https://www.hsbc.com/careers"},
+        ],
+        now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
+    )
+
+    assert message.count("<b>Big tech</b>") == 1
+    assert message.index("<b>Big tech</b>") < message.index(">Google</a>")
+    assert message.index(">Meta</a>") < message.index("<b>Banks</b>") < message.index(">HSBC</a>")
+    assert '3. <a href="https://www.hsbc.com/careers">HSBC</a>' in message
+
+
 def test_manual_review_daily_due_uses_singapore_8pm_gate(tmp_path):
     db_path = str(tmp_path / "jobs.sqlite3")
     init_db(db_path)

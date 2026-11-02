@@ -24,7 +24,13 @@ from database import (
 )
 from display_utils import display_company, display_source, display_text, display_title, posted_date
 from http_client import PoliteHttpClient
-from notifier import SKIP_TIMELINE, send_actionable_telegram, send_telegram, send_telegram_message
+from notifier import (
+    SKIP_TIMELINE,
+    send_actionable_telegram,
+    send_telegram,
+    send_telegram_message,
+    split_telegram_message,
+)
 from opportunity_insights import (
     OpportunityInsights,
     build_opportunity_insights,
@@ -473,10 +479,15 @@ def format_manual_review_digest(items: list[dict[str, str]], *, now: datetime) -
         "",
         f"Generated: {timestamp}",
         "",
-        "These sources are useful but may block automation or render dynamically.",
+        "Direct career pages to check by hand. Filter to Singapore internships where a link isn't pre-filtered.",
         "",
     ]
+    current_group = ""
     for index, item in enumerate(items, start=1):
+        group = str(item.get("group", "")).strip()
+        if group and group != current_group:
+            lines.append(f"<b>{html.escape(group)}</b>")
+            current_group = group
         label = html.escape(display_text(str(item.get("label", "Manual search"))))
         url = html.escape(str(item.get("url", "")), quote=True)
         note = html.escape(str(item.get("note", "")))
@@ -518,10 +529,9 @@ def maybe_send_manual_review_digest(db_path: str, config: dict[str, Any]) -> Non
             pass
 
     max_items = int(manual.get("max_items", 10))
-    send_telegram_message(
-        format_manual_review_digest(items[:max_items], now=now),
-        disable_web_page_preview=True,
-    )
+    message = format_manual_review_digest(items[:max_items], now=now)
+    for chunk in split_telegram_message(message):
+        send_telegram_message(chunk, disable_web_page_preview=True)
     set_metadata(db_path, last_key, now.isoformat())
     if daily_at_sgt:
         set_metadata(db_path, "last_manual_review_digest_sgt_date", now.astimezone(SINGAPORE_TZ).date().isoformat())
