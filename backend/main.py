@@ -46,6 +46,7 @@ from sources.lever import fetch_lever_companies
 from sources.linkedin import fetch_linkedin_jobs
 from sources.mycareersfuture import fetch_mycareersfuture
 from sources.nodeflair import fetch_nodeflair_jobs
+from sources.readytalent import fetch_readytalent
 from sources.smartrecruiters import fetch_smartrecruiters_companies
 from sources.workday import fetch_workday_sites
 
@@ -181,6 +182,20 @@ def fetch_all_jobs(config: dict[str, Any], client: PoliteHttpClient):
             lambda: fetch_nodeflair_jobs(nodeflair.get("searches", []), client),
         )
         source_counts["NodeFlair"] = len(jobs)
+        all_jobs.extend(jobs)
+
+    readytalent = sources.get("readytalent", {})
+    if readytalent.get("enabled", False):
+        # Login-gated SIT portal: read from the encrypted snapshot the ReadyTalent
+        # Job Watch extension commits, not over HTTP (see sources/readytalent.py).
+        jobs = _fetch_source(
+            "ReadyTalent",
+            lambda: fetch_readytalent(
+                readytalent.get("inbox_path", "data/readytalent_inbox.json"),
+                max_age_days=int(readytalent.get("max_age_days", 7)),
+            ),
+        )
+        source_counts["ReadyTalent"] = len(jobs)
         all_jobs.extend(jobs)
 
     unique = {}

@@ -4,6 +4,8 @@ PyYAML==6.0.2
 requests==2.32.3
 python-dateutil==2.9.0.post0
 tzdata==2025.2
+# sources/readytalent.py — decrypts the ReadyTalent snapshot from the extension.
+cryptography>=42
 pytest==8.3.4
 
 # career_scoring.py / agent/mapper.py — imported lazily, so the pipeline still

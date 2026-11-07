@@ -59,6 +59,7 @@ exact_job_detection:
     - internsg
     - nodeflair
     - workday:
+    - readytalent
   exact_url_terms:
     - /job/
     - /jobs/
@@ -426,6 +427,12 @@ weekly_summary:
 application_tracker:
   enabled: true
   path: applications.csv
+
+# docs/jobs.json is served publicly from this (public) repo. Listings from
+# login-gated sources are kept out of it; they still get Telegram alerts.
+dashboard_export:
+  excluded_sources:
+    - ReadyTalent
 
 http:
   user_agent: "SGInternshipJobMonitor/1.0 (+personal internship alerts)"
@@ -1321,3 +1328,15 @@ sources:
       - technology consulting intern
       - cloud intern
       - cybersecurity intern
+
+  readytalent:
+    # SIT ReadyTalent (login-gated student job portal). GitHub Actions can't log
+    # in, so the ReadyTalent Job Watch Chrome extension commits an encrypted
+    # snapshot of open listings to backend/data/readytalent_inbox.json. Needs the
+    # READYTALENT_INBOX_KEY repo secret (the key shown in the extension settings);
+    # without it this source is skipped. See sources/readytalent.py.
+    enabled: true
+    inbox_path: data/readytalent_inbox.json
+    # Warn (but still process) when the extension hasn't refreshed the snapshot
+    # for this long, e.g. Chrome closed or the ReadyTalent login expired.
+    max_age_days: 7

@@ -118,6 +118,7 @@ class ResumeMatch:
 | LinkedIn | Guest API | Rate-limited, polite spacing |
 | MyCareersFuture | REST API | Singapore government jobs portal |
 | InternSG | HTML scraper | Best-effort extraction |
+| SIT ReadyTalent | Encrypted snapshot | Login-gated; fed by the ReadyTalent Job Watch Chrome extension |
 | NodeFlair | REST API | Singapore tech-focused |
 | Workday | CXS endpoint | Company-specific configuration |
 | Career pages | HTML scraper | Direct company sites |
@@ -226,6 +227,17 @@ pytest
 Tests cover scoring thresholds, timeline rejection, freshness logic, SQLite deduplication, and Telegram HTML formatting.
 
 ---
+
+## SIT ReadyTalent (login-gated)
+
+ReadyTalent is SIT's student job portal. It sits behind SIT login, so Actions can't scrape it directly. The **ReadyTalent Job Watch** Chrome extension runs in your logged-in browser instead. It reads the dashboard every few hours and commits an AES-256-GCM encrypted snapshot to `backend/data/readytalent_inbox.json`. `sources/readytalent.py` decrypts that snapshot during pipeline runs. From there the listings go through the normal scoring, dedup, tracker and Telegram alerts.
+
+Setup:
+
+1. In the extension's settings, turn on **Send to my InternSearch bot**, add a fine-grained token for this repo (Contents: read & write, plus Actions: read & write for instant runs), and copy the encryption key.
+2. Add that key as the repository secret `READYTALENT_INBOX_KEY`. Without it, the source is skipped.
+
+This repo is public, so the snapshot is never committed in plain text. ReadyTalent rows are also kept out of the public `docs/jobs.json` (`dashboard_export.excluded_sources`). Each listing links to `RT-Student-Dashboard/#job=<id>`, and the extension turns that link into the right job page.
 
 ## Adding Data Sources
 

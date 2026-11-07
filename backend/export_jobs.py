@@ -108,9 +108,15 @@ def _passes_dashboard_filter(job: Job, score: Score, config: dict) -> bool:
 def main() -> None:
     config = _load_config()
     rows = _fetch_rows(_DB_PATH)
+    excluded_sources = {
+        str(s).lower()
+        for s in config.get("dashboard_export", {}).get("excluded_sources", ["ReadyTalent"])
+    }
 
     results = []
     for row in rows:
+        if (row.get("source") or "").lower() in excluded_sources:
+            continue
         job = _to_job(row)
         score = score_job(job, config)
         if not _passes_dashboard_filter(job, score, config):
