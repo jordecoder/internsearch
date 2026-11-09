@@ -28,17 +28,18 @@ export function JobCard({ job, saved, onOpen, onSave, style }: JobCardProps) {
       style={style}
       onClick={() => onOpen(job)}
       className={cn(
-        'group cursor-pointer rounded-lg border border-border bg-card px-4 py-3.5 transition-colors animate-fade-up',
-        'hover:border-primary/40 hover:bg-accent/30',
+        'group cursor-pointer rounded-lg border border-border bg-card px-4 py-3.5 animate-fade-up',
+        'transition-[transform,background-color,border-color] duration-160 ease-out active:scale-[0.98]',
+        'hover:border-foreground/20 hover:bg-accent/40',
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <p className="text-xs font-semibold text-muted-foreground truncate">{job.company}</p>
-            {isNew && <span className="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-primary" title="New" />}
+            {isNew && <span className="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-hint" title="New" />}
           </div>
-          <p className="mt-0.5 text-[0.9rem] font-semibold text-foreground leading-snug truncate group-hover:text-primary transition-colors">
+          <p className="mt-0.5 text-[0.9rem] font-semibold text-foreground leading-snug truncate">
             {job.title}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground truncate">
@@ -62,14 +63,14 @@ export function JobCard({ job, saved, onOpen, onSave, style }: JobCardProps) {
           <button
             onClick={(e) => { e.stopPropagation(); onSave(job); }}
             className={cn(
-              'flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors',
-              saved ? 'text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
+              'pressable flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium',
+              saved ? 'text-foreground hover:bg-accent' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
             )}
           >
-            {saved ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
+            {saved ? <BookmarkCheck className="h-3.5 w-3.5 text-hint" /> : <Bookmark className="h-3.5 w-3.5" />}
             {saved ? 'Saved' : 'Save'}
           </button>
-          <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1">
+          <span className="text-xs font-medium text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-160 ease-out px-2 py-1">
             View details →
           </span>
         </div>

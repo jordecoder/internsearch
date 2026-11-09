@@ -43,7 +43,7 @@ export function MatchScore({ score, size = 'md', showRing = true }: MatchScorePr
           strokeDasharray={c}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className={cn('fill-none transition-[stroke-dashoffset] duration-500', classes.ring)}
+          className={cn('fill-none transition-[stroke-dashoffset] duration-250 ease-out', classes.ring)}
         />
       </svg>
       <span className={cn('absolute inset-0 flex items-center justify-center font-bold tabular-nums text-foreground', text)}>

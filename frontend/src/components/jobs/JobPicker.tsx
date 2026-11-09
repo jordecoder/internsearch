@@ -49,7 +49,7 @@ export function JobPicker({ children, onSelect, excludeUrls }: JobPickerProps) {
           align="start"
           sideOffset={6}
           onOpenAutoFocus={(e) => { e.preventDefault(); inputRef.current?.focus(); }}
-          className="z-50 w-[min(380px,90vw)] rounded-lg border border-border bg-popover shadow-lg data-[state=open]:animate-fade-in"
+          className="z-50 w-[min(380px,90vw)] rounded-lg border border-border bg-popover shadow-lg origin-[var(--radix-popover-content-transform-origin)] data-[state=open]:animate-scale-in"
         >
           <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
             <Search className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />

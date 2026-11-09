@@ -17,7 +17,7 @@ function DimensionBar({ label, value }: { label: string; value: number }) {
     <div className="flex items-center gap-3">
       <p className="w-28 flex-shrink-0 text-xs text-muted-foreground">{label}</p>
       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-        <div className={cn('h-full rounded-full transition-[width] duration-500', classes.bar)} style={{ width: `${value}%` }} />
+        <div className={cn('h-full rounded-full transition-[width] duration-250 ease-out', classes.bar)} style={{ width: `${value}%` }} />
       </div>
       <p className="w-9 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-foreground">{value}%</p>
     </div>

@@ -15,25 +15,29 @@ export const TIER_LABEL: Record<MatchTier, string> = {
   weak: 'Weak match',
 };
 
-/** Text + background classes per tier — used for badges and the score ring. */
+/**
+ * Text + background classes per tier — used for badges and the score ring.
+ * Semantic tokens only (they carry their own dark-mode values); the tier is
+ * always shown alongside a number or label, never by colour alone.
+ */
 export const TIER_CLASSES: Record<MatchTier, { text: string; bg: string; ring: string; bar: string }> = {
   strong: {
-    text: 'text-emerald-700 dark:text-emerald-400',
-    bg: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-900',
-    ring: 'stroke-emerald-500',
-    bar: 'bg-emerald-500',
+    text: 'text-success',
+    bg: 'bg-success-soft border-success/25',
+    ring: 'stroke-success',
+    bar: 'bg-success',
   },
   good: {
-    text: 'text-blue-700 dark:text-blue-400',
-    bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-900',
-    ring: 'stroke-blue-500',
-    bar: 'bg-blue-500',
+    text: 'text-hint',
+    bg: 'bg-hint-soft border-hint/25',
+    ring: 'stroke-hint',
+    bar: 'bg-hint',
   },
   moderate: {
-    text: 'text-amber-700 dark:text-amber-400',
-    bg: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-900',
-    ring: 'stroke-amber-500',
-    bar: 'bg-amber-500',
+    text: 'text-warning',
+    bg: 'bg-warning-soft border-warning/25',
+    ring: 'stroke-warning',
+    bar: 'bg-warning',
   },
   weak: {
     text: 'text-muted-foreground',
