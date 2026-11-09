@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-md border px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide transition-colors',
+  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-[12px] font-medium transition-colors',
   {
     variants: {
       variant: {
@@ -11,11 +11,11 @@ const badgeVariants = cva(
         secondary:   'border-transparent bg-secondary text-secondary-foreground',
         destructive: 'border-transparent bg-destructive text-destructive-foreground',
         outline:     'text-foreground',
-        actionable:  'border-sage-200 bg-sage-50 text-sage-700 dark:border-sage-800 dark:bg-sage-900/30 dark:text-sage-400',
+        actionable:  'border-success/25 bg-success-soft text-success',
         notified:    'border-border bg-muted text-muted-foreground',
         timeline:    'border-border bg-muted text-muted-foreground',
-        'score-high':'border-sage-200 bg-sage-50 text-sage-700 dark:border-sage-800 dark:bg-sage-900/30 dark:text-sage-300',
-        'score-mid': 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-900/20 dark:text-amber-400',
+        'score-high':'border-success/25 bg-success-soft text-success',
+        'score-mid': 'border-warning/25 bg-warning-soft text-warning',
         'score-low': 'border-border bg-muted text-muted-foreground',
       },
     },

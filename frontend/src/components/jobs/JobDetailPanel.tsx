@@ -6,8 +6,9 @@ import { MatchScore } from '@/components/jobs/MatchScore';
 import { MatchBreakdown } from '@/components/jobs/MatchBreakdown';
 import { SkillBadge } from '@/components/jobs/SkillBadge';
 import { StatusBadge } from '@/components/StatusBadge';
-import { extractTags } from '@/lib/match';
-import { relativeTime, sourceLabel } from '@/lib/utils';
+import { CompanyMonogram } from '@/components/CompanyMonogram';
+import { extractTags, matchTier, TIER_LABEL } from '@/lib/match';
+import { formatTimeline, relativeTime, sourceLabel } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpsertBoardEntry } from '@/hooks/useBoardQuery';
 import type { BoardEntryStatus, Job } from '@/types/job';
@@ -18,6 +19,8 @@ interface JobDetailPanelProps {
   savedStatus?: BoardEntryStatus;
 }
 
+const sectionLabel = 'mb-3 text-[13px] font-semibold tracking-[-0.003em] text-muted-foreground';
+
 export function JobDetailPanel({ job, onClose, savedStatus }: JobDetailPanelProps) {
   const navigate = useNavigate();
   const { username } = useAuth();
@@ -26,6 +29,7 @@ export function JobDetailPanel({ job, onClose, savedStatus }: JobDetailPanelProp
   if (!job) return null;
   const tags = extractTags(job.title);
   const navState = { company: job.company, title: job.title, url: job.url };
+  const timeline = formatTimeline(job.score.timeline_match);
 
   const requireAuth = (action: () => void) => {
     if (!username) { navigate('/login'); return; }
@@ -34,76 +38,87 @@ export function JobDetailPanel({ job, onClose, savedStatus }: JobDetailPanelProp
 
   return (
     <Sheet open={!!job} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="p-0 flex flex-col">
-        <SheetHeader>
-          <SheetTitle className="text-xs uppercase tracking-wide text-muted-foreground">{job.company}</SheetTitle>
-          <SheetDescription className="sr-only">Job details and match breakdown</SheetDescription>
-          <p className="text-base font-bold text-foreground leading-snug" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
-            {job.title}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {[job.location || 'Singapore', sourceLabel(job.source), relativeTime(job.posted_time ?? job.first_seen_time)].join(' · ')}
-          </p>
-        </SheetHeader>
-
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-          <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3">
-            <div>
-              <p className="text-xs text-muted-foreground">Overall match</p>
-              {savedStatus && <div className="mt-1"><StatusBadge status={savedStatus} /></div>}
-            </div>
-            <MatchScore score={job.score.overall} size="lg" />
-          </div>
-
-          {tags.length > 0 && (
-            <div>
-              <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Technologies mentioned</p>
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((t) => <SkillBadge key={t}>{t}</SkillBadge>)}
+      <SheetContent side="right" className="overflow-hidden p-0">
+        <div className="flex-1 overflow-y-auto">
+          <SheetHeader className="gap-0 pb-6 pt-7">
+            <div className="flex items-center gap-3">
+              <CompanyMonogram name={job.company} size={44} />
+              <div className="min-w-0">
+                <SheetTitle className="truncate text-[15px] font-medium tracking-[-0.01em]">{job.company}</SheetTitle>
+                <p className="truncate text-[13px] text-muted-foreground">
+                  {[job.location || 'Singapore', sourceLabel(job.source), relativeTime(job.posted_time ?? job.first_seen_time)].join(' · ')}
+                </p>
               </div>
             </div>
-          )}
+            <SheetDescription className="sr-only">Job details and match breakdown</SheetDescription>
+            <h2 className="mt-5 text-[26px] font-semibold leading-[1.15] tracking-[-0.026em] text-foreground">{job.title}</h2>
+            {(savedStatus || timeline) && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {savedStatus && <StatusBadge status={savedStatus} />}
+                {timeline && <span className="text-[13px] text-muted-foreground">{timeline}</span>}
+              </div>
+            )}
+          </SheetHeader>
 
-          <div>
-            <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Match breakdown</p>
-            <MatchBreakdown score={job.score} />
+          <div className="space-y-8 px-6 pb-8">
+            <section className="flex items-center gap-6 rounded-[20px] bg-background/70 p-5 shadow-control">
+              <MatchScore score={job.score.overall} size="xl" />
+              <div className="min-w-0">
+                <p className="text-[17px] font-semibold tracking-[-0.015em] text-foreground">{TIER_LABEL[matchTier(job.score.overall)]}</p>
+                <p className="mt-1 text-[13.5px] leading-relaxed text-muted-foreground">
+                  Scored on role, skills, location, timeline and degree fit.
+                </p>
+              </div>
+            </section>
+
+            <section>
+              <h3 className={sectionLabel}>How it scores</h3>
+              <MatchBreakdown score={job.score} />
+            </section>
+
+            {tags.length > 0 && (
+              <section>
+                <h3 className={sectionLabel}>Mentioned in the title</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {tags.map((t) => <SkillBadge key={t}>{t}</SkillBadge>)}
+                </div>
+              </section>
+            )}
+
+            <section>
+              <h3 className={sectionLabel}>About the role</h3>
+              {job.description ? (
+                <p className="max-h-72 overflow-y-auto whitespace-pre-wrap rounded-[18px] bg-background/70 px-4 py-3.5 text-[14px] leading-relaxed text-foreground shadow-control">
+                  {job.description}
+                </p>
+              ) : (
+                <p className="rounded-[18px] bg-background/70 px-4 py-3.5 text-[14px] leading-relaxed text-muted-foreground shadow-control">
+                  No description was captured for this posting. Open it to read the requirements and how to apply.
+                </p>
+              )}
+            </section>
           </div>
-
-          {job.description ? (
-            <div>
-              <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Description</p>
-              <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto rounded-lg border border-border bg-muted/30 px-3.5 py-3">
-                {job.description}
-              </p>
-            </div>
-          ) : (
-            <div className="rounded-lg border border-dashed border-border px-3.5 py-3 text-xs text-muted-foreground leading-relaxed">
-              No description was captured for this posting. Open it directly for requirements and how to apply.
-            </div>
-          )}
         </div>
 
-        <div className="border-t border-border p-4 space-y-2">
+        <footer className="material space-y-2.5 border-t border-border/70 p-5">
           <Button
-            variant="outline"
-            size="sm"
+            size="lg"
             onClick={() => requireAuth(() => navigate('/apply', { state: navState }))}
-            className="w-full gap-1.5"
+            className="w-full gap-2"
           >
-            <Sparkles className="h-3.5 w-3.5" /> Prepare application with Claude
+            <Sparkles className="h-4 w-4" /> Prepare application with Claude
           </Button>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2.5">
             <Button
-              variant={savedStatus === 'applied' ? 'secondary' : 'default'}
-              size="sm"
+              variant="secondary"
               onClick={() => requireAuth(() => upsert.mutate({ url: job.url, status: 'applied', title: job.title, company: job.company }))}
-              className="gap-1.5"
+              className="gap-2"
             >
-              <CheckCircle2 className="h-3.5 w-3.5" /> {savedStatus === 'applied' ? 'Applied' : 'Mark applied'}
+              <CheckCircle2 className="h-4 w-4" /> {savedStatus === 'applied' ? 'Applied' : 'Mark applied'}
             </Button>
-            <Button variant="outline" size="sm" asChild>
-              <a href={job.url} target="_blank" rel="noreferrer" className="gap-1.5">
-                <ExternalLink className="h-3.5 w-3.5" /> Open posting
+            <Button variant="secondary" asChild>
+              <a href={job.url} target="_blank" rel="noreferrer" className="gap-2">
+                <ExternalLink className="h-4 w-4" /> Open posting
               </a>
             </Button>
           </div>
@@ -114,12 +129,12 @@ export function JobDetailPanel({ job, onClose, savedStatus }: JobDetailPanelProp
               title: job.title,
               company: job.company,
             }))}
-            className="flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-1"
+            className="pressable flex w-full items-center justify-center gap-1.5 rounded-full py-1.5 text-[13.5px] font-medium text-muted-foreground hover:text-foreground"
           >
-            {savedStatus ? <BookmarkCheck className="h-3.5 w-3.5 text-primary" /> : <Bookmark className="h-3.5 w-3.5" />}
+            {savedStatus ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
             {savedStatus ? 'Saved to your board' : 'Save for later'}
           </button>
-        </div>
+        </footer>
       </SheetContent>
     </Sheet>
   );

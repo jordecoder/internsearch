@@ -17,11 +17,11 @@ export function ResumeDropzone({ resume, label = 'Resume' }: { resume: UseResume
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         className={cn(
-          'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150',
+          'border border-dashed rounded-[20px] p-8 text-center cursor-pointer transition-colors duration-160 bg-card/60',
           dragging
-            ? 'border-primary bg-primary/5'
+            ? 'border-hint bg-hint-soft/50'
             : file
-            ? 'border-sage-400 bg-sage-50 dark:border-sage-700 dark:bg-sage-900/10'
+            ? 'border-success/40 bg-success-soft/60'
             : 'border-border hover:border-primary/50 hover:bg-muted/40',
         )}
       >
@@ -41,12 +41,16 @@ export function ResumeDropzone({ resume, label = 'Resume' }: { resume: UseResume
         ) : file && !fileError ? (
           <div className="flex items-center justify-center gap-2">
             <div className="text-left">
-              <p className="text-sm font-medium text-sage-700 dark:text-sage-400">{file.name}</p>
+              <p className="text-sm font-medium text-success">{file.name}</p>
               <p className="text-xs text-muted-foreground">
                 {fileText.split(/\s+/).length} words extracted
               </p>
             </div>
-            <button onClick={(e) => { e.stopPropagation(); clear(); }} className="ml-2 text-muted-foreground hover:text-foreground">
+            <button
+              onClick={(e) => { e.stopPropagation(); clear(); }}
+              aria-label="Remove file"
+              className="pressable ml-2 rounded-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -54,9 +58,9 @@ export function ResumeDropzone({ resume, label = 'Resume' }: { resume: UseResume
           <div className="text-muted-foreground">
             <Upload className="h-7 w-7 mx-auto mb-2 opacity-50" />
             <p className="text-sm">
-              Drop your resume or <span className="text-primary font-medium">browse</span>
+              Drop your resume or <span className="text-hint font-medium">browse</span>
             </p>
-            <p className="text-xs mt-1 opacity-60">PDF, DOCX, or TXT · max 5 MB</p>
+            <p className="text-xs mt-1">PDF, DOCX, or TXT · max 5 MB</p>
           </div>
         )}
 

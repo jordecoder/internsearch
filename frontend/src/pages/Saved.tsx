@@ -1,13 +1,18 @@
 import { Link } from 'react-router-dom';
 import { ExternalLink, Trash2, ArrowRight, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/EmptyState';
 import { RequireAuth } from '@/components/RequireAuth';
+import { PageHeader } from '@/components/PageHeader';
+import { CompanyMonogram } from '@/components/CompanyMonogram';
+import { Reveal } from '@/components/motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useBoardQuery, useDeleteBoardEntry, useUpsertBoardEntry } from '@/hooks/useBoardQuery';
-import { relativeTime } from '@/lib/utils';
+import { cn, relativeTime } from '@/lib/utils';
+
+const iconBtn =
+  'pressable flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 function SavedContent() {
   const { username } = useAuth();
@@ -15,68 +20,69 @@ function SavedContent() {
   const upsert = useUpsertBoardEntry();
   const remove = useDeleteBoardEntry();
 
-  const saved = Object.entries(board ?? {}).filter(([, entry]) => entry.status === 'found');
-
-  if (isLoading) {
-    return (
-      <div className="max-w-3xl mx-auto px-5 py-8 space-y-2">
-        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
-      </div>
-    );
-  }
+  const saved = Object.entries(board ?? {})
+    .filter(([, entry]) => entry.status === 'found')
+    .sort((a, b) => b[1].updated_at.localeCompare(a[1].updated_at));
 
   return (
-    <div className="max-w-3xl mx-auto px-5 py-8 pb-20">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
-          Saved jobs
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Jobs you've bookmarked from Discover — move them along on the{' '}
-          <Link to="/board" className="text-primary hover:underline">Application Board</Link> when you're ready.
-        </p>
-      </div>
+    <div className="mx-auto max-w-3xl px-5 pb-24 sm:px-8">
+      <PageHeader
+        eyebrow="Discover"
+        title={[{ text: 'Saved.' }, { text: ' Roles you want a closer look at.', className: 'text-muted-foreground' }]}
+        description={
+          <>
+            When you're ready, send one on to your{' '}
+            <Link to="/board" className="font-medium text-hint hover:underline">board</Link>.
+          </>
+        }
+      />
 
-      {saved.length === 0 ? (
-        <EmptyState
-          icon={Bookmark}
-          title="No saved jobs yet"
-          description="Save jobs from the Jobs page to keep track of them here."
-          action={<Button asChild size="sm"><Link to="/">Browse jobs</Link></Button>}
-        />
-      ) : (
-        <div className="space-y-2">
-          {saved.map(([url, entry]) => (
-            <Card key={url}>
-              <CardContent className="pt-4 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{entry.title || '(untitled)'}</p>
-                  <p className="text-xs text-muted-foreground truncate">{entry.company}</p>
-                  <p className="text-[0.7rem] text-muted-foreground/70 mt-1">Saved {relativeTime(entry.updated_at)}</p>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <a href={url} target="_blank" rel="noreferrer" className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent">
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                  <button
-                    onClick={() => upsert.mutate({ url, status: 'applied', title: entry.title, company: entry.company })}
-                    title="Move to Applied"
-                    className="p-1.5 text-muted-foreground hover:text-primary rounded-md hover:bg-accent"
-                  >
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    onClick={() => remove.mutate(url)}
-                    title="Remove"
-                    className="p-1.5 text-muted-foreground hover:text-destructive rounded-md hover:bg-accent"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
+      {isLoading ? (
+        <div className="tile overflow-hidden">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 border-t border-border/70 px-5 py-4 first:border-t-0">
+              <Skeleton className="h-11 w-11 rounded-xl" />
+              <div className="flex-1 space-y-2"><Skeleton className="h-3 w-24" /><Skeleton className="h-4 w-2/3" /></div>
+            </div>
           ))}
         </div>
+      ) : saved.length === 0 ? (
+        <EmptyState
+          icon={Bookmark}
+          title="Nothing saved yet"
+          description="Tap the bookmark on any role in Jobs and it lands here."
+          action={<Button asChild><Link to="/">Browse jobs</Link></Button>}
+        />
+      ) : (
+        <Reveal className="tile overflow-hidden">
+          {saved.map(([url, entry], i) => (
+            <div key={url} className="group relative flex items-center gap-4 px-4 py-4 sm:px-5">
+              {i > 0 && <span aria-hidden className="pointer-events-none absolute left-[76px] right-0 top-0 h-px bg-border/80 sm:left-[80px]" />}
+              <CompanyMonogram name={entry.company || entry.title || '?'} size={44} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] text-muted-foreground">{entry.company || 'Unknown company'}</p>
+                <p className="mt-0.5 line-clamp-2 text-[15px] font-semibold leading-snug tracking-[-0.012em] text-foreground">{entry.title || 'Untitled role'}</p>
+                <p className="mt-1 text-[12.5px] text-muted-foreground">Saved {relativeTime(entry.updated_at)}</p>
+              </div>
+              <div className="flex flex-shrink-0 items-center gap-0.5">
+                <a href={url} target="_blank" rel="noreferrer" className={iconBtn} aria-label="Open posting">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+                <button onClick={() => remove.mutate(url)} className={cn(iconBtn, 'hover:text-danger')} aria-label="Remove">
+                  <Trash2 className="h-4 w-4" />
+                </button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => upsert.mutate({ url, status: 'applied', title: entry.title, company: entry.company })}
+                  className="ml-1 gap-1"
+                >
+                  Applied <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </Reveal>
       )}
     </div>
   );

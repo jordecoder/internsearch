@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { PageHeader } from '@/components/PageHeader';
 import { useLocation } from 'react-router-dom';
 import { ArrowRight, Loader2, Send, RotateCcw, Sparkles, Link2, ListFilter, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ const MODES: { id: InterviewMode; label: string; blurb: string }[] = [
 function speakerColor(speaker: string | undefined): string {
   if (!speaker || speaker === 'Interviewer' || speaker === 'Moderator') return 'text-muted-foreground';
   // Deterministic-ish color per participant name so it stays consistent across turns.
-  const hues = ['text-sage-600 dark:text-sage-400', 'text-amber-600 dark:text-amber-400', 'text-blue-600 dark:text-blue-400'];
+  const hues = ['text-success', 'text-warning', 'text-hint'];
   let hash = 0;
   for (const c of speaker) hash = (hash * 31 + c.charCodeAt(0)) % hues.length;
   return hues[hash];
@@ -43,7 +44,7 @@ function ChatBubble({ turn }: { turn: ChatTurn }) {
     <div className="flex justify-start">
       <div className="max-w-[80%] space-y-1">
         {turn.speaker && (
-          <p className={cn('text-[0.7rem] font-semibold uppercase tracking-wide px-1', speakerColor(turn.speaker))}>
+          <p className={cn('text-[12px] font-semibold px-1', speakerColor(turn.speaker))}>
             {turn.speaker}
           </p>
         )}
@@ -60,7 +61,7 @@ function FeedbackCard({ feedback }: { feedback: InterviewFeedback }) {
     <div className="space-y-3 animate-fade-up">
       <Card>
         <CardContent className="pt-5">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1.5">
+          <p className="text-[13px] font-semibold tracking-[-0.003em] text-muted-foreground mb-2 flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5" /> Overall
           </p>
           <p className="text-sm text-foreground leading-relaxed">{feedback.overall_impression}</p>
@@ -68,11 +69,11 @@ function FeedbackCard({ feedback }: { feedback: InterviewFeedback }) {
       </Card>
       <Card>
         <CardContent className="pt-5">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-wide text-muted-foreground mb-2">Strengths</p>
+          <p className="text-[13px] font-semibold tracking-[-0.003em] text-muted-foreground mb-2">Strengths</p>
           <ul className="space-y-1.5">
             {feedback.strengths.map((s, i) => (
               <li key={i} className="flex gap-2 text-sm text-foreground leading-relaxed">
-                <span className="text-sage-500 mt-0.5 flex-shrink-0">✓</span>
+                <span className="text-success mt-0.5 flex-shrink-0">✓</span>
                 <span>{s}</span>
               </li>
             ))}
@@ -81,11 +82,11 @@ function FeedbackCard({ feedback }: { feedback: InterviewFeedback }) {
       </Card>
       <Card>
         <CardContent className="pt-5">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-wide text-muted-foreground mb-2">To Improve</p>
+          <p className="text-[13px] font-semibold tracking-[-0.003em] text-muted-foreground mb-2">To Improve</p>
           <ul className="space-y-1.5">
             {feedback.improvements.map((s, i) => (
               <li key={i} className="flex gap-2 text-sm text-foreground leading-relaxed">
-                <span className="text-amber-500 mt-0.5 flex-shrink-0">›</span>
+                <span className="text-warning mt-0.5 flex-shrink-0">›</span>
                 <span>{s}</span>
               </li>
             ))}
@@ -95,7 +96,7 @@ function FeedbackCard({ feedback }: { feedback: InterviewFeedback }) {
       {feedback.sample_better_answer && (
         <Card>
           <CardContent className="pt-5">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-wide text-muted-foreground mb-2">A Stronger Answer</p>
+            <p className="text-[13px] font-semibold tracking-[-0.003em] text-muted-foreground mb-2">A Stronger Answer</p>
             <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{feedback.sample_better_answer}</p>
           </CardContent>
         </Card>
@@ -198,14 +199,14 @@ export function Interview() {
 
   return (
     <RequireAuth prompt="practice interviews">
-    <div className="max-w-3xl mx-auto px-5 py-8 pb-20">
-      <div className="mb-6 animate-fade-up">
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
-          Interview Prep
-        </h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          Practice live against a job description, including group-discussion rounds.
-        </p>
+    <div className="max-w-3xl mx-auto px-5 sm:px-8 pb-24">
+      <div className="mb-6">
+        <PageHeader
+          eyebrow="Prepare"
+          title={[{ text: 'Interview Prep.' }, { text: ' Rehearse until it feels easy.', className: 'text-muted-foreground' }]}
+          description="Practise live against a real job description, including group-discussion rounds."
+          className="pb-5"
+        />
         {!started && (
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {selectedJob && (
@@ -213,13 +214,13 @@ export function Interview() {
                 <Link2 className="h-3 w-3" />
                 Practicing for <span className="font-medium text-foreground">{selectedJob.title}</span> at{' '}
                 <span className="font-medium text-foreground">{selectedJob.company}</span>
-                <a href={selectedJob.url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-0.5">
+                <a href={selectedJob.url} target="_blank" rel="noreferrer" className="text-hint hover:underline flex items-center gap-0.5">
                   Open posting <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
             )}
             <JobPicker onSelect={pickJob}>
-              <button className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+              <button className="flex items-center gap-1.5 text-xs font-medium text-hint hover:underline">
                 <ListFilter className="h-3 w-3" /> {selectedJob ? 'Change job' : 'Select from your jobs'}
               </button>
             </JobPicker>
@@ -237,10 +238,10 @@ export function Interview() {
                   key={m.id}
                   onClick={() => setMode(m.id)}
                   className={cn(
-                    'text-left rounded-xl border p-3 transition-all',
+                    'text-left rounded-xl border p-3 transition-[transform,background-color,border-color,box-shadow] duration-160 ease-out active:scale-[0.98]',
                     mode === m.id
-                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                      : 'border-border hover:border-primary/50 hover:bg-muted/40',
+                      ? 'border-foreground/20 bg-accent ring-1 ring-hint/40'
+                      : 'border-border hover:border-foreground/20 hover:bg-muted/40',
                   )}
                 >
                   <p className="text-sm font-semibold text-foreground">{m.label}</p>
@@ -259,7 +260,7 @@ export function Interview() {
                 <button
                   type="button"
                   onClick={() => setJdLocked(false)}
-                  className="text-xs font-medium text-primary hover:underline"
+                  className="text-xs font-medium text-hint hover:underline"
                 >
                   Edit
                 </button>
@@ -279,7 +280,7 @@ export function Interview() {
           </div>
 
           {error && (
-            <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">{error}</p>
+            <p className="text-xs text-danger bg-danger-soft border border-danger/25 rounded-md px-3 py-2">{error}</p>
           )}
 
           <Button onClick={start} disabled={sending} className="w-full h-10">
@@ -297,7 +298,7 @@ export function Interview() {
       ) : (
         <div className="space-y-3 animate-fade-up">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="text-[13px] font-semibold tracking-[-0.003em] text-muted-foreground">
               {MODES.find((m) => m.id === mode)?.label}
             </p>
             <div className="flex items-center gap-3">
@@ -305,7 +306,7 @@ export function Interview() {
                 <button
                   onClick={endAndReview}
                   disabled={feedbackLoading || history.length === 0}
-                  className="text-xs text-primary font-semibold hover:underline disabled:opacity-50 disabled:no-underline"
+                  className="text-xs text-hint font-semibold hover:underline disabled:opacity-50 disabled:no-underline"
                 >
                   {feedbackLoading ? 'Reviewing…' : 'End & get feedback'}
                 </button>
@@ -330,7 +331,7 @@ export function Interview() {
           </div>
 
           {error && (
-            <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">{error}</p>
+            <p className="text-xs text-danger bg-danger-soft border border-danger/25 rounded-md px-3 py-2">{error}</p>
           )}
 
           {!feedback && (

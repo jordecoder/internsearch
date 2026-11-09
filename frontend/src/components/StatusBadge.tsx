@@ -1,35 +1,32 @@
 import { cn } from '@/lib/utils';
 import type { BoardEntryStatus } from '@/types/job';
 
-const STATUS_STYLE: Record<string, string> = {
-  found: 'bg-muted text-muted-foreground border-border',
-  tailoring: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900',
-  applied: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/20 dark:text-violet-400 dark:border-violet-900',
-  interviewing: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900',
-  offer: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900',
-  rejected: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900',
-  skipped: 'bg-muted text-muted-foreground/70 border-border',
+// Soft pill + matching dot. Text label always present, so status never relies on colour.
+const STATUS_STYLE: Record<string, { pill: string; dot: string }> = {
+  found:        { pill: 'bg-secondary text-secondary-foreground', dot: 'bg-muted-foreground' },
+  tailoring:    { pill: 'bg-hint-soft text-hint-soft-foreground', dot: 'bg-hint' },
+  applied:      { pill: 'bg-secondary text-secondary-foreground', dot: 'bg-foreground' },
+  interviewing: { pill: 'bg-warning-soft text-warning', dot: 'bg-warning' },
+  offer:        { pill: 'bg-success-soft text-success', dot: 'bg-success' },
+  rejected:     { pill: 'bg-danger-soft text-danger', dot: 'bg-danger' },
+  skipped:      { pill: 'bg-transparent text-muted-foreground ring-1 ring-inset ring-border', dot: 'bg-muted-foreground/60' },
 };
 
-const STATUS_LABEL: Record<string, string> = {
+export const STATUS_LABEL: Record<string, string> = {
   found: 'Saved',
   tailoring: 'Tailoring',
   applied: 'Applied',
-  interviewing: 'Interview',
+  interviewing: 'Interviewing',
   offer: 'Offer',
   rejected: 'Rejected',
   skipped: 'Skipped',
 };
 
 export function StatusBadge({ status, className }: { status: BoardEntryStatus; className?: string }) {
+  const s = STATUS_STYLE[status] ?? STATUS_STYLE.found;
   return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-md border px-1.5 py-0.5 text-[0.68rem] font-semibold',
-        STATUS_STYLE[status] ?? STATUS_STYLE.found,
-        className,
-      )}
-    >
+    <span className={cn('inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-[3px] text-[12px] font-medium', s.pill, className)}>
+      <span className={cn('h-1.5 w-1.5 rounded-full', s.dot)} aria-hidden />
       {STATUS_LABEL[status] ?? status}
     </span>
   );

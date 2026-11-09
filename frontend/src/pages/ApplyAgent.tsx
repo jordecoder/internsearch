@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { PageHeader } from '@/components/PageHeader';
 import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, Loader2, Link2, ListFilter, ExternalLink, Kanban } from 'lucide-react';
@@ -21,7 +22,7 @@ import type { ApplyPack, Job } from '@/types/job';
 const DEFAULT_QUESTION = 'Why do you want to work here?';
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <p className="text-[0.72rem] font-semibold uppercase tracking-wide text-muted-foreground">{children}</p>;
+  return <p className="text-[13px] font-semibold tracking-[-0.003em] text-muted-foreground">{children}</p>;
 }
 
 function TextCard({ label, text }: { label: string; text: string }) {
@@ -71,15 +72,15 @@ function Results({ pack }: { pack: ApplyPack }) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <SectionLabel>Role detected</SectionLabel>
-              <p className="mt-0.5 text-base font-bold text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
+              <p className="mt-0.5 text-base font-bold text-foreground">
                 {pack.role_title}
               </p>
             </div>
             <div className="text-right flex-shrink-0">
-              <span className="text-2xl font-light tabular-nums text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
+              <span className="text-2xl font-light tabular-nums text-foreground">
                 {pack.coverage_percent}%
               </span>
-              <p className="text-[0.65rem] text-muted-foreground uppercase tracking-wide">Coverage</p>
+              <p className="text-[12px] text-muted-foreground">Coverage</p>
             </div>
           </div>
           <Progress value={pack.coverage_percent} className="h-1.5" />
@@ -108,7 +109,7 @@ function Results({ pack }: { pack: ApplyPack }) {
               <p className="text-xs text-muted-foreground mb-1.5">Missing</p>
               <div className="flex flex-wrap gap-1.5">
                 {pack.missing_skills.map((s) => (
-                  <Badge key={s} className="border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-400">{s}</Badge>
+                  <Badge key={s} className="border-danger/25 bg-danger-soft text-danger">{s}</Badge>
                 ))}
               </div>
             </div>
@@ -216,28 +217,28 @@ export function ApplyAgent() {
 
   return (
     <RequireAuth prompt="use the apply agent">
-    <div className="max-w-5xl mx-auto px-5 py-8 pb-20">
+    <div className="max-w-5xl mx-auto px-5 sm:px-8 pb-24">
       {/* Header */}
-      <div className="mb-8 animate-fade-up">
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
-          Apply Agent
-        </h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          Claude reads the posting and your resume, then drafts everything you need to apply. Check it, then submit it yourself.
-        </p>
+      <div className="mb-8">
+        <PageHeader
+          eyebrow="Prepare"
+          title={[{ text: 'Apply Agent.' }, { text: ' Your application, drafted in a minute.', className: 'text-muted-foreground' }]}
+          description="Claude reads the posting and your resume, then drafts everything you need. Check it, then submit it yourself."
+          className="pb-5"
+        />
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {selectedJob && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 border border-border rounded-md px-3 py-1.5 w-fit">
               <Link2 className="h-3 w-3" />
               Applying to <span className="font-medium text-foreground">{selectedJob.title}</span> at{' '}
               <span className="font-medium text-foreground">{selectedJob.company}</span>
-              <a href={selectedJob.url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-0.5">
+              <a href={selectedJob.url} target="_blank" rel="noreferrer" className="text-hint hover:underline flex items-center gap-0.5">
                 Open posting <ExternalLink className="h-3 w-3" />
               </a>
             </div>
           )}
           <JobPicker onSelect={pickJob}>
-            <button className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+            <button className="flex items-center gap-1.5 text-xs font-medium text-hint hover:underline">
               <ListFilter className="h-3 w-3" /> {selectedJob ? 'Change job' : 'Select from your jobs'}
             </button>
           </JobPicker>
@@ -255,7 +256,7 @@ export function ApplyAgent() {
             <div className="flex items-center justify-between">
               <Label>Job Description</Label>
               {jdLocked && (
-                <button type="button" onClick={() => setJdLocked(false)} className="text-xs font-medium text-primary hover:underline">
+                <button type="button" onClick={() => setJdLocked(false)} className="text-xs font-medium text-hint hover:underline">
                   Edit
                 </button>
               )}
@@ -273,14 +274,14 @@ export function ApplyAgent() {
                 <Loader2 className="h-3 w-3 animate-spin" /> Fetching the description from the posting…
               </p>
             ) : jdNote ? (
-              <p className="text-xs text-destructive">{jdNote}</p>
+              <p className="text-xs text-danger">{jdNote}</p>
             ) : jdLocked ? (
               <p className="text-xs text-muted-foreground">
                 Filled in from the selected job's listing — Claude also reads the full posting if this looks cut off.
               </p>
             ) : (
               jd.trim().length > 0 && jd.trim().length < 50 && (
-                <p className="text-xs text-destructive">Paste a bit more of the job description</p>
+                <p className="text-xs text-danger">Paste a bit more of the job description</p>
               )
             )}
           </div>
@@ -297,7 +298,7 @@ export function ApplyAgent() {
           </div>
 
           {error && (
-            <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">{error}</p>
+            <p className="text-xs text-danger bg-danger-soft border border-danger/25 rounded-md px-3 py-2">{error}</p>
           )}
 
           <Button onClick={submit} disabled={loading || !file || jd.trim().length < 50} className="w-full h-10">
@@ -320,7 +321,7 @@ export function ApplyAgent() {
           {pack ? (
             <Results pack={pack} />
           ) : (
-            <div className="hidden lg:flex flex-col items-center justify-center h-full min-h-[400px] text-center text-muted-foreground/50 border-2 border-dashed border-border rounded-xl">
+            <div className="hidden lg:flex flex-col items-center justify-center h-full min-h-[400px] text-center text-muted-foreground rounded-[22px] bg-foreground/[0.03] shadow-[inset_0_0_0_1px_hsl(var(--border))]">
               <div className="space-y-2">
                 <p className="text-sm font-medium">Your application pack will appear here</p>
                 <p className="text-xs">Tailored resume points, cover letter, essay answer, and interview focus</p>

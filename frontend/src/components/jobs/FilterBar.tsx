@@ -1,11 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 export interface JobFilters {
@@ -51,77 +47,102 @@ const DATE_OPTIONS = [
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest' },
-  { value: 'score', label: 'Match score' },
-  { value: 'company', label: 'Company A–Z' },
+  { value: 'score', label: 'Best match' },
+  { value: 'company', label: 'A–Z' },
 ];
 
 function activeCount(filters: JobFilters): number {
-  let n = 0;
-  if (filters.category !== '__all__') n++;
-  if (filters.company !== '__all__') n++;
-  if (filters.source !== '__all__') n++;
-  if (filters.minScore !== '__all__') n++;
-  if (filters.datePosted !== '__all__') n++;
-  return n;
+  return (['category', 'company', 'source', 'minScore', 'datePosted'] as const).filter((k) => filters[k] !== '__all__').length;
 }
 
-/** A compact select — fixed width, short placeholder, no "always styled active" issue for sort. */
-function CompactSelect({
-  value, onValueChange, placeholder, options, width = 'w-[108px]', showAll = true,
+const pill =
+  'h-10 rounded-full bg-card px-4 text-[14px] shadow-control hover:bg-accent/60 focus:ring-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+
+/** A pill-shaped select; turns charcoal-on-sand inverted when a value is chosen. */
+function PillSelect({
+  value, onValueChange, placeholder, options, className,
 }: {
   value: string;
   onValueChange: (v: string) => void;
   placeholder: string;
   options: { value: string; label: string }[];
-  width?: string;
-  showAll?: boolean;
+  className?: string;
 }) {
+  const active = value !== '__all__';
   return (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className={cn('h-9 text-sm', width, value !== '__all__' && showAll && 'border-primary/60 bg-primary/5 text-primary')}>
+      <SelectTrigger
+        className={cn(pill, 'w-auto gap-2 border-0', active && 'bg-primary text-primary-foreground hover:bg-primary/90 [&_svg]:text-primary-foreground', className)}
+        aria-label={placeholder}
+      >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        {showAll && <SelectItem value="__all__">{placeholder}</SelectItem>}
+        <SelectItem value="__all__">{`Any ${placeholder.toLowerCase()}`}</SelectItem>
         {options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
       </SelectContent>
     </Select>
   );
 }
 
-function MoreFilters({ filters, onChange, companies, sources }: Pick<FilterBarProps, 'filters' | 'onChange' | 'companies' | 'sources'>) {
+/** Apple-style segmented control with a sliding thumb. */
+export function Segmented({
+  value, onChange, options, label,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  label: string;
+}) {
+  const refs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [thumb, setThumb] = useState<{ left: number; width: number } | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = refs.current[value];
+    if (el) setThumb({ left: el.offsetLeft, width: el.offsetWidth });
+  }, [value]);
+  useEffect(() => {
+    // Enable the slide only after the first placement, so it doesn't fly in on load.
+    const id = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   return (
-    <div className="grid grid-cols-2 gap-2">
-      <CompactSelect
-        value={filters.company}
-        onValueChange={(v) => onChange({ ...filters, company: v })}
-        placeholder="Company"
-        options={companies.map((c) => ({ value: c, label: c }))}
-        width="w-full"
-      />
-      <CompactSelect
-        value={filters.source}
-        onValueChange={(v) => onChange({ ...filters, source: v })}
-        placeholder="Source"
-        options={sources.map((c) => ({ value: c, label: c }))}
-        width="w-full"
-      />
-      <CompactSelect
-        value={filters.datePosted}
-        onValueChange={(v) => onChange({ ...filters, datePosted: v })}
-        placeholder="Date posted"
-        options={DATE_OPTIONS}
-        width="w-full"
-      />
+    <div role="radiogroup" aria-label={label} className="relative inline-flex h-10 items-center rounded-full bg-foreground/[0.06] p-1">
+      {thumb && (
+        <span
+          aria-hidden
+          className={cn('absolute top-1 bottom-1 rounded-full bg-card shadow-control', ready && 'transition-[left,width] duration-400 ease-spring')}
+          style={{ left: thumb.left, width: thumb.width }}
+        />
+      )}
+      {options.map((o) => (
+        <button
+          key={o.value}
+          ref={(el) => { refs.current[o.value] = el; }}
+          role="radio"
+          aria-checked={value === o.value}
+          onClick={() => onChange(o.value)}
+          className={cn(
+            'relative z-10 h-8 rounded-full px-4 text-[13.5px] font-medium tracking-[-0.01em] transition-colors duration-160',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            value === o.value ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          {o.label}
+        </button>
+      ))}
     </div>
   );
 }
 
 export function FilterBar(props: FilterBarProps) {
-  const { filters, onChange, categories, companies, sources, resultCount } = props;
+  const { filters, onChange, categories, companies, sources } = props;
   const [sheetOpen, setSheetOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  const more = activeCount(filters) - (filters.category !== '__all__' ? 1 : 0) - (filters.minScore !== '__all__' ? 1 : 0);
+  const more = (['company', 'source', 'datePosted'] as const).filter((k) => filters[k] !== '__all__').length;
+  const anyActive = activeCount(filters) > 0 || filters.search !== '';
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -134,101 +155,82 @@ export function FilterBar(props: FilterBarProps) {
     return () => document.removeEventListener('keydown', handler);
   }, []);
 
-  const anyActive = activeCount(filters) > 0;
+  const set = (patch: Partial<JobFilters>) => onChange({ ...filters, ...patch });
 
   return (
-    <div className="flex flex-wrap gap-2 items-center">
-      <div className="relative flex-1 min-w-[160px] max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-        <Input
+    <div className="flex flex-wrap items-center gap-2.5">
+      <label className="group relative flex h-10 min-w-[200px] flex-1 items-center rounded-full bg-card shadow-control transition-shadow duration-160 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background sm:max-w-xs">
+        <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-muted-foreground" />
+        <input
           ref={searchRef}
           value={filters.search}
-          onChange={(e) => onChange({ ...filters, search: e.target.value })}
-          placeholder="Search  /"
-          className="pl-9 h-9 text-sm"
+          onChange={(e) => set({ search: e.target.value })}
+          placeholder="Search roles or companies"
+          aria-label="Search roles or companies"
+          className="h-full w-full rounded-full bg-transparent pl-10 pr-9 text-[14px] text-foreground placeholder:text-muted-foreground focus:outline-none"
         />
-      </div>
+        {filters.search ? (
+          <button
+            onClick={() => set({ search: '' })}
+            aria-label="Clear search"
+            className="absolute right-2 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/[0.08] text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <kbd className="pointer-events-none absolute right-3.5 hidden font-sans text-[12px] text-muted-foreground sm:block">/</kbd>
+        )}
+      </label>
 
-      <div className="hidden sm:flex items-center gap-2">
-        <CompactSelect
-          value={filters.category}
-          onValueChange={(v) => onChange({ ...filters, category: v })}
-          placeholder="Category"
-          options={categories.map((c) => ({ value: c, label: c }))}
-          width="w-[130px]"
-        />
-        <CompactSelect
-          value={filters.minScore}
-          onValueChange={(v) => onChange({ ...filters, minScore: v })}
-          placeholder="Match score"
-          options={MIN_SCORE_OPTIONS}
-          width="w-[122px]"
-        />
+      <div className="hidden items-center gap-2.5 md:flex">
+        <PillSelect value={filters.category} onValueChange={(v) => set({ category: v })} placeholder="Category" options={categories.map((c) => ({ value: c, label: c }))} />
+        <PillSelect value={filters.minScore} onValueChange={(v) => set({ minScore: v })} placeholder="Match" options={MIN_SCORE_OPTIONS} />
       </div>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <Button variant="outline" size="sm" className="h-9 gap-1.5 flex-shrink-0" onClick={() => setSheetOpen(true)}>
-          <SlidersHorizontal className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">More</span>
-          {more > 0 && (
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[0.6rem] font-bold text-primary-foreground">
-              {more}
-            </span>
-          )}
-        </Button>
+        <button
+          onClick={() => setSheetOpen(true)}
+          className={cn('pressable inline-flex flex-shrink-0 items-center gap-2', pill, more > 0 && 'bg-primary text-primary-foreground hover:bg-primary/90')}
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          <span>Filters</span>
+          {more > 0 && <span className="text-[12px] font-semibold tabular-nums">{more}</span>}
+        </button>
         <SheetContent side="bottom">
           <SheetHeader>
-            <SheetTitle>Filter jobs</SheetTitle>
+            <SheetTitle>Filters</SheetTitle>
           </SheetHeader>
-          <div className="p-5 space-y-3">
-            {/* On small screens where Category/Score are hidden inline, show them here too */}
-            <div className="sm:hidden grid grid-cols-2 gap-2">
-              <CompactSelect
-                value={filters.category}
-                onValueChange={(v) => onChange({ ...filters, category: v })}
-                placeholder="Category"
-                options={categories.map((c) => ({ value: c, label: c }))}
-                width="w-full"
-              />
-              <CompactSelect
-                value={filters.minScore}
-                onValueChange={(v) => onChange({ ...filters, minScore: v })}
-                placeholder="Match score"
-                options={MIN_SCORE_OPTIONS}
-                width="w-full"
-              />
+          <div className="grid grid-cols-1 gap-3 p-6 sm:grid-cols-2">
+            <div className="contents md:hidden">
+              <PillSelect value={filters.category} onValueChange={(v) => set({ category: v })} placeholder="Category" options={categories.map((c) => ({ value: c, label: c }))} className="w-full justify-between" />
+              <PillSelect value={filters.minScore} onValueChange={(v) => set({ minScore: v })} placeholder="Match" options={MIN_SCORE_OPTIONS} className="w-full justify-between" />
             </div>
-            <MoreFilters filters={filters} onChange={onChange} companies={companies} sources={sources} />
-            {anyActive && (
-              <Button variant="ghost" size="sm" onClick={() => onChange(DEFAULT_FILTERS)} className="h-8 text-xs text-muted-foreground gap-1 px-2">
-                <X className="h-3 w-3" /> Reset filters
-              </Button>
-            )}
+            <PillSelect value={filters.company} onValueChange={(v) => set({ company: v })} placeholder="Company" options={companies.map((c) => ({ value: c, label: c }))} className="w-full justify-between" />
+            <PillSelect value={filters.source} onValueChange={(v) => set({ source: v })} placeholder="Source" options={sources.map((c) => ({ value: c, label: c }))} className="w-full justify-between" />
+            <PillSelect value={filters.datePosted} onValueChange={(v) => set({ datePosted: v })} placeholder="Date posted" options={DATE_OPTIONS} className="w-full justify-between" />
           </div>
+          {anyActive && (
+            <div className="px-6 pb-6">
+              <button onClick={() => onChange(DEFAULT_FILTERS)} className="pressable inline-flex items-center gap-1.5 text-[14px] font-medium text-hint hover:underline">
+                <X className="h-4 w-4" /> Clear all filters
+              </button>
+            </div>
+          )}
         </SheetContent>
       </Sheet>
 
-      <CompactSelect
-        value={filters.sort}
-        onValueChange={(v) => onChange({ ...filters, sort: v })}
-        placeholder="Sort"
-        options={SORT_OPTIONS}
-        width="w-[108px]"
-        showAll={false}
-      />
-
       {anyActive && (
         <button
-          onClick={() => onChange(DEFAULT_FILTERS)}
-          className="hidden lg:inline-flex items-center gap-1 h-9 px-2 text-xs text-muted-foreground hover:text-foreground"
+          onClick={() => onChange({ ...DEFAULT_FILTERS, sort: filters.sort })}
+          className="pressable hidden h-10 items-center gap-1 rounded-full px-3 text-[13.5px] font-medium text-hint hover:bg-hint/10 lg:inline-flex"
         >
-          <X className="h-3 w-3" /> Reset
+          Clear
         </button>
       )}
 
-      <span className="hidden md:inline text-xs text-muted-foreground whitespace-nowrap tabular-nums ml-auto flex-shrink-0">
-        {resultCount} listing{resultCount !== 1 ? 's' : ''}
-      </span>
+      <div className="ml-auto">
+        <Segmented label="Sort" value={filters.sort} onChange={(v) => set({ sort: v })} options={SORT_OPTIONS} />
+      </div>
     </div>
   );
 }

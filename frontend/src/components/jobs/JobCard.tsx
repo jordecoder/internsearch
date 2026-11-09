@@ -1,79 +1,93 @@
-import { Bookmark, BookmarkCheck } from 'lucide-react';
+import { Bookmark, BookmarkCheck, ChevronRight } from 'lucide-react';
 import { MatchScore } from '@/components/jobs/MatchScore';
-import { SkillBadge } from '@/components/jobs/SkillBadge';
 import { StatusBadge } from '@/components/StatusBadge';
+import { CompanyMonogram } from '@/components/CompanyMonogram';
 import { cn, relativeTime, sourceLabel } from '@/lib/utils';
 import { extractTags } from '@/lib/match';
 import type { BoardEntryStatus, Job } from '@/types/job';
 
-interface JobCardProps {
+interface JobRowProps {
   job: Job;
   saved?: BoardEntryStatus;
   onOpen: (job: Job) => void;
   onSave: (job: Job) => void;
-  style?: React.CSSProperties;
+  /** Draw an inset hairline above this row (every row but the first in a group). */
+  divider?: boolean;
 }
 
-export function JobCard({ job, saved, onOpen, onSave, style }: JobCardProps) {
-  const sc = job.score;
+/** One listing in an inset grouped list. The whole row opens the detail sheet. */
+export function JobRow({ job, saved, onOpen, onSave, divider }: JobRowProps) {
   const time = relativeTime(job.posted_time ?? job.first_seen_time);
-  const src = sourceLabel(job.source);
   const loc = (job.location ?? '').toLowerCase();
   const showLoc = job.location && loc !== 'singapore' && loc !== 'singapore, singapore';
   const tags = extractTags(job.title);
-  const isNew = Date.now() - new Date(job.first_seen_time).getTime() < 7_200_000;
+  const isNew = Date.now() - new Date(job.first_seen_time).getTime() < 86_400_000;
 
   return (
     <div
-      style={style}
+      role="button"
+      tabIndex={0}
       onClick={() => onOpen(job)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(job); }
+      }}
       className={cn(
-        'group cursor-pointer rounded-lg border border-border bg-card px-4 py-3.5 transition-colors animate-fade-up',
-        'hover:border-primary/40 hover:bg-accent/30',
+        'group relative flex cursor-pointer items-center gap-4 px-4 py-4 sm:px-5',
+        'transition-colors duration-160 ease-out hover:bg-foreground/[0.025] active:bg-foreground/[0.05]',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <p className="text-xs font-semibold text-muted-foreground truncate">{job.company}</p>
-            {isNew && <span className="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-primary" title="New" />}
-          </div>
-          <p className="mt-0.5 text-[0.9rem] font-semibold text-foreground leading-snug truncate group-hover:text-primary transition-colors">
-            {job.title}
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground truncate">
-            {[showLoc ? job.location : 'Singapore', 'Internship', time].filter(Boolean).join(' · ')} · {src}
-          </p>
-        </div>
-        <MatchScore score={sc.overall} size="sm" />
-      </div>
+      {divider && <span aria-hidden className="pointer-events-none absolute right-0 top-0 h-px bg-border/80 left-[76px] sm:left-[80px]" />}
 
-      {tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-2.5">
-          {tags.map((t) => <SkillBadge key={t}>{t}</SkillBadge>)}
-        </div>
-      )}
+      <CompanyMonogram name={job.company} size={44} />
 
-      <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/70">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          {saved && <StatusBadge status={saved} />}
+          <p className="truncate text-[13px] text-muted-foreground">{job.company}</p>
+          {isNew && (
+            <span className="flex-shrink-0 text-[11px] font-semibold text-hint">New</span>
+          )}
         </div>
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={(e) => { e.stopPropagation(); onSave(job); }}
-            className={cn(
-              'flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors',
-              saved ? 'text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
-            )}
-          >
-            {saved ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
-            {saved ? 'Saved' : 'Save'}
-          </button>
-          <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1">
-            View details →
-          </span>
+        <p className="mt-0.5 line-clamp-2 text-[15px] font-semibold leading-snug tracking-[-0.012em] text-foreground">
+          {job.title}
+        </p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-muted-foreground">
+          {showLoc && <span>{job.location}</span>}
+          {showLoc && <span aria-hidden>·</span>}
+          <span>{time}</span>
+          <span aria-hidden>·</span>
+          <span>{sourceLabel(job.source)}</span>
+          {tags.length > 0 && (
+            <span className="ml-1 hidden gap-1 sm:inline-flex">
+              {tags.slice(0, 3).map((t) => (
+                <span key={t} className="rounded-full bg-foreground/[0.05] px-2 py-px text-[11.5px] font-medium text-foreground/80">{t}</span>
+              ))}
+            </span>
+          )}
         </div>
+        {saved && <StatusBadge status={saved} className="mt-2 sm:hidden" />}
       </div>
+
+      {saved && <StatusBadge status={saved} className="hidden sm:inline-flex" />}
+
+      <MatchScore score={job.score.overall} size="md" />
+
+      <button
+        onClick={(e) => { e.stopPropagation(); onSave(job); }}
+        aria-label={saved ? 'Saved — update on your board' : 'Save job'}
+        className={cn(
+          'pressable flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          saved ? 'text-foreground hover:bg-foreground/[0.06]' : 'text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground',
+        )}
+      >
+        {saved ? <BookmarkCheck className="h-[18px] w-[18px]" /> : <Bookmark className="h-[18px] w-[18px]" />}
+      </button>
+
+      <ChevronRight className="hidden h-4 w-4 flex-shrink-0 text-muted-foreground/70 transition-transform duration-160 ease-out [@media(hover:hover)]:group-hover:translate-x-0.5 sm:block" />
     </div>
   );
 }
+
+/** @deprecated kept for older imports — use JobRow. */
+export const JobCard = JobRow;

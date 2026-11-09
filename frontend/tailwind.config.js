@@ -5,33 +5,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        sage: {
-          50:  '#f0f6f2',
-          100: '#daeae0',
-          200: '#aed0bb',
-          300: '#7db59a',
-          400: '#52997a',
-          500: '#3a7d5e',
-          600: '#2d6249',
-          700: '#214936',
-        },
-        warm: {
-          50:  '#f7f5f0',
-          100: '#edeae2',
-          200: '#dbd5c9',
-          300: '#c3bab0',
-          400: '#a29890',
-          500: '#7a736c',
-          600: '#5a5550',
-          700: '#3c3934',
-          800: '#242220',
-          900: '#131110',
-        },
         border:     'hsl(var(--border))',
         input:      'hsl(var(--input))',
         ring:       'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        sidebar:    'hsl(var(--sidebar))',
         primary: {
           DEFAULT:    'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
@@ -60,15 +39,57 @@ export default {
           DEFAULT:    'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',
         },
+        // Blue hint: links, focus, active indicators, info. Keep it subtle.
+        hint: {
+          DEFAULT:           'hsl(var(--hint) / <alpha-value>)',
+          foreground:        'hsl(var(--hint-foreground))',
+          soft:              'hsl(var(--hint-soft) / <alpha-value>)',
+          'soft-foreground': 'hsl(var(--hint-soft-foreground))',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success) / <alpha-value>)',
+          soft:    'hsl(var(--success-soft) / <alpha-value>)',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning) / <alpha-value>)',
+          soft:    'hsl(var(--warning-soft) / <alpha-value>)',
+        },
+        danger: {
+          DEFAULT: 'hsl(var(--danger) / <alpha-value>)',
+          soft:    'hsl(var(--danger-soft) / <alpha-value>)',
+        },
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        lg:    'var(--radius)',
+        md:    'calc(var(--radius) - 4px)',
+        sm:    'calc(var(--radius) - 6px)',
+        xl:    'calc(var(--radius) + 4px)',
+        '2xl': 'calc(var(--radius) + 8px)',
+        '3xl': 'calc(var(--radius) + 14px)',
+      },
+      boxShadow: {
+        tile:    'var(--shadow-tile)',
+        float:   'var(--shadow-float)',
+        control: 'var(--shadow-control)',
       },
       fontFamily: {
-        display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
-        sans:    ['"Inter"', 'system-ui', 'sans-serif'],
+        display: ['Inter', 'system-ui', '-apple-system', '"Segoe UI"', 'sans-serif'],
+        sans:    ['Inter', 'system-ui', '-apple-system', '"Segoe UI"', 'sans-serif'],
+      },
+      // Strong custom curves — the built-in CSS easings are too weak.
+      transitionTimingFunction: {
+        out:      'cubic-bezier(0.23, 1, 0.32, 1)',
+        'in-out': 'cubic-bezier(0.77, 0, 0.175, 1)',
+        spring:   'cubic-bezier(0.32, 0.72, 0, 1)',
+        expo:     'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+      transitionDuration: {
+        120: '120ms',
+        160: '160ms',
+        180: '180ms',
+        250: '250ms',
+        400: '400ms',
+        600: '600ms',
       },
       keyframes: {
         shimmer: {
@@ -76,47 +97,72 @@ export default {
           '100%': { transform: 'translateX(100%)' },
         },
         'fade-up': {
-          from: { opacity: '0', transform: 'translateY(10px)' },
+          from: { opacity: '0', transform: 'translateY(6px)' },
           to:   { opacity: '1', transform: 'translateY(0)' },
         },
         'fade-in': {
           from: { opacity: '0' },
           to:   { opacity: '1' },
         },
-        'slide-in-right': {
-          from: { transform: 'translateX(100%)' },
+        // Popovers/menus: never from scale(0); pair with an origin-aware transform-origin.
+        'scale-in': {
+          from: { opacity: '0', transform: 'scale(0.96)' },
+          to:   { opacity: '1', transform: 'scale(1)' },
+        },
+        'sheet-in-right': {
+          from: { transform: 'translateX(104%)' },
           to:   { transform: 'translateX(0)' },
         },
-        'slide-in-left': {
-          from: { transform: 'translateX(-100%)' },
+        'sheet-in-left': {
+          from: { transform: 'translateX(-104%)' },
           to:   { transform: 'translateX(0)' },
         },
-        'orb-1': {
-          '0%,100%': { transform: 'translate(0,0) scale(1)' },
-          '25%':     { transform: 'translate(55px,-35px) scale(1.06)' },
-          '50%':     { transform: 'translate(25px,55px) scale(0.96)' },
-          '75%':     { transform: 'translate(-35px,20px) scale(1.03)' },
+        'sheet-in-bottom': {
+          from: { transform: 'translateY(104%)' },
+          to:   { transform: 'translateY(0)' },
         },
-        'orb-2': {
-          '0%,100%': { transform: 'translate(0,0) scale(1)' },
-          '33%':     { transform: 'translate(-70px,45px) scale(1.09)' },
-          '66%':     { transform: 'translate(55px,-55px) scale(0.93)' },
+        'backdrop-in': {
+          from: { opacity: '0', backdropFilter: 'blur(0px)' },
+          to:   { opacity: '1' },
         },
-        'orb-3': {
-          '0%,100%': { transform: 'translate(0,0) scale(1)' },
-          '40%':     { transform: 'translate(75px,-40px) scale(1.07)' },
-          '80%':     { transform: 'translate(-45px,35px) scale(0.92)' },
+        'icon-in': {
+          '0%':   { opacity: '0', transform: 'scale(0.82) translateY(10px)', filter: 'blur(8px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)', filter: 'blur(0)' },
+        },
+        'aurora-1': {
+          '0%,100%': { transform: 'translate3d(0,0,0) scale(1)' },
+          '33%':     { transform: 'translate3d(8vw,-6vh,0) scale(1.12)' },
+          '66%':     { transform: 'translate3d(-4vw,7vh,0) scale(0.94)' },
+        },
+        'aurora-2': {
+          '0%,100%': { transform: 'translate3d(0,0,0) scale(1)' },
+          '40%':     { transform: 'translate3d(-9vw,5vh,0) scale(1.08)' },
+          '75%':     { transform: 'translate3d(5vw,-8vh,0) scale(0.92)' },
+        },
+        'aurora-3': {
+          '0%,100%': { transform: 'translate3d(0,0,0) scale(1)' },
+          '50%':     { transform: 'translate3d(6vw,6vh,0) scale(1.15)' },
+        },
+        'pulse-dot': {
+          '0%':   { boxShadow: '0 0 0 0 hsl(var(--hint) / 0.45)' },
+          '70%':  { boxShadow: '0 0 0 7px hsl(var(--hint) / 0)' },
+          '100%': { boxShadow: '0 0 0 0 hsl(var(--hint) / 0)' },
         },
       },
       animation: {
-        shimmer:   'shimmer 1.6s ease-in-out infinite',
-        'fade-up': 'fade-up 0.3s ease both',
-        'fade-in': 'fade-in 0.2s ease both',
-        'slide-in-right': 'slide-in-right 0.22s cubic-bezier(0.16,1,0.3,1)',
-        'slide-in-left': 'slide-in-left 0.22s cubic-bezier(0.16,1,0.3,1)',
-        'orb-1':   'orb-1 26s ease-in-out infinite',
-        'orb-2':   'orb-2 32s ease-in-out infinite',
-        'orb-3':   'orb-3 22s ease-in-out infinite',
+        shimmer:           'shimmer 1.4s linear infinite',
+        'fade-up':         'fade-up 220ms cubic-bezier(0.23, 1, 0.32, 1) both',
+        'fade-in':         'fade-in 150ms cubic-bezier(0.23, 1, 0.32, 1) both',
+        'scale-in':        'scale-in 180ms cubic-bezier(0.23, 1, 0.32, 1) both',
+        'sheet-in-right':  'sheet-in-right 520ms cubic-bezier(0.32, 0.72, 0, 1) both',
+        'sheet-in-left':   'sheet-in-left 460ms cubic-bezier(0.32, 0.72, 0, 1) both',
+        'sheet-in-bottom': 'sheet-in-bottom 520ms cubic-bezier(0.32, 0.72, 0, 1) both',
+        'backdrop-in':     'backdrop-in 400ms cubic-bezier(0.23, 1, 0.32, 1) both',
+        'icon-in':         'icon-in 900ms cubic-bezier(0.16, 1, 0.3, 1) both',
+        'aurora-1':        'aurora-1 26s ease-in-out infinite',
+        'aurora-2':        'aurora-2 32s ease-in-out infinite',
+        'aurora-3':        'aurora-3 22s ease-in-out infinite',
+        'pulse-dot':       'pulse-dot 2.4s cubic-bezier(0.23, 1, 0.32, 1) infinite',
       },
     },
   },

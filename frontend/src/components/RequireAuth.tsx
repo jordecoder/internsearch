@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { AppMark } from '@/components/AppMark';
+import { WordReveal } from '@/components/motion';
 import { useAuth } from '@/hooks/useAuth';
 
 export function RequireAuth({ children, prompt = 'track your pipeline' }: { children: React.ReactNode; prompt?: string }) {
@@ -9,26 +10,25 @@ export function RequireAuth({ children, prompt = 'track your pipeline' }: { chil
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-label="Loading" />
       </div>
     );
   }
 
   if (!username) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center px-5">
-        <Card className="max-w-sm w-full text-center animate-fade-up">
-          <CardContent className="pt-6 space-y-3">
-            <p className="text-sm text-foreground font-medium">Log in to {prompt}</p>
-            <p className="text-xs text-muted-foreground">
-              This site is private — only its owner can use it.
-            </p>
-            <Button asChild className="w-full">
-              <Link to="/login">Log in</Link>
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="flex min-h-[72vh] items-center justify-center px-5">
+        <div className="max-w-md text-center">
+          <div className="mx-auto mb-7 w-fit animate-icon-in"><AppMark size={56} /></div>
+          <WordReveal as="h1" segments={[`Log in to ${prompt}.`]} className="type-title text-foreground" delay={120} />
+          <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground [animation:word-in_900ms_var(--ease-expo)_300ms_both]">
+            This is a private workspace. Only its owner can sign in.
+          </p>
+          <div className="mt-7 [animation:word-in_900ms_var(--ease-expo)_420ms_both]">
+            <Button asChild size="lg"><Link to="/login">Log in</Link></Button>
+          </div>
+        </div>
       </div>
     );
   }
