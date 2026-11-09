@@ -33,7 +33,7 @@ function SavedContent() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Jobs you've bookmarked from Discover — move them along on the{' '}
-          <Link to="/board" className="text-primary hover:underline">Application Board</Link> when you're ready.
+          <Link to="/board" className="text-hint hover:underline">Application Board</Link> when you're ready.
         </p>
       </div>
 
@@ -52,23 +52,23 @@ function SavedContent() {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{entry.title || '(untitled)'}</p>
                   <p className="text-xs text-muted-foreground truncate">{entry.company}</p>
-                  <p className="text-[0.7rem] text-muted-foreground/70 mt-1">Saved {relativeTime(entry.updated_at)}</p>
+                  <p className="text-[0.7rem] text-muted-foreground mt-1">Saved {relativeTime(entry.updated_at)}</p>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <a href={url} target="_blank" rel="noreferrer" className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent">
+                  <a href={url} target="_blank" rel="noreferrer" className="pressable p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-accent">
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                   <button
                     onClick={() => upsert.mutate({ url, status: 'applied', title: entry.title, company: entry.company })}
                     title="Move to Applied"
-                    className="p-1.5 text-muted-foreground hover:text-primary rounded-md hover:bg-accent"
+                    className="pressable p-1.5 text-muted-foreground hover:text-primary rounded-md hover:bg-accent"
                   >
                     <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => remove.mutate(url)}
                     title="Remove"
-                    className="p-1.5 text-muted-foreground hover:text-destructive rounded-md hover:bg-accent"
+                    className="pressable p-1.5 text-muted-foreground hover:text-danger rounded-md hover:bg-accent"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

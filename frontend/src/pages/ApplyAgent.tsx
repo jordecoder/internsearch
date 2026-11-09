@@ -108,7 +108,7 @@ function Results({ pack }: { pack: ApplyPack }) {
               <p className="text-xs text-muted-foreground mb-1.5">Missing</p>
               <div className="flex flex-wrap gap-1.5">
                 {pack.missing_skills.map((s) => (
-                  <Badge key={s} className="border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-400">{s}</Badge>
+                  <Badge key={s} className="border-danger/25 bg-danger-soft text-danger">{s}</Badge>
                 ))}
               </div>
             </div>
@@ -231,13 +231,13 @@ export function ApplyAgent() {
               <Link2 className="h-3 w-3" />
               Applying to <span className="font-medium text-foreground">{selectedJob.title}</span> at{' '}
               <span className="font-medium text-foreground">{selectedJob.company}</span>
-              <a href={selectedJob.url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-0.5">
+              <a href={selectedJob.url} target="_blank" rel="noreferrer" className="text-hint hover:underline flex items-center gap-0.5">
                 Open posting <ExternalLink className="h-3 w-3" />
               </a>
             </div>
           )}
           <JobPicker onSelect={pickJob}>
-            <button className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+            <button className="flex items-center gap-1.5 text-xs font-medium text-hint hover:underline">
               <ListFilter className="h-3 w-3" /> {selectedJob ? 'Change job' : 'Select from your jobs'}
             </button>
           </JobPicker>
@@ -255,7 +255,7 @@ export function ApplyAgent() {
             <div className="flex items-center justify-between">
               <Label>Job Description</Label>
               {jdLocked && (
-                <button type="button" onClick={() => setJdLocked(false)} className="text-xs font-medium text-primary hover:underline">
+                <button type="button" onClick={() => setJdLocked(false)} className="text-xs font-medium text-hint hover:underline">
                   Edit
                 </button>
               )}
@@ -273,14 +273,14 @@ export function ApplyAgent() {
                 <Loader2 className="h-3 w-3 animate-spin" /> Fetching the description from the posting…
               </p>
             ) : jdNote ? (
-              <p className="text-xs text-destructive">{jdNote}</p>
+              <p className="text-xs text-danger">{jdNote}</p>
             ) : jdLocked ? (
               <p className="text-xs text-muted-foreground">
                 Filled in from the selected job's listing — Claude also reads the full posting if this looks cut off.
               </p>
             ) : (
               jd.trim().length > 0 && jd.trim().length < 50 && (
-                <p className="text-xs text-destructive">Paste a bit more of the job description</p>
+                <p className="text-xs text-danger">Paste a bit more of the job description</p>
               )
             )}
           </div>
@@ -297,7 +297,7 @@ export function ApplyAgent() {
           </div>
 
           {error && (
-            <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">{error}</p>
+            <p className="text-xs text-danger bg-danger-soft border border-danger/25 rounded-md px-3 py-2">{error}</p>
           )}
 
           <Button onClick={submit} disabled={loading || !file || jd.trim().length < 50} className="w-full h-10">
@@ -320,7 +320,7 @@ export function ApplyAgent() {
           {pack ? (
             <Results pack={pack} />
           ) : (
-            <div className="hidden lg:flex flex-col items-center justify-center h-full min-h-[400px] text-center text-muted-foreground/50 border-2 border-dashed border-border rounded-xl">
+            <div className="hidden lg:flex flex-col items-center justify-center h-full min-h-[400px] text-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
               <div className="space-y-2">
                 <p className="text-sm font-medium">Your application pack will appear here</p>
                 <p className="text-xs">Tailored resume points, cover letter, essay answer, and interview focus</p>

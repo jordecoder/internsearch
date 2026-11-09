@@ -52,7 +52,7 @@ function ApplicationCard({
     <div
       draggable
       onDragStart={onDragStart}
-      className="rounded-lg border border-border bg-card p-3 space-y-1.5 cursor-grab active:cursor-grabbing hover:border-primary/40 transition-colors"
+      className="rounded-lg border border-border bg-card p-3 space-y-1.5 cursor-grab active:cursor-grabbing hover:border-foreground/20 transition-colors"
     >
       <div className="flex items-start gap-1.5">
         <GripVertical className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 flex-shrink-0" />
@@ -68,7 +68,7 @@ function ApplicationCard({
             <div className="flex items-center gap-1 mt-0.5">
               <p className="text-xs text-muted-foreground truncate">{entry.company}</p>
               {url && (
-                <a href={url} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground flex-shrink-0">
+                <a href={url} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-hint transition-colors flex-shrink-0">
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
@@ -85,16 +85,16 @@ function ApplicationCard({
       )}
 
       <div className="flex items-center justify-between pt-0.5">
-        <p className="text-[0.65rem] text-muted-foreground/70">{relativeTime(entry.updated_at)}</p>
+        <p className="text-[0.65rem] text-muted-foreground">{relativeTime(entry.updated_at)}</p>
         {editing ? (
           <div className="flex gap-2">
-            <button onClick={save} className="text-[0.7rem] font-semibold text-primary hover:underline">Save</button>
+            <button onClick={save} className="text-[0.7rem] font-semibold text-hint hover:underline">Save</button>
             <button onClick={() => setEditing(false)} className="text-[0.7rem] text-muted-foreground hover:text-foreground">Cancel</button>
           </div>
         ) : (
           <div className="flex items-center gap-2">
             <button onClick={() => setEditing(true)} className="text-[0.7rem] text-muted-foreground hover:text-foreground">Edit</button>
-            <button onClick={onDelete} className="text-muted-foreground hover:text-destructive">
+            <button onClick={onDelete} className="text-muted-foreground hover:text-danger transition-colors">
               <Trash2 className="h-3 w-3" />
             </button>
           </div>
@@ -151,14 +151,14 @@ function AddJobForm({
       <JobPicker onSelect={onAddFromList} excludeUrls={excludeUrls}>
         <button
           disabled={jobs.length === 0}
-          className="w-full flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border-2 border-dashed border-border hover:border-primary/50 rounded-lg py-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border-2 border-dashed border-border hover:border-foreground/20 hover:bg-accent/40 rounded-lg py-3 transition-[transform,background-color,border-color,color] duration-160 ease-out enabled:active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ListPlus className="h-4 w-4" /> Choose a job from your listings
         </button>
       </JobPicker>
       <button
         onClick={() => setManualOpen(true)}
-        className="w-full flex items-center justify-center gap-1 text-xs text-muted-foreground/70 hover:text-muted-foreground py-0.5"
+        className="pressable w-full flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground py-0.5"
       >
         <Plus className="h-3 w-3" /> or track a job not in your listings
       </button>
@@ -198,7 +198,7 @@ function BoardContent() {
     return <div className="max-w-[100rem] mx-auto px-5 py-8 text-sm text-muted-foreground">Loading your pipeline…</div>;
   }
   if (error) {
-    return <div className="max-w-[100rem] mx-auto px-5 py-8 text-sm text-destructive">Could not load your board. Try refreshing.</div>;
+    return <div className="max-w-[100rem] mx-auto px-5 py-8 text-sm text-danger">Could not load your board. Try refreshing.</div>;
   }
 
   return (
@@ -237,9 +237,9 @@ function BoardContent() {
             >
               <div className="flex items-center justify-between px-1">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{col.label}</p>
-                <span className="text-xs text-muted-foreground/60 tabular-nums">{grouped[col.id].length}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">{grouped[col.id].length}</span>
               </div>
-              <div className={cn('space-y-2 min-h-[80px] rounded-xl p-1.5 transition-colors', dragUrl && 'bg-muted/30')}>
+              <div className={cn('space-y-2 min-h-[80px] rounded-xl p-1.5 transition-[background-color,box-shadow] duration-160 ease-out', dragUrl && 'bg-accent/40 ring-1 ring-inset ring-foreground/10')}>
                 {grouped[col.id].map(([url, entry]) => (
                   <ApplicationCard
                     key={url}

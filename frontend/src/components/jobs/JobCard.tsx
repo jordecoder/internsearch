@@ -28,8 +28,10 @@ export function JobCard({ job, saved, onOpen, onSave, style }: JobCardProps) {
       style={style}
       onClick={() => onOpen(job)}
       className={cn(
-        'group cursor-pointer rounded-lg border border-border bg-card px-4 py-3.5 animate-fade-up',
-        'transition-[transform,background-color,border-color] duration-160 ease-out active:scale-[0.98]',
+        // fill-mode backwards: hidden during the stagger delay, but the finished
+        // animation stops holding `transform`, so the press scale can apply.
+        'group cursor-pointer rounded-lg border border-border bg-card px-4 py-3.5 animate-fade-up [animation-fill-mode:backwards]',
+        'transition-[transform,background-color,border-color] duration-160 ease-out active:scale-[0.98] has-[button:active]:scale-100',
         'hover:border-foreground/20 hover:bg-accent/40',
       )}
     >
@@ -70,7 +72,7 @@ export function JobCard({ job, saved, onOpen, onSave, style }: JobCardProps) {
             {saved ? <BookmarkCheck className="h-3.5 w-3.5 text-hint" /> : <Bookmark className="h-3.5 w-3.5" />}
             {saved ? 'Saved' : 'Save'}
           </button>
-          <span className="text-xs font-medium text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-160 ease-out px-2 py-1">
+          <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-160 ease-out px-2 py-1">
             View details →
           </span>
         </div>

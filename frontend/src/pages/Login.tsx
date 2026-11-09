@@ -47,7 +47,7 @@ export function Login() {
       <Card className="w-full max-w-sm animate-fade-up">
         <CardHeader className="pb-3">
           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-            <Lock className="h-4.5 w-4.5 text-primary" />
+            <Lock className="h-[1.125rem] w-[1.125rem] text-primary" />
           </div>
           <CardTitle className="text-base">Log in</CardTitle>
           <p className="text-xs text-muted-foreground leading-relaxed mt-1">
@@ -56,13 +56,13 @@ export function Login() {
         </CardHeader>
         <CardContent className="space-y-3">
           {error && (
-            <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">
+            <p className="text-xs text-danger bg-danger-soft border border-danger/25 rounded-md px-3 py-2">
               {error}
             </p>
           )}
 
           {wakingUp && (
-            <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900 rounded-md px-3 py-2 flex items-center gap-1.5">
+            <p className="text-xs text-warning bg-warning-soft border border-warning/25 rounded-md px-3 py-2 flex items-center gap-1.5">
               <Loader2 className="h-3 w-3 animate-spin flex-shrink-0" /> {wakingUp}
             </p>
           )}
@@ -86,7 +86,7 @@ export function Login() {
           <div className="pt-2 border-t border-border">
             <button
               onClick={() => setShowSettings((s) => !s)}
-              className="w-full flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              className="pressable w-full flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground"
             >
               <Settings2 className="h-3 w-3" /> API URL
             </button>

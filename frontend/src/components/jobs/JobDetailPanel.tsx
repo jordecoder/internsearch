@@ -114,9 +114,9 @@ export function JobDetailPanel({ job, onClose, savedStatus }: JobDetailPanelProp
               title: job.title,
               company: job.company,
             }))}
-            className="flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-1"
+            className="pressable flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-1"
           >
-            {savedStatus ? <BookmarkCheck className="h-3.5 w-3.5 text-primary" /> : <Bookmark className="h-3.5 w-3.5" />}
+            {savedStatus ? <BookmarkCheck className="h-3.5 w-3.5 text-hint" /> : <Bookmark className="h-3.5 w-3.5" />}
             {savedStatus ? 'Saved to your board' : 'Save for later'}
           </button>
         </div>

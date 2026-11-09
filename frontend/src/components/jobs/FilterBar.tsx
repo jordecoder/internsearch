@@ -78,7 +78,7 @@ function CompactSelect({
 }) {
   return (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className={cn('h-9 text-sm', width, value !== '__all__' && showAll && 'border-primary/60 bg-primary/5 text-primary')}>
+      <SelectTrigger className={cn('h-9 text-sm', width, value !== '__all__' && showAll && 'border-foreground/20 bg-accent text-foreground ring-1 ring-hint/40')}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -220,7 +220,7 @@ export function FilterBar(props: FilterBarProps) {
       {anyActive && (
         <button
           onClick={() => onChange(DEFAULT_FILTERS)}
-          className="hidden lg:inline-flex items-center gap-1 h-9 px-2 text-xs text-muted-foreground hover:text-foreground"
+          className="pressable hidden lg:inline-flex items-center gap-1 h-9 px-2 text-xs text-muted-foreground hover:text-foreground"
         >
           <X className="h-3 w-3" /> Reset
         </button>

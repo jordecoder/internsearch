@@ -23,7 +23,7 @@ const MODES: { id: InterviewMode; label: string; blurb: string }[] = [
 function speakerColor(speaker: string | undefined): string {
   if (!speaker || speaker === 'Interviewer' || speaker === 'Moderator') return 'text-muted-foreground';
   // Deterministic-ish color per participant name so it stays consistent across turns.
-  const hues = ['text-sage-600 dark:text-sage-400', 'text-amber-600 dark:text-amber-400', 'text-blue-600 dark:text-blue-400'];
+  const hues = ['text-success', 'text-warning', 'text-hint'];
   let hash = 0;
   for (const c of speaker) hash = (hash * 31 + c.charCodeAt(0)) % hues.length;
   return hues[hash];
@@ -72,7 +72,7 @@ function FeedbackCard({ feedback }: { feedback: InterviewFeedback }) {
           <ul className="space-y-1.5">
             {feedback.strengths.map((s, i) => (
               <li key={i} className="flex gap-2 text-sm text-foreground leading-relaxed">
-                <span className="text-sage-500 mt-0.5 flex-shrink-0">✓</span>
+                <span className="text-success mt-0.5 flex-shrink-0">✓</span>
                 <span>{s}</span>
               </li>
             ))}
@@ -85,7 +85,7 @@ function FeedbackCard({ feedback }: { feedback: InterviewFeedback }) {
           <ul className="space-y-1.5">
             {feedback.improvements.map((s, i) => (
               <li key={i} className="flex gap-2 text-sm text-foreground leading-relaxed">
-                <span className="text-amber-500 mt-0.5 flex-shrink-0">›</span>
+                <span className="text-warning mt-0.5 flex-shrink-0">›</span>
                 <span>{s}</span>
               </li>
             ))}
@@ -213,13 +213,13 @@ export function Interview() {
                 <Link2 className="h-3 w-3" />
                 Practicing for <span className="font-medium text-foreground">{selectedJob.title}</span> at{' '}
                 <span className="font-medium text-foreground">{selectedJob.company}</span>
-                <a href={selectedJob.url} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-0.5">
+                <a href={selectedJob.url} target="_blank" rel="noreferrer" className="text-hint hover:underline flex items-center gap-0.5">
                   Open posting <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
             )}
             <JobPicker onSelect={pickJob}>
-              <button className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+              <button className="flex items-center gap-1.5 text-xs font-medium text-hint hover:underline">
                 <ListFilter className="h-3 w-3" /> {selectedJob ? 'Change job' : 'Select from your jobs'}
               </button>
             </JobPicker>
@@ -237,10 +237,10 @@ export function Interview() {
                   key={m.id}
                   onClick={() => setMode(m.id)}
                   className={cn(
-                    'text-left rounded-xl border p-3 transition-all',
+                    'text-left rounded-xl border p-3 transition-[transform,background-color,border-color,box-shadow] duration-160 ease-out active:scale-[0.98]',
                     mode === m.id
-                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                      : 'border-border hover:border-primary/50 hover:bg-muted/40',
+                      ? 'border-foreground/20 bg-accent ring-1 ring-hint/40'
+                      : 'border-border hover:border-foreground/20 hover:bg-muted/40',
                   )}
                 >
                   <p className="text-sm font-semibold text-foreground">{m.label}</p>
@@ -259,7 +259,7 @@ export function Interview() {
                 <button
                   type="button"
                   onClick={() => setJdLocked(false)}
-                  className="text-xs font-medium text-primary hover:underline"
+                  className="text-xs font-medium text-hint hover:underline"
                 >
                   Edit
                 </button>
@@ -279,7 +279,7 @@ export function Interview() {
           </div>
 
           {error && (
-            <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">{error}</p>
+            <p className="text-xs text-danger bg-danger-soft border border-danger/25 rounded-md px-3 py-2">{error}</p>
           )}
 
           <Button onClick={start} disabled={sending} className="w-full h-10">
@@ -305,7 +305,7 @@ export function Interview() {
                 <button
                   onClick={endAndReview}
                   disabled={feedbackLoading || history.length === 0}
-                  className="text-xs text-primary font-semibold hover:underline disabled:opacity-50 disabled:no-underline"
+                  className="text-xs text-hint font-semibold hover:underline disabled:opacity-50 disabled:no-underline"
                 >
                   {feedbackLoading ? 'Reviewing…' : 'End & get feedback'}
                 </button>
@@ -330,7 +330,7 @@ export function Interview() {
           </div>
 
           {error && (
-            <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2">{error}</p>
+            <p className="text-xs text-danger bg-danger-soft border border-danger/25 rounded-md px-3 py-2">{error}</p>
           )}
 
           {!feedback && (

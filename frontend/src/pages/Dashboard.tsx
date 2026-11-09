@@ -147,7 +147,8 @@ export function Dashboard() {
               saved={board?.[job.url]?.status}
               onOpen={setActiveJob}
               onSave={handleSave}
-              style={{ animationDelay: `${Math.min(i * 20, 200)}ms` }}
+              // 30ms stagger, capped after the first 8 cards (max 210ms) so long lists don't trail in.
+              style={{ animationDelay: `${Math.min(i, 7) * 30}ms` }}
             />
           ))}
         </div>
