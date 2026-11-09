@@ -5,28 +5,6 @@ export default {
   theme: {
     extend: {
       colors: {
-        sage: {
-          50:  '#f0f6f2',
-          100: '#daeae0',
-          200: '#aed0bb',
-          300: '#7db59a',
-          400: '#52997a',
-          500: '#3a7d5e',
-          600: '#2d6249',
-          700: '#214936',
-        },
-        warm: {
-          50:  '#f7f5f0',
-          100: '#edeae2',
-          200: '#dbd5c9',
-          300: '#c3bab0',
-          400: '#a29890',
-          500: '#7a736c',
-          600: '#5a5550',
-          700: '#3c3934',
-          800: '#242220',
-          900: '#131110',
-        },
         border:     'hsl(var(--border))',
         input:      'hsl(var(--input))',
         ring:       'hsl(var(--ring))',
@@ -60,6 +38,25 @@ export default {
           DEFAULT:    'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',
         },
+        // Blue hint: links, focus, active indicators, info. Keep it subtle.
+        hint: {
+          DEFAULT:         'hsl(var(--hint) / <alpha-value>)',
+          foreground:      'hsl(var(--hint-foreground))',
+          soft:            'hsl(var(--hint-soft) / <alpha-value>)',
+          'soft-foreground': 'hsl(var(--hint-soft-foreground))',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success) / <alpha-value>)',
+          soft:    'hsl(var(--success-soft) / <alpha-value>)',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning) / <alpha-value>)',
+          soft:    'hsl(var(--warning-soft) / <alpha-value>)',
+        },
+        danger: {
+          DEFAULT: 'hsl(var(--danger) / <alpha-value>)',
+          soft:    'hsl(var(--danger-soft) / <alpha-value>)',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -70,18 +67,35 @@ export default {
         display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
         sans:    ['"Inter"', 'system-ui', 'sans-serif'],
       },
+      // Strong custom curves — built-in CSS easings are too weak.
+      transitionTimingFunction: {
+        out:      'cubic-bezier(0.23, 1, 0.32, 1)',
+        'in-out': 'cubic-bezier(0.77, 0, 0.175, 1)',
+        drawer:   'cubic-bezier(0.32, 0.72, 0, 1)',
+      },
+      transitionDuration: {
+        120: '120ms',
+        160: '160ms',
+        180: '180ms',
+        250: '250ms',
+      },
       keyframes: {
         shimmer: {
           '0%':   { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(100%)' },
         },
         'fade-up': {
-          from: { opacity: '0', transform: 'translateY(10px)' },
+          from: { opacity: '0', transform: 'translateY(6px)' },
           to:   { opacity: '1', transform: 'translateY(0)' },
         },
         'fade-in': {
           from: { opacity: '0' },
           to:   { opacity: '1' },
+        },
+        // Popovers/menus: never from scale(0); pair with an origin-aware transform-origin.
+        'scale-in': {
+          from: { opacity: '0', transform: 'scale(0.96)' },
+          to:   { opacity: '1', transform: 'scale(1)' },
         },
         'slide-in-right': {
           from: { transform: 'translateX(100%)' },
@@ -109,14 +123,15 @@ export default {
         },
       },
       animation: {
-        shimmer:   'shimmer 1.6s ease-in-out infinite',
-        'fade-up': 'fade-up 0.3s ease both',
-        'fade-in': 'fade-in 0.2s ease both',
-        'slide-in-right': 'slide-in-right 0.22s cubic-bezier(0.16,1,0.3,1)',
-        'slide-in-left': 'slide-in-left 0.22s cubic-bezier(0.16,1,0.3,1)',
-        'orb-1':   'orb-1 26s ease-in-out infinite',
-        'orb-2':   'orb-2 32s ease-in-out infinite',
-        'orb-3':   'orb-3 22s ease-in-out infinite',
+        shimmer:          'shimmer 1.4s linear infinite',
+        'fade-up':        'fade-up 220ms cubic-bezier(0.23, 1, 0.32, 1) both',
+        'fade-in':        'fade-in 150ms cubic-bezier(0.23, 1, 0.32, 1) both',
+        'scale-in':       'scale-in 160ms cubic-bezier(0.23, 1, 0.32, 1) both',
+        'slide-in-right': 'slide-in-right 280ms cubic-bezier(0.32, 0.72, 0, 1)',
+        'slide-in-left':  'slide-in-left 280ms cubic-bezier(0.32, 0.72, 0, 1)',
+        'orb-1':          'orb-1 26s ease-in-out infinite',
+        'orb-2':          'orb-2 32s ease-in-out infinite',
+        'orb-3':          'orb-3 22s ease-in-out infinite',
       },
     },
   },
