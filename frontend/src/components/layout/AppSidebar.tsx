@@ -54,14 +54,16 @@ function NavLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed: bo
       to={item.to}
       onClick={onNavigate}
       className={cn(
-        'group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors',
+        'group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         active
-          ? 'bg-accent text-foreground'
+          ? 'bg-accent text-foreground before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-hint'
           : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
         collapsed && 'justify-center px-0',
       )}
+      aria-current={active ? 'page' : undefined}
     >
-      <Icon className={cn('h-[17px] w-[17px] flex-shrink-0', active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground')} />
+      <Icon className={cn('h-[17px] w-[17px] flex-shrink-0', active ? 'text-hint' : 'text-muted-foreground group-hover:text-foreground')} />
       {!collapsed && <span className="truncate">{item.label}</span>}
     </Link>
   );
@@ -79,27 +81,27 @@ export function AppSidebar({ collapsed, onToggle, onNavigate }: { collapsed: boo
   return (
     <aside
       className={cn(
-        'flex h-full flex-col border-r border-border bg-background transition-[width] duration-150',
+        'flex h-full flex-col border-r border-border bg-background transition-[width] duration-180 ease-out motion-reduce:transition-none',
         collapsed ? 'w-14' : 'w-60',
       )}
     >
       <div className={cn('flex h-14 items-center border-b border-border', collapsed ? 'justify-center px-0' : 'justify-between px-4')}>
         {!collapsed && (
           <Link to="/" className="flex items-center gap-2 text-foreground" onClick={onNavigate}>
-            <Compass className="h-4.5 w-4.5 text-primary" />
-            <span className="text-sm font-bold tracking-tight" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
+            <Compass className="h-[18px] w-[18px] text-primary" />
+            <span className="font-display text-sm font-bold tracking-tight">
               Intern Scout
             </span>
           </Link>
         )}
-        {collapsed && <Compass className="h-4.5 w-4.5 text-primary" />}
+        {collapsed && <Compass className="h-[18px] w-[18px] text-primary" />}
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-4">
         {NAV_GROUPS.map((group) => (
           <div key={group.label} className="space-y-0.5">
             {!collapsed && (
-              <p className="px-2.5 pb-1 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground/70">
+              <p className="px-2.5 pb-1 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
                 {group.label}
               </p>
             )}
@@ -114,8 +116,10 @@ export function AppSidebar({ collapsed, onToggle, onNavigate }: { collapsed: boo
         <NavLink item={{ to: '/settings', label: 'Settings', icon: Settings }} collapsed={collapsed} onNavigate={onNavigate} />
         <button
           onClick={onToggle}
+          aria-label={collapsed ? 'Expand sidebar' : undefined}
           className={cn(
             'hidden md:flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground hover:bg-accent/60 hover:text-foreground transition-colors',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
             collapsed && 'justify-center px-0',
           )}
         >

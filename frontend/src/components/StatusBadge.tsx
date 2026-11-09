@@ -3,12 +3,12 @@ import type { BoardEntryStatus } from '@/types/job';
 
 const STATUS_STYLE: Record<string, string> = {
   found: 'bg-muted text-muted-foreground border-border',
-  tailoring: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900',
-  applied: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/20 dark:text-violet-400 dark:border-violet-900',
-  interviewing: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900',
-  offer: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-900',
-  rejected: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900',
-  skipped: 'bg-muted text-muted-foreground/70 border-border',
+  tailoring: 'bg-hint-soft text-hint-soft-foreground border-hint/25',
+  applied: 'bg-secondary text-secondary-foreground border-border',
+  interviewing: 'bg-warning-soft text-warning border-warning/25',
+  offer: 'bg-success-soft text-success border-success/25',
+  rejected: 'bg-danger-soft text-danger border-danger/25',
+  skipped: 'bg-transparent text-muted-foreground border-border border-dashed',
 };
 
 const STATUS_LABEL: Record<string, string> = {

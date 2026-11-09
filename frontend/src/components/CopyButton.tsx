@@ -10,8 +10,12 @@ export function CopyButton({ getText }: { getText: () => string }) {
     });
   };
   return (
-    <button onClick={copy} className="text-muted-foreground hover:text-foreground transition-colors">
-      {copied ? <Check className="h-3.5 w-3.5 text-sage-500" /> : <Copy className="h-3.5 w-3.5" />}
+    <button
+      onClick={copy}
+      aria-label={copied ? 'Copied' : 'Copy to clipboard'}
+      className="pressable rounded-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
   );
 }

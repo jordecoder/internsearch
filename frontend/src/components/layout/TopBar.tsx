@@ -37,10 +37,10 @@ export function TopBar({ title, onOpenMobileSidebar }: TopBarProps) {
     <header className="sticky top-0 z-20 flex h-14 flex-shrink-0 items-center gap-3 border-b border-border bg-background/95 backdrop-blur px-4">
       <button
         onClick={onOpenMobileSidebar}
-        className="md:hidden -ml-1 flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+        className="pressable md:hidden -ml-1 flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         aria-label="Open menu"
       >
-        <Menu className="h-4.5 w-4.5" />
+        <Menu className="h-[18px] w-[18px]" />
       </button>
 
       <h1 className="hidden sm:block text-sm font-semibold text-foreground flex-shrink-0">{title}</h1>
@@ -50,11 +50,11 @@ export function TopBar({ title, onOpenMobileSidebar }: TopBarProps) {
         onOpenChange={setSearchOpen}
         anchor={
           <button
-            className="ml-auto sm:ml-4 flex-1 max-w-sm flex items-center gap-2 rounded-md border border-input bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/40 hover:bg-muted transition-colors"
+            className="ml-auto sm:ml-4 flex-1 max-w-sm flex items-center gap-2 rounded-md border border-input bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/40 hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <Search className="h-3.5 w-3.5 flex-shrink-0" />
             <span className="flex-1 text-left truncate">Search jobs, pages…</span>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-background px-1.5 py-0.5 text-[0.65rem] font-medium text-muted-foreground/80">
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-background px-1.5 py-0.5 text-[0.65rem] font-medium text-muted-foreground">
               {isMac ? '⌘' : 'Ctrl'}K
             </kbd>
           </button>
@@ -82,14 +82,23 @@ export function TopBar({ title, onOpenMobileSidebar }: TopBarProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button variant="ghost" size="icon" onClick={toggle} className="h-8 w-8 text-muted-foreground hover:text-foreground">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggle}
+          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
 
         {username ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+              <button
+                className="pressable flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                aria-label="Account menu"
+              >
                 <span className="text-xs font-bold uppercase">{username.slice(0, 2)}</span>
               </button>
             </DropdownMenuTrigger>

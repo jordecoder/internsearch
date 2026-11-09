@@ -89,7 +89,7 @@ export function CommandMenu({ open, onOpenChange, anchor }: CommandMenuProps) {
           align="start"
           sideOffset={6}
           onOpenAutoFocus={(e) => { e.preventDefault(); inputRef.current?.focus(); }}
-          className="z-50 w-[min(420px,90vw)] rounded-lg border border-border bg-popover shadow-lg data-[state=open]:animate-fade-in"
+          className="z-50 w-[min(420px,90vw)] rounded-lg border border-border bg-popover text-popover-foreground shadow-lg"
           onKeyDown={handleKeyDown}
         >
           <div className="flex items-center gap-2 border-b border-border px-3.5 py-3">
@@ -111,7 +111,7 @@ export function CommandMenu({ open, onOpenChange, anchor }: CommandMenuProps) {
 
             {filteredPages.length > 0 && (
               <div className="mb-1">
-                <p className="px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground/70">Pages</p>
+                <p className="px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">Pages</p>
                 {filteredPages.map((p) => {
                   const idx = results.findIndex((r) => r.type === 'page' && r.to === p.to);
                   const Icon = p.icon;
@@ -121,7 +121,7 @@ export function CommandMenu({ open, onOpenChange, anchor }: CommandMenuProps) {
                       onClick={() => go(p.to)}
                       onMouseEnter={() => setActiveIndex(idx)}
                       className={cn(
-                        'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-left transition-colors',
+                        'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-left',
                         idx === activeIndex ? 'bg-accent text-foreground' : 'text-foreground/90',
                       )}
                     >
@@ -135,7 +135,7 @@ export function CommandMenu({ open, onOpenChange, anchor }: CommandMenuProps) {
 
             {filteredJobs.length > 0 && (
               <div>
-                <p className="px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground/70">Jobs</p>
+                <p className="px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">Jobs</p>
                 {filteredJobs.map((j) => {
                   const to = `/?job=${encodeURIComponent(j.stable_id)}`;
                   const idx = results.findIndex((r) => r.type === 'job' && r.to === to);
@@ -145,7 +145,7 @@ export function CommandMenu({ open, onOpenChange, anchor }: CommandMenuProps) {
                       onClick={() => go(to)}
                       onMouseEnter={() => setActiveIndex(idx)}
                       className={cn(
-                        'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-left transition-colors',
+                        'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-left',
                         idx === activeIndex ? 'bg-accent text-foreground' : 'text-foreground/90',
                       )}
                     >
