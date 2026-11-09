@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { PageHeader } from '@/components/PageHeader';
 import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, Loader2, Link2, ListFilter, ExternalLink, Kanban } from 'lucide-react';
@@ -21,7 +22,7 @@ import type { ApplyPack, Job } from '@/types/job';
 const DEFAULT_QUESTION = 'Why do you want to work here?';
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <p className="text-[0.72rem] font-semibold uppercase tracking-wide text-muted-foreground">{children}</p>;
+  return <p className="text-[13px] font-semibold tracking-[-0.003em] text-muted-foreground">{children}</p>;
 }
 
 function TextCard({ label, text }: { label: string; text: string }) {
@@ -71,15 +72,15 @@ function Results({ pack }: { pack: ApplyPack }) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <SectionLabel>Role detected</SectionLabel>
-              <p className="mt-0.5 text-base font-bold text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
+              <p className="mt-0.5 text-base font-bold text-foreground">
                 {pack.role_title}
               </p>
             </div>
             <div className="text-right flex-shrink-0">
-              <span className="text-2xl font-light tabular-nums text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
+              <span className="text-2xl font-light tabular-nums text-foreground">
                 {pack.coverage_percent}%
               </span>
-              <p className="text-[0.65rem] text-muted-foreground uppercase tracking-wide">Coverage</p>
+              <p className="text-[12px] text-muted-foreground">Coverage</p>
             </div>
           </div>
           <Progress value={pack.coverage_percent} className="h-1.5" />
@@ -216,15 +217,15 @@ export function ApplyAgent() {
 
   return (
     <RequireAuth prompt="use the apply agent">
-    <div className="max-w-5xl mx-auto px-5 py-8 pb-20">
+    <div className="max-w-5xl mx-auto px-5 sm:px-8 pb-24">
       {/* Header */}
-      <div className="mb-8 animate-fade-up">
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
-          Apply Agent
-        </h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          Claude reads the posting and your resume, then drafts everything you need to apply. Check it, then submit it yourself.
-        </p>
+      <div className="mb-8">
+        <PageHeader
+          eyebrow="Prepare"
+          title={[{ text: 'Apply Agent.' }, { text: ' Your application, drafted in a minute.', className: 'text-muted-foreground' }]}
+          description="Claude reads the posting and your resume, then drafts everything you need. Check it, then submit it yourself."
+          className="pb-5"
+        />
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {selectedJob && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 border border-border rounded-md px-3 py-1.5 w-fit">
@@ -320,7 +321,7 @@ export function ApplyAgent() {
           {pack ? (
             <Results pack={pack} />
           ) : (
-            <div className="hidden lg:flex flex-col items-center justify-center h-full min-h-[400px] text-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
+            <div className="hidden lg:flex flex-col items-center justify-center h-full min-h-[400px] text-center text-muted-foreground rounded-[22px] bg-foreground/[0.03] shadow-[inset_0_0_0_1px_hsl(var(--border))]">
               <div className="space-y-2">
                 <p className="text-sm font-medium">Your application pack will appear here</p>
                 <p className="text-xs">Tailored resume points, cover letter, essay answer, and interview focus</p>

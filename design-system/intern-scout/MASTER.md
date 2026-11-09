@@ -1,63 +1,97 @@
 # Intern Scout — Design System (MASTER)
 
 Global source of truth for UI decisions. Page-specific overrides go in `pages/<page>.md`.
-Built with the UI UX Pro Max workflow (Job Board / Recruitment profile: flat + minimal/Swiss, professional blue as the trust colour) and Emil Kowalski's design-engineering motion rules.
+Built with the UI UX Pro Max workflow (Job Board / Recruitment profile, flat + minimal), Emil Kowalski's
+design-engineering rules for everyday motion, and Apple's product-page language for showcase moments.
 
 ## Direction
 
-**Charcoal & Sand.** Calm, warm, paper-like. Charcoal ink on sand, with a cobalt blue used only as a *hint*: focus, links, active indicators, info. Nothing glows, nothing is neon.
+**Charcoal & Sand, Apple-grade.** Warm-white tiles floating on sand, charcoal ink, large tight-tracked
+headlines, soft layered depth instead of borders, frosted materials for anything that floats. Cobalt blue
+is a *hint*, never a fill.
 
-**Dark mode — "Graphite & Sand".** Warm graphite surfaces (not black), sand text, periwinkle blue hints. No pure black, no green accent.
+**Dark mode — "Graphite & Sand".** Deep warm graphite (#161513, never black), sand ink, periwinkle hints,
+tiles lifted by a faint top highlight rather than drop shadows. No green accent.
 
-## Tokens
+## Tokens (`frontend/src/index.css`)
 
-All colours live as CSS variables in `frontend/src/index.css` and are exposed through Tailwind. Components must use tokens only — never raw hex or Tailwind palette colours (`emerald-500`, `blue-700`, etc.).
+Components use tokens only — never raw hex or Tailwind palette colours. The one exception is `AppMark`,
+the app icon, whose brand colours are fixed (they match the favicon).
 
-| Token (Tailwind) | Light | Dark | Use |
+| Token | Light | Dark | Use |
 |---|---|---|---|
-| `background` | `#F3EEE4` sand | `#1C1B19` graphite | Page |
-| `foreground` | `#262523` charcoal | `#ECE5D7` sand | Body text |
-| `card` / `popover` | `#FAF7F1` / `#FCFAF6` | `#242320` / `#292825` | Raised surfaces |
-| `primary` | `#2B2A27` charcoal | `#E6DCC8` sand | Primary buttons, strong emphasis |
-| `secondary`, `muted`, `accent` | sand tints | graphite tints | Quiet fills, hover surfaces |
-| `muted-foreground` | `#6A6358` | `#A69E90` | Secondary text (≥ 4.7:1) |
-| `border` / `input` | `#DCD3C3` / `#D3C9B7` | `#36342F` / `#3D3A35` | Hairlines |
-| `hint` | `#2F5EA8` cobalt | `#8FB0EA` periwinkle | Links, focus ring, active nav marker, info icons |
-| `hint-soft` + `hint-soft-foreground` | `#E3EAF5` / `#24497F` | `#24304A` / `#A9C2F0` | Info badges, selected rows |
-| `success` + `success-soft` | moss `#3F6B3A` | `#9CC18F` | Offers, strong match |
-| `warning` + `warning-soft` | ochre `#8A5A10` | `#E0B56A` | Interviewing, mid match, notices |
-| `danger` + `danger-soft` | brick `#A8352A` | `#E58A7E` | Rejected, errors |
-| `ring` | = `hint` | = `hint` | Focus rings |
+| `background` | `#F3EEE5` sand | `#161513` graphite | Page |
+| `sidebar` | `#ECE6DA` | `#1B1A18` | Sidebar surface |
+| `card` / `popover` | `#FDFBF8` / `#FFFDFA` | `#201F1C` / `#262522` | Tiles, sheets, menus |
+| `foreground` | `#1F1E1C` charcoal | `#EFE9DE` sand | Text |
+| `muted-foreground` | `#6B645A` | `#A49C8F` | Secondary text (≥ 4.7:1 everywhere) |
+| `primary` | `#22211F` | `#ECE3D2` | Primary buttons, avatar |
+| `hint` | `#2B5FC0` cobalt | `#8FB2F2` periwinkle | Links, focus, active nav icon, "Top match", good-tier ring |
+| `success` / `warning` / `danger` (+ `-soft`) | moss / ochre / brick | lifted equivalents | Status, score tiers |
 
-Soft badge recipe: `bg-<tone>-soft text-<tone> border-<tone>/25` (e.g. `bg-warning-soft text-warning border-warning/25`). For blue: `bg-hint-soft text-hint-soft-foreground border-hint/25`.
+Depth: `shadow-tile` (tiles), `shadow-float` (sheets, menus, login field), `shadow-control` (pills, inputs).
+Materials: `.material` (toolbar, sheet footer), `.material-popover` (menus, command menu).
+Radius: tiles 22px, sheets 28px, list monograms 27% squircles, buttons and controls are pills.
 
-### Blue usage budget
-Blue is the accent, not the brand fill. Allowed: focus rings, text links, the active-nav indicator, info badges/icons, one data series in charts, the "tailoring" status. Not allowed: large blue backgrounds, primary buttons, headings.
+### Blue budget
+Allowed: focus rings, text links, the active-nav icon, "Top match" eyebrow, the good-tier score ring,
+the Tailoring status, the command-menu selection, one pipeline segment. Not allowed: primary buttons,
+headings, large fills, repeated icons down a list.
 
 ## Typography
-Unchanged: Plus Jakarta Sans (display) + Inter (body). Base 14–16px, line-height ≥ 1.5 for prose, no body text under 12px.
+Inter with optical sizing (`opsz` 14–32) — the closest free match to SF Pro. No uppercase micro-labels.
 
-## Motion (Emil Kowalski rules)
+| Class | Size | Weight | Tracking | Use |
+|---|---|---|---|---|
+| `type-hero` | 36→56px | 620 | −0.036em | Home statement |
+| `type-title` | 30→40px | 680 | −0.03em | Page large titles |
+| `type-headline` | 21px | 620 | −0.018em | Tile titles |
+| `type-eyebrow` | 13px | 600 | −0.003em | Sentence-case labels above titles |
 
-Tokens: `ease-out` = `cubic-bezier(0.23,1,0.32,1)`, `ease-in-out` = `cubic-bezier(0.77,0,0.175,1)`, `ease-drawer` = `cubic-bezier(0.32,0.72,0,1)`. Durations `duration-120/160/180/250` added.
+Headlines are two-tone: a statement in `foreground`, then a softer follow-up in `muted-foreground`.
+(Classes are `type-*`, not `text-*`, so `tailwind-merge` doesn't mistake them for colours and drop them.)
+
+## Motion
+
+Two families, never mixed up:
+
+**UI motion (Emil Kowalski)** — fast and decisive, for things used all day.
 
 | Element | Duration | Easing |
 |---|---|---|
-| Button press | 160ms | `ease-out`, `active:scale-[0.97]` (or `.pressable`) |
-| Tooltip / small popover | 120–160ms | `ease-out`, `animate-scale-in`, origin-aware |
-| Dropdown / select | 160–200ms | `ease-out`, `animate-scale-in`, origin-aware |
-| Sheet / drawer | 250–300ms | `ease-drawer` |
-| Hover / colour change | 150ms | default `transition-colors` |
-| Content entrance | 220ms | `animate-fade-up` (6px), stagger 30–60ms max |
+| Press | 160ms | `ease-out`, scale 0.97 (`.pressable`) |
+| Menus, selects, tooltips | 160–180ms | `ease-out`, `animate-scale-in`, origin-aware |
+| Hover / colour | 150ms | default |
+| Segmented control thumb | 400ms | `ease-spring` |
+| Command menu (⌘K), list keyboard nav | none | — |
 
-Rules:
-- Never `transition-all` — name the properties.
-- Never `ease-in` on UI. Never animate from `scale(0)` — start at 0.95–0.97 with opacity.
-- Popovers scale from their trigger: `origin-[var(--radix-dropdown-menu-content-transform-origin)]` (Radix exposes `--radix-<component>-content-transform-origin` for dropdown-menu, select, tooltip, popover). Modals stay centred.
-- No animation on keyboard-triggered or 100+/day actions (command menu open, list keyboard nav).
-- Exit faster than enter.
-- Hover transforms gated behind `@media (hover: hover)`; colour-only hovers are fine.
-- `prefers-reduced-motion` is handled globally in `index.css`.
+**Showcase motion (Apple)** — slow and cinematic, plays once when content first appears.
 
-## Accessibility checklist
-- Text contrast ≥ 4.5:1 (all token pairs verified), focus ring visible (blue, 2px), icon-only buttons have `aria-label`, don't convey status by colour alone (keep the text label).
+| Element | How |
+|---|---|
+| Large titles | `WordReveal`: words rise out of a 12px blur, 70ms apart, 1000ms `ease-expo` |
+| Sections and tiles | `Reveal`: rise 28px + unblur as they scroll in, 70ms stagger |
+| Numbers | `CountUp`: roll up from zero (or from the old value when data arrives late) |
+| Score rings | Draw in over 1.1–1.6s when first visible |
+| Bars | `.grow-x` inside a `Reveal`: grow from the left in sequence |
+| Route change | `.page-enter`: content settles in (560ms) |
+| Toolbar | Transparent at top; frosted + hairline once content scrolls under; compact title fades in when the large title leaves |
+| Sheets | iOS spring `cubic-bezier(0.32, 0.72, 0, 1)`, 460–520ms, blurred backdrop |
+| Login | Icon pops in, headline reveals, aurora drifts slowly behind |
+| Tiles (desktop) | `.spotlight`: soft highlight follows the pointer |
+
+Rules: never `transition-all`; never `ease-in` on UI; never animate from `scale(0)`; hover transforms only
+behind `@media (hover: hover)`; finished animations must not leave `transform`/`filter` on wrappers (it
+traps fixed children). `prefers-reduced-motion` turns every showcase effect into a plain appearance.
+
+All motion is CSS plus small hooks in `src/components/motion.tsx` — no animation library.
+
+## Patterns
+- **Inset grouped list** (iOS): one tile, rows separated by hairlines inset past the monogram.
+- **Bento**: top match (tall) + pipeline + two metric tiles.
+- **Stat strip**: big numbers separated by hairlines, no boxes.
+- **Lanes**: board columns as soft wells; the hovered drop target turns hint-soft with a blue inset ring.
+
+## Accessibility
+Text ≥ 4.5:1 in both themes (verified), 2px blue focus rings on every control, `aria-label` on icon
+buttons, status always has a text label, scores always show the number.

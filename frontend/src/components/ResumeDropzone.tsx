@@ -17,7 +17,7 @@ export function ResumeDropzone({ resume, label = 'Resume' }: { resume: UseResume
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         className={cn(
-          'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors duration-150',
+          'border border-dashed rounded-[20px] p-8 text-center cursor-pointer transition-colors duration-160 bg-card/60',
           dragging
             ? 'border-hint bg-hint-soft/50'
             : file

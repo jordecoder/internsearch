@@ -1,43 +1,40 @@
-import { matchTier, TIER_CLASSES, matchRecommendation } from '@/lib/match';
+import { matchRecommendation } from '@/lib/match';
+import { Reveal } from '@/components/motion';
 import { cn } from '@/lib/utils';
 import type { Score } from '@/types/job';
 
 const DIMENSIONS: { key: keyof Omit<Score, 'overall' | 'timeline_match'>; label: string }[] = [
-  { key: 'role', label: 'Role match' },
-  { key: 'skill', label: 'Skills match' },
-  { key: 'location', label: 'Location match' },
-  { key: 'timeline', label: 'Timeline match' },
-  { key: 'degree', label: 'Degree match' },
+  { key: 'role', label: 'Role' },
+  { key: 'skill', label: 'Skills' },
+  { key: 'location', label: 'Location' },
+  { key: 'timeline', label: 'Timeline' },
+  { key: 'degree', label: 'Degree' },
 ];
 
-function DimensionBar({ label, value }: { label: string; value: number }) {
-  const tier = matchTier(value);
-  const classes = TIER_CLASSES[tier];
+/** Five dimension bars that grow in one after another, plus a one-line read. */
+export function MatchBreakdown({ score, showRecommendation = true }: { score: Score; showRecommendation?: boolean }) {
   return (
-    <div className="flex items-center gap-3">
-      <p className="w-28 flex-shrink-0 text-xs text-muted-foreground">{label}</p>
-      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-        <div className={cn('h-full rounded-full transition-[width] duration-250 ease-out', classes.bar)} style={{ width: `${value}%` }} />
-      </div>
-      <p className="w-9 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-foreground">{value}%</p>
-    </div>
-  );
-}
-
-export function MatchBreakdown({ score }: { score: Score }) {
-  const tier = matchTier(score.overall);
-  const classes = TIER_CLASSES[tier];
-
-  return (
-    <div className="space-y-4">
-      <div className="space-y-2.5">
-        {DIMENSIONS.map((d) => (
-          <DimensionBar key={d.key} label={d.label} value={score[d.key]} />
-        ))}
-      </div>
-      <div className={cn('rounded-md border px-3 py-2.5 text-xs leading-relaxed', classes.bg, classes.text)}>
-        {matchRecommendation(score)}
-      </div>
-    </div>
+    <Reveal className="space-y-5">
+      <dl className="space-y-3">
+        {DIMENSIONS.map((d, i) => {
+          const v = score[d.key];
+          return (
+            <div key={d.key} className="grid grid-cols-[84px_1fr_40px] items-center gap-3 text-[13.5px]">
+              <dt className="text-muted-foreground">{d.label}</dt>
+              <dd className="h-2 overflow-hidden rounded-full bg-foreground/[0.07]">
+                <span
+                  className={cn('grow-x block h-full rounded-full', v >= 70 ? 'bg-foreground/85' : v >= 50 ? 'bg-foreground/45' : 'bg-warning')}
+                  style={{ width: `${v}%`, ['--seg' as string]: i }}
+                />
+              </dd>
+              <dd className="text-right font-medium tabular-nums text-foreground">{v}%</dd>
+            </div>
+          );
+        })}
+      </dl>
+      {showRecommendation && (
+        <p className="text-[14px] leading-relaxed text-muted-foreground">{matchRecommendation(score)}</p>
+      )}
+    </Reveal>
   );
 }

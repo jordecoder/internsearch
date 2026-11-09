@@ -1,96 +1,110 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /*
- * Charcoal & Sand — design tokens
- * Light: sand surfaces, charcoal ink, cobalt blue for subtle hints.
- * Dark ("Graphite & Sand"): warm graphite surfaces, sand ink, periwinkle hints.
- * Every text pair below is checked at >= 4.5:1 (WCAG AA).
- * Components use these tokens only — never raw hex or Tailwind palette colours.
+ * Intern Scout — Charcoal & Sand (v2)
+ * Light: warm-white tiles on sand, charcoal ink, cobalt hints.
+ * Dark ("Graphite & Sand"): deep warm graphite, sand ink, periwinkle hints.
+ * Every text pair is verified >= 4.5:1. Components use tokens only.
+ * See design-system/intern-scout/MASTER.md.
  */
 @layer base {
   :root {
-    --background: 40 38.5% 92.4%;          /* #F3EEE4 sand */
-    --foreground: 40 4.1% 14.3%;           /* #262523 charcoal */
-    --card: 40 47.4% 96.3%;                /* #FAF7F1 */
-    --card-foreground: 40 4.1% 14.3%;
-    --popover: 40 50% 97.6%;               /* #FCFAF6 */
-    --popover-foreground: 40 4.1% 14.3%;
-    --primary: 45 4.9% 16.1%;              /* #2B2A27 charcoal */
-    --primary-foreground: 40 38.5% 92.4%;  /* sand */
-    --secondary: 39 33.3% 86.5%;           /* #E8E0D1 */
-    --secondary-foreground: 40 6.2% 18.8%;
-    --muted: 39 34.5% 88.6%;               /* #ECE5D8 */
-    --muted-foreground: 37 9.3% 38%;       /* #6A6358 */
-    --accent: 39 31.5% 85.7%;              /* #E6DECF hover surface */
-    --accent-foreground: 40 4.1% 14.3%;
-    --destructive: 5 61.4% 43.7%;          /* #B4372B */
+    --background: 39 36.8% 92.5%;          /* #F3EEE5 */
+    --foreground: 40 5.1% 11.6%;           /* #1F1E1C */
+    --sidebar: 40 32.1% 89%;               /* #ECE6DA */
+    --card: 36 55.6% 98.2%;                /* #FDFBF8 */
+    --card-foreground: 40 5.1% 11.6%;
+    --popover: 36 100% 99%;                /* #FFFDFA */
+    --popover-foreground: 40 5.1% 11.6%;
+    --primary: 40 4.6% 12.7%;              /* #22211F */
+    --primary-foreground: 38 40.7% 94.7%;
+    --secondary: 38 31.1% 88%;             /* #EAE3D7 */
+    --secondary-foreground: 36 5.7% 17.1%;
+    --muted: 39 30.9% 89.2%;               /* #ECE6DB */
+    --muted-foreground: 35 8.6% 38.6%;     /* #6B645A */
+    --accent: 39 29.4% 86.7%;              /* #E7E0D3 */
+    --accent-foreground: 40 5.1% 11.6%;
+    --destructive: 5 61.4% 43.7%;
     --destructive-foreground: 0 0% 100%;
-    --border: 38 26.3% 81.4%;              /* #DCD3C3 */
-    --input: 39 24.1% 77.3%;               /* #D3C9B7 */
-    --ring: 217 56.3% 42.2%;               /* blue focus ring */
+    --border: 39 28.4% 84.1%;              /* #E2DACB */
+    --input: 38 23.4% 79%;                 /* #D6CDBD */
+    --ring: 219 63.4% 46.1%;
 
-    /* Blue hint — links, focus, active indicators, info. Use sparingly. */
-    --hint: 217 56.3% 42.2%;               /* #2F5EA8 */
+    --hint: 219 63.4% 46.1%;               /* #2B5FC0 */
     --hint-foreground: 0 0% 100%;
-    --hint-soft: 217 47.4% 92.5%;          /* #E3EAF5 */
-    --hint-soft-foreground: 216 55.8% 32%; /* #24497F */
+    --hint-soft: 220 60% 93.1%;
+    --hint-soft-foreground: 218 65.5% 34.1%;
 
-    /* Semantic status (muted to sit on sand) */
-    --success: 114 29.7% 32.4%;            /* #3F6B3A moss */
-    --success-soft: 90 25.9% 89.4%;
-    --warning: 36 79.2% 30.2%;             /* #8A5A10 ochre */
-    --warning-soft: 40 61.9% 87.6%;
-    --danger: 5 60% 41.2%;                 /* #A8352A brick */
-    --danger-soft: 12 56.5% 91%;
+    --success: 114 31.3% 32%;
+    --success-soft: 92 27.3% 89.2%;
+    --warning: 36 78.8% 29.6%;
+    --warning-soft: 40 63.9% 88%;
+    --danger: 5 60% 41.2%;
+    --danger-soft: 12 59.1% 91.4%;
 
-    --radius: 0.5rem;
-    --sidebar-width: 15rem;
-    --sidebar-width-collapsed: 3.5rem;
+    /* Depth: soft, warm, layered (no hard borders on tiles) */
+    --shadow-tile: 0 0 0 1px hsl(39 28% 80% / 0.55), 0 1px 2px hsl(30 20% 20% / 0.04), 0 12px 32px -18px hsl(30 25% 20% / 0.16);
+    --shadow-float: 0 0 0 1px hsl(39 28% 78% / 0.6), 0 2px 6px hsl(30 20% 20% / 0.06), 0 28px 70px -24px hsl(30 25% 15% / 0.28);
+    --shadow-control: 0 0 0 1px hsl(39 24% 76% / 0.9), 0 1px 2px hsl(30 20% 20% / 0.06);
+    --glass: 39 36.8% 92.5%;
 
-    /* Motion tokens (Emil Kowalski curves) */
+    --radius: 0.875rem;
+    --sidebar-width: 16rem;
+
+    /* Motion — two families:
+       UI (Emil Kowalski): fast, decisive, for things you use all day.
+       Showcase (Apple): slow, cinematic, plays once when content appears. */
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
     color-scheme: light;
   }
 
   .dark {
-    --background: 40 5.7% 10.4%;           /* #1C1B19 warm graphite */
-    --foreground: 40 35.6% 88.4%;          /* #ECE5D7 sand */
-    --card: 45 5.9% 13.3%;                 /* #242320 */
-    --card-foreground: 40 35.6% 88.4%;
-    --popover: 45 5.1% 15.3%;              /* #292825 */
-    --popover-foreground: 40 35.6% 88.4%;
-    --primary: 40 37.5% 84.3%;             /* #E6DCC8 sand */
-    --primary-foreground: 45 6.9% 11.4%;   /* graphite */
-    --secondary: 40 6.7% 17.6%;            /* #302E2A */
-    --secondary-foreground: 39 25.3% 82.2%;
-    --muted: 40 7.3% 16.1%;                /* #2C2A26 */
-    --muted-foreground: 38 11% 60.8%;      /* #A69E90 */
-    --accent: 43 7.4% 18.6%;               /* #33312C */
-    --accent-foreground: 40 35.6% 88.4%;
-    --destructive: 6 62.6% 60.2%;          /* #D9665A */
-    --destructive-foreground: 40 5.7% 10.4%;
-    --border: 43 6.9% 19.8%;               /* #36342F */
-    --input: 37 7% 22.4%;                  /* #3D3A35 */
-    --ring: 218 68.4% 73.9%;
+    --background: 40 7.3% 8%;              /* #161513 */
+    --foreground: 39 34.7% 90.4%;          /* #EFE9DE */
+    --sidebar: 40 5.9% 10%;                /* #1B1A18 */
+    --card: 45 6.7% 11.8%;                 /* #201F1C */
+    --card-foreground: 39 34.7% 90.4%;
+    --popover: 45 5.6% 14.1%;              /* #262522 */
+    --popover-foreground: 39 34.7% 90.4%;
+    --primary: 39 40.6% 87.5%;             /* #ECE3D2 sand */
+    --primary-foreground: 40 6.1% 9.6%;
+    --secondary: 36 6.3% 15.5%;
+    --secondary-foreground: 38 26.2% 83.5%;
+    --muted: 36 7.2% 13.5%;
+    --muted-foreground: 37 10.3% 60.2%;    /* #A49C8F */
+    --accent: 40 7% 16.9%;
+    --accent-foreground: 39 34.7% 90.4%;
+    --destructive: 6 65.1% 61.8%;
+    --destructive-foreground: 40 7.3% 8%;
+    --border: 40 6.8% 17.3%;
+    --input: 38 7.4% 21.2%;
+    --ring: 219 79.2% 75.5%;
 
-    --hint: 218 68.4% 73.9%;               /* #8FB0EA periwinkle */
-    --hint-foreground: 219 48.7% 15.3%;
-    --hint-soft: 221 34.5% 21.6%;          /* #24304A */
-    --hint-soft-foreground: 219 70.3% 80.2%;
+    --hint: 219 79.2% 75.5%;               /* #8FB2F2 */
+    --hint-foreground: 220 50.6% 15.1%;
+    --hint-soft: 220 37.5% 18.8%;
+    --hint-soft-foreground: 219 77.8% 82.4%;
 
-    --success: 104 28.7% 65.9%;            /* #9CC18F */
-    --success-soft: 90 24.4% 16.1%;
-    --warning: 38 65.6% 64.7%;             /* #E0B56A */
-    --warning-soft: 38 34.9% 16.9%;
-    --danger: 7 66.5% 69.6%;               /* #E58A7E */
-    --danger-soft: 8 31.2% 18.2%;
+    --success: 105 30.6% 66.7%;
+    --success-soft: 99 22.7% 14.7%;
+    --warning: 38 67% 65.5%;
+    --warning-soft: 38 39.5% 14.9%;
+    --danger: 8 69.3% 70.6%;
+    --danger-soft: 9 31.8% 17.3%;
+
+    /* Dark tiles get a faint top highlight instead of a drop shadow */
+    --shadow-tile: 0 0 0 1px hsl(40 10% 100% / 0.06), inset 0 1px 0 hsl(40 30% 100% / 0.04), 0 16px 40px -20px hsl(0 0% 0% / 0.6);
+    --shadow-float: 0 0 0 1px hsl(40 10% 100% / 0.08), inset 0 1px 0 hsl(40 30% 100% / 0.05), 0 30px 80px -20px hsl(0 0% 0% / 0.7);
+    --shadow-control: 0 0 0 1px hsl(40 10% 100% / 0.08), inset 0 1px 0 hsl(40 30% 100% / 0.03);
+    --glass: 40 7.3% 8%;
 
     color-scheme: dark;
   }
@@ -98,36 +112,61 @@
 
 @layer base {
   * { @apply border-border; box-sizing: border-box; }
-  html { -webkit-font-smoothing: antialiased; }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-optical-sizing: auto;
+    letter-spacing: -0.006em;
   }
+  h1, h2, h3 { text-wrap: balance; }
   ::selection { background: hsl(var(--hint-soft)); color: hsl(var(--hint-soft-foreground)); }
 }
 
+@layer components {
+  /* Frosted material — toolbars, sidebars, popovers */
+  .material {
+    background-color: hsl(var(--glass) / 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+  .material-popover {
+    background-color: hsl(var(--popover) / 0.82);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    backdrop-filter: saturate(180%) blur(24px);
+  }
+
+  .tile { background: hsl(var(--card)); box-shadow: var(--shadow-tile); border-radius: 1.375rem; }
+
+  /* Large titles (iOS scale): tight tracking that grows with size */
+  .type-hero   { font-size: clamp(2.25rem, 1.5rem + 2.4vw, 3.5rem); line-height: 1.06; letter-spacing: -0.036em; font-weight: 620; }
+  .type-title  { font-size: clamp(1.875rem, 1.5rem + 1.4vw, 2.5rem); line-height: 1.08; letter-spacing: -0.03em; font-weight: 680; }
+  .type-headline { font-size: 1.3125rem; line-height: 1.2; letter-spacing: -0.018em; font-weight: 620; }
+  .type-eyebrow { font-size: 0.8125rem; line-height: 1.2; letter-spacing: -0.003em; font-weight: 600; }
+}
+
 /* Scrollbar */
-::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { @apply bg-border; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: hsl(var(--foreground) / 0.12); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--foreground) / 0.22); border: 3px solid transparent; background-clip: content-box; }
 
 /* Skeleton shimmer — constant motion, so linear */
-.skeleton-shimmer {
-  position: relative;
-  overflow: hidden;
-}
+.skeleton-shimmer { position: relative; overflow: hidden; }
 .skeleton-shimmer::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, hsl(var(--card) / 0.55) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, hsl(var(--card) / 0.6) 50%, transparent 100%);
   animation: shimmer 1.4s linear infinite;
 }
-.dark .skeleton-shimmer::after {
-  background: linear-gradient(90deg, transparent 0%, hsl(var(--foreground) / 0.05) 50%, transparent 100%);
-}
+.dark .skeleton-shimmer::after { background: linear-gradient(90deg, transparent 0%, hsl(var(--foreground) / 0.05) 50%, transparent 100%); }
 
-/* Select dropdown fix */
+/* Native select chevron */
 select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%238C8476' stroke-width='2.2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
@@ -136,23 +175,93 @@ select {
   padding-right: 28px !important;
 }
 
-/* Pressable feedback — buttons must feel like they heard you */
+/* ---------- UI motion (fast) ---------- */
 .pressable {
-  transition-property: transform, background-color, border-color, color, box-shadow;
+  transition-property: transform, background-color, border-color, color, box-shadow, opacity;
   transition-duration: 160ms;
   transition-timing-function: var(--ease-out);
 }
 .pressable:active:not(:disabled) { transform: scale(0.97); }
 
-/* Reduced motion: keep fades that aid comprehension, drop movement */
+/* ---------- Showcase motion (Apple-style, plays once) ---------- */
+
+/* Keyframes used from plain CSS live here (Tailwind only emits keyframes for used utilities). */
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes word-in {
+  from { opacity: 0; transform: translateY(0.42em); filter: blur(12px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(12px); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+
+/* Scroll reveal: rise + unblur. Elements stay visible if JS never runs:
+   the hidden state only applies once the observer has armed the element. */
+[data-reveal='armed'] {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  filter: blur(10px);
+}
+[data-reveal='shown'] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition:
+    opacity 900ms var(--ease-expo),
+    transform 1100ms var(--ease-expo),
+    filter 900ms var(--ease-expo);
+  transition-delay: calc(var(--reveal-i, 0) * 70ms);
+}
+
+/* Bars inside a Reveal grow from the left, one after another (set --seg per bar) */
+.grow-x { transform-origin: left center; }
+[data-reveal='armed'] .grow-x { transform: scaleX(0); }
+[data-reveal='shown'] .grow-x {
+  transform: scaleX(1);
+  transition: transform 1300ms var(--ease-expo);
+  transition-delay: calc(260ms + var(--seg, 0) * 90ms);
+}
+
+/* Headline words: each word rises out of a soft blur */
+.word-reveal > .word {
+  display: inline-block;
+  white-space: pre;
+  animation: word-in 1000ms var(--ease-expo) both;
+  animation-delay: calc(var(--w, 0) * 70ms + var(--word-base, 0ms));
+}
+
+/* Route change: content settles into place */
+/* `backwards` so no transform/filter lingers after it ends (that would trap fixed children) */
+.page-enter { animation: page-in 560ms var(--ease-expo) backwards; }
+
+/* Pointer-following highlight on tiles (desktop only) */
+@media (hover: hover) and (pointer: fine) {
+  .spotlight { position: relative; isolation: isolate; }
+  .spotlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0;
+    background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), hsl(var(--hint) / 0.08), transparent 60%);
+    transition: opacity 300ms var(--ease-out);
+  }
+  .spotlight:hover::before { opacity: 1; }
+}
+
+/* Reduced motion: no movement, no blur — content simply appears */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
   }
+  [data-reveal='armed'], [data-reveal='shown'] { opacity: 1; transform: none; filter: none; transition: none; }
+  [data-reveal] .grow-x { transform: none !important; transition: none !important; }
   .pressable:active:not(:disabled) { transform: none; }
   .skeleton-shimmer::after { animation: none; }
 }

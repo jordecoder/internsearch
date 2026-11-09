@@ -86,32 +86,32 @@ export function CommandMenu({ open, onOpenChange, anchor }: CommandMenuProps) {
       <PopoverPrimitive.Trigger asChild>{anchor}</PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
-          align="start"
-          sideOffset={6}
+          align="end"
+          sideOffset={8}
           onOpenAutoFocus={(e) => { e.preventDefault(); inputRef.current?.focus(); }}
-          className="z-50 w-[min(420px,90vw)] rounded-lg border border-border bg-popover text-popover-foreground shadow-lg"
+          className="material-popover z-50 w-[min(520px,92vw)] overflow-hidden rounded-[18px] text-popover-foreground shadow-float"
           onKeyDown={handleKeyDown}
         >
-          <div className="flex items-center gap-2 border-b border-border px-3.5 py-3">
-            <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <div className="flex items-center gap-3 border-b border-border/70 px-4 py-3.5">
+            <Search className="h-5 w-5 text-muted-foreground flex-shrink-0" />
             <input
               ref={inputRef}
               value={query}
               onChange={(e) => { setQuery(e.target.value); setActiveIndex(0); }}
               placeholder="Search jobs or jump to a page…"
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+              className="flex-1 bg-transparent text-[17px] tracking-[-0.012em] text-foreground placeholder:text-muted-foreground outline-none"
             />
-            <kbd className="text-[0.65rem] text-muted-foreground border border-border rounded px-1.5 py-0.5">Esc</kbd>
+            <kbd className="rounded-md bg-foreground/[0.06] px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted-foreground">esc</kbd>
           </div>
 
-          <div className="max-h-80 overflow-y-auto p-1.5">
+          <div className="max-h-[380px] overflow-y-auto p-2">
             {results.length === 0 && (
-              <p className="px-3 py-6 text-center text-sm text-muted-foreground">No results for "{query}"</p>
+              <p className="px-3 py-8 text-center text-[14px] text-muted-foreground">No results for "{query}"</p>
             )}
 
             {filteredPages.length > 0 && (
               <div className="mb-1">
-                <p className="px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">Pages</p>
+                <p className="px-2.5 pb-1 pt-2 text-[12px] font-semibold text-muted-foreground">Pages</p>
                 {filteredPages.map((p) => {
                   const idx = results.findIndex((r) => r.type === 'page' && r.to === p.to);
                   const Icon = p.icon;
@@ -121,8 +121,8 @@ export function CommandMenu({ open, onOpenChange, anchor }: CommandMenuProps) {
                       onClick={() => go(p.to)}
                       onMouseEnter={() => setActiveIndex(idx)}
                       className={cn(
-                        'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-left',
-                        idx === activeIndex ? 'bg-accent text-foreground' : 'text-foreground/90',
+                        'flex w-full items-center gap-3 rounded-[10px] px-2.5 py-2 text-[14px] text-left',
+                        idx === activeIndex ? 'bg-hint text-hint-foreground [&_svg]:text-hint-foreground [&_span]:text-hint-foreground' : 'text-foreground',
                       )}
                     >
                       <Icon className="h-4 w-4 text-muted-foreground" />
@@ -135,7 +135,7 @@ export function CommandMenu({ open, onOpenChange, anchor }: CommandMenuProps) {
 
             {filteredJobs.length > 0 && (
               <div>
-                <p className="px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">Jobs</p>
+                <p className="px-2.5 pb-1 pt-2 text-[12px] font-semibold text-muted-foreground">Jobs</p>
                 {filteredJobs.map((j) => {
                   const to = `/?job=${encodeURIComponent(j.stable_id)}`;
                   const idx = results.findIndex((r) => r.type === 'job' && r.to === to);
@@ -145,8 +145,8 @@ export function CommandMenu({ open, onOpenChange, anchor }: CommandMenuProps) {
                       onClick={() => go(to)}
                       onMouseEnter={() => setActiveIndex(idx)}
                       className={cn(
-                        'flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-left',
-                        idx === activeIndex ? 'bg-accent text-foreground' : 'text-foreground/90',
+                        'flex w-full items-center gap-3 rounded-[10px] px-2.5 py-2 text-[14px] text-left',
+                        idx === activeIndex ? 'bg-hint text-hint-foreground [&_svg]:text-hint-foreground [&_span]:text-hint-foreground' : 'text-foreground',
                       )}
                     >
                       <ArrowRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />

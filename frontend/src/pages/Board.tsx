@@ -1,35 +1,34 @@
-import { useState } from 'react';
-import { Plus, Trash2, ExternalLink, GripVertical, ListPlus } from 'lucide-react';
+import { Fragment, useState } from 'react';
+import { Plus, Trash2, ExternalLink, ListPlus, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent } from '@/components/ui/card';
-import { StatCard } from '@/components/StatCard';
 import { MatchScore } from '@/components/jobs/MatchScore';
 import { JobPicker } from '@/components/jobs/JobPicker';
 import { RequireAuth } from '@/components/RequireAuth';
+import { PageHeader } from '@/components/PageHeader';
+import { CountUp, Reveal } from '@/components/motion';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn, relativeTime } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useBoardQuery, useUpsertBoardEntry, useDeleteBoardEntry } from '@/hooks/useBoardQuery';
 import { useJobsQuery } from '@/hooks/useJobsQuery';
 import type { BoardEntry, BoardStatus, Job } from '@/types/job';
 
-const COLUMNS: { id: BoardStatus; label: string }[] = [
-  { id: 'found', label: 'Saved' },
-  { id: 'tailoring', label: 'Tailoring' },
-  { id: 'applied', label: 'Applied' },
-  { id: 'interviewing', label: 'Interview' },
-  { id: 'offer', label: 'Offer' },
-  { id: 'rejected', label: 'Rejected' },
+const COLUMNS: { id: BoardStatus; label: string; dot: string }[] = [
+  { id: 'found', label: 'Saved', dot: 'bg-muted-foreground' },
+  { id: 'tailoring', label: 'Tailoring', dot: 'bg-hint' },
+  { id: 'applied', label: 'Applied', dot: 'bg-foreground' },
+  { id: 'interviewing', label: 'Interviewing', dot: 'bg-warning' },
+  { id: 'offer', label: 'Offer', dot: 'bg-success' },
+  { id: 'rejected', label: 'Rejected', dot: 'bg-danger' },
 ];
 
+const iconBtn =
+  'pressable flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-foreground/[0.07] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+
 function ApplicationCard({
-  url,
-  entry,
-  matchScore,
-  onSave,
-  onDelete,
-  onDragStart,
+  url, entry, matchScore, onSave, onDelete, onDragStart, onDragEnd,
 }: {
   url: string;
   entry: BoardEntry;
@@ -37,6 +36,7 @@ function ApplicationCard({
   onSave: (notes: string, title: string, company: string) => void;
   onDelete: () => void;
   onDragStart: (e: React.DragEvent) => void;
+  onDragEnd: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [notes, setNotes] = useState(entry.notes);
@@ -48,67 +48,70 @@ function ApplicationCard({
     setEditing(false);
   };
 
+  if (editing) {
+    return (
+      <div className="space-y-2 rounded-[16px] bg-card p-3 shadow-tile">
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="h-9 text-[14px]" aria-label="Title" />
+        <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" className="h-9 text-[14px]" aria-label="Company" />
+        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="min-h-[72px] resize-none text-[14px]" placeholder="Notes" aria-label="Notes" />
+        <div className="flex justify-end gap-2 pt-1">
+          <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+          <Button size="sm" onClick={save}>Save</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       draggable
       onDragStart={onDragStart}
-      className="rounded-lg border border-border bg-card p-3 space-y-1.5 cursor-grab active:cursor-grabbing hover:border-foreground/20 transition-colors"
+      onDragEnd={onDragEnd}
+      className={cn(
+        'group cursor-grab rounded-[16px] bg-card p-3.5 shadow-tile active:cursor-grabbing',
+        'transition-[transform,box-shadow] duration-160 ease-out active:scale-[0.98] [@media(hover:hover)]:hover:shadow-float',
+      )}
     >
-      <div className="flex items-start gap-1.5">
-        <GripVertical className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 flex-shrink-0" />
+      <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          {editing ? (
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="h-7 text-xs mb-1" />
-          ) : (
-            <p className="text-sm font-medium text-foreground leading-snug line-clamp-2">{entry.title || '(untitled)'}</p>
-          )}
-          {editing ? (
-            <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" className="h-7 text-xs mt-1" />
-          ) : (
-            <div className="flex items-center gap-1 mt-0.5">
-              <p className="text-xs text-muted-foreground truncate">{entry.company}</p>
-              {url && (
-                <a href={url} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-hint transition-colors flex-shrink-0">
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              )}
-            </div>
-          )}
+          <p className="line-clamp-2 text-[14px] font-semibold leading-snug tracking-[-0.01em] text-foreground">{entry.title || 'Untitled role'}</p>
+          <div className="mt-1 flex items-center gap-1">
+            <p className="truncate text-[12.5px] text-muted-foreground">{entry.company || 'Unknown company'}</p>
+            {url && (
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Open posting"
+                className="flex-shrink-0 rounded text-muted-foreground transition-colors hover:text-hint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            )}
+          </div>
         </div>
         {matchScore !== undefined && <MatchScore score={matchScore} size="sm" />}
       </div>
 
-      {editing ? (
-        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="text-xs resize-none" placeholder="Notes…" />
-      ) : (
-        entry.notes && <p className="text-xs text-muted-foreground leading-snug line-clamp-2">{entry.notes}</p>
-      )}
+      {entry.notes && <p className="mt-2.5 line-clamp-3 text-[13px] leading-snug text-muted-foreground">{entry.notes}</p>}
 
-      <div className="flex items-center justify-between pt-0.5">
-        <p className="text-[0.65rem] text-muted-foreground">{relativeTime(entry.updated_at)}</p>
-        {editing ? (
-          <div className="flex gap-2">
-            <button onClick={save} className="text-[0.7rem] font-semibold text-hint hover:underline">Save</button>
-            <button onClick={() => setEditing(false)} className="text-[0.7rem] text-muted-foreground hover:text-foreground">Cancel</button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <button onClick={() => setEditing(true)} className="text-[0.7rem] text-muted-foreground hover:text-foreground">Edit</button>
-            <button onClick={onDelete} className="text-muted-foreground hover:text-danger transition-colors">
-              <Trash2 className="h-3 w-3" />
-            </button>
-          </div>
-        )}
+      <div className="mt-3 flex items-center justify-between">
+        <p className="text-[12px] text-muted-foreground">{relativeTime(entry.updated_at)}</p>
+        <div className="flex items-center gap-0.5 transition-opacity duration-160 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100">
+          <button onClick={() => setEditing(true)} className={iconBtn} aria-label="Edit">
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button onClick={onDelete} className={cn(iconBtn, 'hover:text-danger')} aria-label="Remove from board">
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
 function AddJobForm({
-  jobs,
-  excludeUrls,
-  onAddFromList,
-  onAddManual,
+  jobs, excludeUrls, onAddFromList, onAddManual,
 }: {
   jobs: Job[];
   excludeUrls: Set<string>;
@@ -122,47 +125,68 @@ function AddJobForm({
 
   if (manualOpen) {
     return (
-      <Card>
-        <CardContent className="pt-4 space-y-2">
-          <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Job URL" className="text-sm" />
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="text-sm" />
-          <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" className="text-sm" />
-          <div className="flex gap-2 pt-1">
-            <Button
-              size="sm"
-              disabled={!url.trim()}
-              onClick={() => {
-                onAddManual(url.trim(), title.trim(), company.trim());
-                setUrl(''); setTitle(''); setCompany('');
-                setManualOpen(false);
-              }}
-            >
-              Add
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setManualOpen(false)}>Cancel</Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-2 rounded-[16px] bg-card p-3 shadow-tile">
+        <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Job URL" className="h-9 text-[14px]" aria-label="Job URL" autoFocus />
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="h-9 text-[14px]" aria-label="Title" />
+        <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" className="h-9 text-[14px]" aria-label="Company" />
+        <div className="flex justify-end gap-2 pt-1">
+          <Button size="sm" variant="ghost" onClick={() => setManualOpen(false)}>Cancel</Button>
+          <Button
+            size="sm"
+            disabled={!url.trim()}
+            onClick={() => {
+              onAddManual(url.trim(), title.trim(), company.trim());
+              setUrl(''); setTitle(''); setCompany('');
+              setManualOpen(false);
+            }}
+          >
+            Add
+          </Button>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <JobPicker onSelect={onAddFromList} excludeUrls={excludeUrls}>
         <button
           disabled={jobs.length === 0}
-          className="w-full flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground border-2 border-dashed border-border hover:border-foreground/20 hover:bg-accent/40 rounded-lg py-3 transition-[transform,background-color,border-color,color] duration-160 ease-out enabled:active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          className={cn(
+            'flex h-11 w-full items-center justify-center gap-2 rounded-[14px] border border-dashed border-foreground/15 text-[13.5px] font-medium text-muted-foreground',
+            'transition-[transform,background-color,border-color,color] duration-160 ease-out hover:border-foreground/25 hover:bg-card/70 hover:text-foreground enabled:active:scale-[0.98]',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+          )}
         >
-          <ListPlus className="h-4 w-4" /> Choose a job from your listings
+          <ListPlus className="h-4 w-4" /> Add from your listings
         </button>
       </JobPicker>
       <button
         onClick={() => setManualOpen(true)}
-        className="pressable w-full flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-foreground py-0.5"
+        className="pressable flex w-full items-center justify-center gap-1.5 rounded-full py-1.5 text-[12.5px] font-medium text-muted-foreground hover:text-foreground"
       >
-        <Plus className="h-3 w-3" /> or track a job not in your listings
+        <Plus className="h-3.5 w-3.5" /> Track a job from elsewhere
       </button>
     </div>
+  );
+}
+
+function StatStrip({ stats }: { stats: { label: string; value: number; suffix?: string }[] }) {
+  return (
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:flex sm:flex-wrap sm:items-stretch sm:gap-0">
+      {stats.map((s, i) => (
+        <Fragment key={s.label}>
+          {i > 0 && <span aria-hidden className="mx-6 hidden w-px self-stretch bg-border sm:block" />}
+          <div className="min-w-[96px]">
+            <dd className="text-[34px] font-semibold leading-none tracking-[-0.04em] text-foreground">
+              <CountUp value={s.value} delay={i * 80} />
+              {s.suffix && <span className="text-[20px] font-medium text-muted-foreground">{s.suffix}</span>}
+            </dd>
+            <dt className="mt-1.5 text-[13px] text-muted-foreground">{s.label}</dt>
+          </div>
+        </Fragment>
+      ))}
+    </dl>
   );
 }
 
@@ -173,6 +197,7 @@ function BoardContent() {
   const upsert = useUpsertBoardEntry();
   const remove = useDeleteBoardEntry();
   const [dragUrl, setDragUrl] = useState<string | null>(null);
+  const [overCol, setOverCol] = useState<BoardStatus | null>(null);
 
   const scoreByUrl = new Map(jobs.map((j) => [j.url, j.score.overall]));
   const entries = Object.entries(board ?? {}).filter(([, e]) => e.status !== 'skipped');
@@ -185,85 +210,127 @@ function BoardContent() {
   }
   for (const list of Object.values(grouped)) list.sort((a, b) => b[1].updated_at.localeCompare(a[1].updated_at));
 
-  const totalApplications = entries.filter(([, e]) => e.status !== 'found').length;
+  const totalApplications = entries.filter(([, e]) => e.status !== 'found' && e.status !== 'tailoring').length;
   const interviews = grouped.interviewing.length;
   const offers = grouped.offer.length;
-  const conversionRate = totalApplications > 0 ? Math.round((offers / totalApplications) * 100) : null;
+  const conversionRate = totalApplications > 0 ? Math.round((offers / totalApplications) * 100) : 0;
 
   const saveEntry = (url: string, status: BoardStatus, notes: string, title: string, company: string) => {
     upsert.mutate({ url, status, notes, title, company });
   };
 
+  const header = (
+    <PageHeader
+      eyebrow="Track"
+      title={[{ text: 'Board.' }, { text: ' Drag a card when things move.', className: 'text-muted-foreground' }]}
+    />
+  );
+
   if (isLoading) {
-    return <div className="max-w-[100rem] mx-auto px-5 py-8 text-sm text-muted-foreground">Loading your pipeline…</div>;
+    return (
+      <div className="mx-auto max-w-[1600px] px-5 sm:px-8">
+        {header}
+        <div className="flex gap-4 overflow-hidden">
+          {COLUMNS.slice(0, 5).map((c) => <Skeleton key={c.id} className="h-[420px] w-[272px] flex-shrink-0 rounded-[22px]" />)}
+        </div>
+      </div>
+    );
   }
   if (error) {
-    return <div className="max-w-[100rem] mx-auto px-5 py-8 text-sm text-danger">Could not load your board. Try refreshing.</div>;
+    return (
+      <div className="mx-auto max-w-[1600px] px-5 sm:px-8">
+        {header}
+        <p className="text-[15px] text-danger">Couldn't load your board. Try refreshing the page.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-[100rem] mx-auto px-5 py-6 pb-20">
-      <div className="mb-5">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground" style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }}>
-          Application Board
-        </h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">Drag cards between columns as your applications move.</p>
-      </div>
+    <div className="mx-auto max-w-[1600px] px-5 pb-24 sm:px-8">
+      {header}
 
       {totalApplications > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
-          <StatCard label="Total applications" value={totalApplications} />
-          <StatCard label="Interviews" value={interviews} />
-          <StatCard label="Offers" value={offers} />
-          <StatCard label="Conversion" value={conversionRate !== null ? `${conversionRate}%` : '—'} sub="offers / applications" />
-        </div>
+        <Reveal className="mb-10">
+          <StatStrip
+            stats={[
+              { label: 'Applications sent', value: totalApplications },
+              { label: interviews === 1 ? 'Interview' : 'Interviews', value: interviews },
+              { label: offers === 1 ? 'Offer' : 'Offers', value: offers },
+              { label: 'Offer rate', value: conversionRate, suffix: '%' },
+            ]}
+          />
+        </Reveal>
       )}
 
-      <div className="relative">
-        <div className="flex gap-3 items-start overflow-x-auto pb-4 -mx-5 px-5 sm:mx-0 sm:px-0">
-          {COLUMNS.map((col) => (
-            <div
-              key={col.id}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                if (dragUrl && board?.[dragUrl] && board[dragUrl].status !== col.id) {
-                  const entry = board[dragUrl];
-                  saveEntry(dragUrl, col.id, entry.notes, entry.title ?? '', entry.company ?? '');
-                }
-                setDragUrl(null);
-              }}
-              className="space-y-2 w-[260px] flex-shrink-0"
-            >
-              <div className="flex items-center justify-between px-1">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{col.label}</p>
-                <span className="text-xs text-muted-foreground tabular-nums">{grouped[col.id].length}</span>
-              </div>
-              <div className={cn('space-y-2 min-h-[80px] rounded-xl p-1.5 transition-[background-color,box-shadow] duration-160 ease-out', dragUrl && 'bg-accent/40 ring-1 ring-inset ring-foreground/10')}>
-                {grouped[col.id].map(([url, entry]) => (
-                  <ApplicationCard
-                    key={url}
-                    url={url}
-                    entry={entry}
-                    matchScore={scoreByUrl.get(url)}
-                    onDragStart={() => setDragUrl(url)}
-                    onSave={(notes, title, company) => saveEntry(url, entry.status as BoardStatus, notes, title, company)}
-                    onDelete={() => remove.mutate(url)}
-                  />
-                ))}
-                {col.id === 'found' && (
-                  <AddJobForm
-                    jobs={jobs}
-                    excludeUrls={new Set(entries.map(([url]) => url))}
-                    onAddFromList={(job) => saveEntry(job.url, 'found', '', job.title, job.company)}
-                    onAddManual={(url, title, company) => saveEntry(url, 'found', '', title, company)}
-                  />
+      <div className="relative -mx-5 sm:-mx-8">
+        <div className="flex snap-x snap-mandatory items-start gap-4 overflow-x-auto scroll-px-5 px-5 pb-6 sm:scroll-px-8 sm:px-8">
+          {COLUMNS.map((col, ci) => {
+            const items = grouped[col.id];
+            const isOver = dragUrl !== null && overCol === col.id && board?.[dragUrl]?.status !== col.id;
+            return (
+              <Reveal
+                key={col.id}
+                index={ci}
+                as="section"
+                aria-label={col.label}
+                onDragOver={(e: React.DragEvent) => { e.preventDefault(); if (overCol !== col.id) setOverCol(col.id); }}
+                onDragLeave={(e: React.DragEvent) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) setOverCol((c) => (c === col.id ? null : c));
+                }}
+                onDrop={(e: React.DragEvent) => {
+                  e.preventDefault();
+                  if (dragUrl && board?.[dragUrl] && board[dragUrl].status !== col.id) {
+                    const entry = board[dragUrl];
+                    saveEntry(dragUrl, col.id, entry.notes, entry.title ?? '', entry.company ?? '');
+                  }
+                  setDragUrl(null);
+                  setOverCol(null);
+                }}
+                className={cn(
+                  'w-[272px] flex-shrink-0 snap-start rounded-[22px] bg-foreground/[0.035] p-2',
+                  'transition-[background-color,box-shadow] duration-250 ease-out',
+                  isOver && 'bg-hint-soft/70 shadow-[inset_0_0_0_2px_hsl(var(--hint)/0.35)]',
                 )}
-              </div>
-            </div>
-          ))}
+              >
+                <header className="flex items-center gap-2 px-2.5 pb-2.5 pt-2">
+                  <span className={cn('h-2 w-2 rounded-full', col.dot)} aria-hidden />
+                  <h2 className="flex-1 text-[14px] font-semibold tracking-[-0.01em] text-foreground">{col.label}</h2>
+                  <span className="min-w-[24px] rounded-full bg-foreground/[0.06] px-2 py-0.5 text-center text-[12px] font-medium tabular-nums text-muted-foreground">
+                    {items.length}
+                  </span>
+                </header>
+                <div className="min-h-[96px] space-y-2">
+                  {items.map(([url, entry]) => (
+                    <ApplicationCard
+                      key={url}
+                      url={url}
+                      entry={entry}
+                      matchScore={scoreByUrl.get(url)}
+                      onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; setDragUrl(url); }}
+                      onDragEnd={() => { setDragUrl(null); setOverCol(null); }}
+                      onSave={(notes, title, company) => saveEntry(url, entry.status as BoardStatus, notes, title, company)}
+                      onDelete={() => remove.mutate(url)}
+                    />
+                  ))}
+                  {items.length === 0 && col.id !== 'found' && (
+                    <p className="px-3 py-6 text-center text-[12.5px] text-muted-foreground">Drop a card here</p>
+                  )}
+                  {col.id === 'found' && (
+                    <AddJobForm
+                      jobs={jobs}
+                      excludeUrls={new Set(entries.map(([url]) => url))}
+                      onAddFromList={(job) => saveEntry(job.url, 'found', '', job.title, job.company)}
+                      onAddManual={(url, title, company) => saveEntry(url, 'found', '', title, company)}
+                    />
+                  )}
+                </div>
+              </Reveal>
+            );
+          })}
+          <span aria-hidden className="w-px flex-shrink-0" />
         </div>
-        <div className="pointer-events-none absolute right-0 top-0 bottom-4 w-10 bg-gradient-to-l from-background to-transparent sm:hidden" />
+        {/* Edge fade: makes it obvious the lanes keep going */}
+        <div aria-hidden className="pointer-events-none absolute bottom-6 right-0 top-0 w-16 bg-gradient-to-l from-background to-transparent" />
       </div>
     </div>
   );
