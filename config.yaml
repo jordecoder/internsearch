@@ -468,6 +468,7 @@ role_keywords:
   - solutions engineer intern
   - systems engineer intern
   - devops intern
+  - site reliability engineer intern
   - qa intern
   - product analyst intern
   - intern
@@ -792,6 +793,7 @@ sources:
       - solutions engineer intern
       - systems engineer intern
       - devops intern
+      - site reliability engineer intern
       - qa intern
 
   greenhouse:
@@ -1262,6 +1264,10 @@ sources:
         max_results: 25
         time_filter: r86400
       - keywords: "analytics engineer intern"
+        location: Singapore
+        max_results: 25
+        time_filter: r86400
+      - keywords: "site reliability engineer intern"
         location: Singapore
         max_results: 25
         time_filter: r86400
